@@ -6,14 +6,28 @@ import { pool } from "./lib/db";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+const ALLOWED_DOMAINS = ["@sei.com", "@gottameetemall.com"];
+
+function isAllowedEmail(email: string) {
+  const lower = email.toLowerCase();
+  return ALLOWED_DOMAINS.some((domain) => lower.endsWith(domain));
+}
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PostgresAdapter(pool),
   secret: process.env.AUTH_SECRET,
+  pages: {
+    error: "/auth/error",
+  },
   providers: [
     ResendProvider({
       apiKey: process.env.RESEND_API_KEY,
-      from: "Gotta Meet Em All <onboarding@resend.dev>",
+      from: "Gotta Meet Em All <noreply@gottameetemall.com>",
       sendVerificationRequest: async ({ identifier, url }) => {
+        if (!isAllowedEmail(identifier)) {
+          throw new Error("Sign-in is restricted to @sei.com email addresses.");
+        }
+
         if (process.env.NODE_ENV === "development") {
           console.log(`\n======================================================`);
           console.log(`MAGIC LINK for ${identifier}`);
@@ -22,7 +36,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         await resend.emails.send({
-          from: "Gotta Meet Em All <onboarding@resend.dev>",
+          from: "Gotta Meet Em All <noreply@gottameetemall.com>",
           to: identifier,
           subject: "Your sign-in link",
           html: `
@@ -36,4 +50,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
+  callbacks: {
+    async signIn({ user }) {
+      return !!user.email && isAllowedEmail(user.email);
+    },
+  },
 });
