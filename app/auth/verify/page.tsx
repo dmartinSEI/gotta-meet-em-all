@@ -1,0 +1,32 @@
+export default async function VerifyPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ url?: string }>;
+}) {
+  const { url } = await searchParams;
+
+  if (!url) {
+    return (
+      <main className="flex flex-col items-center justify-center min-h-screen gap-4 px-4 text-center">
+        <h1 className="text-2xl font-bold">Gotta Meet Em All</h1>
+        <p className="text-sm text-gray-500">This sign-in link is invalid or incomplete.</p>
+      </main>
+    );
+  }
+
+  return (
+    <main className="flex flex-col items-center justify-center min-h-screen gap-4 px-4 text-center">
+      <h1 className="text-2xl font-bold">Gotta Meet Em All</h1>
+      <p className="text-sm text-gray-500 max-w-sm">
+        Click below to finish signing in. This extra step prevents email security scanners from
+        using up your one-time sign-in link before you do.
+      </p>
+      <a
+        href={url}
+        className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+      >
+        Sign In
+      </a>
+    </main>
+  );
+}

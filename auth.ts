@@ -28,10 +28,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           throw new Error("Sign-in is restricted to @sei.com email addresses.");
         }
 
+        // Route through an intermediate confirmation page rather than the raw
+        // callback URL. Corporate mail security gateways (Barracuda, Defender
+        // Safe Links, etc.) pre-fetch links in emails to scan them, which
+        // consumes single-use magic-link tokens before the real user clicks.
+        // The confirmation page is harmless to pre-fetch; only a human
+        // clicking the button there hits the real token-consuming callback.
+        const confirmUrl = `${new URL(url).origin}/auth/verify?url=${encodeURIComponent(url)}`;
+
         if (process.env.NODE_ENV === "development") {
           console.log(`\n======================================================`);
           console.log(`MAGIC LINK for ${identifier}`);
-          console.log(url);
+          console.log(confirmUrl);
           console.log(`======================================================\n`);
         }
 
@@ -41,7 +49,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           subject: "Your sign-in link",
           html: `
             <p>Click the link below to sign in to Gotta Meet Em All:</p>
-            <a href="${url}" style="display:inline-block;padding:10px 20px;background:#2563eb;color:white;border-radius:6px;text-decoration:none;font-weight:bold;">
+            <a href="${confirmUrl}" style="display:inline-block;padding:10px 20px;background:#2563eb;color:white;border-radius:6px;text-decoration:none;font-weight:bold;">
               Sign In
             </a>
             <p style="color:#888;font-size:12px;margin-top:16px;">Link expires in 24 hours. If you did not request this, you can ignore it.</p>
