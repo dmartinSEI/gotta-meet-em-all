@@ -2,7 +2,8 @@ import NextAuth from "next-auth";
 import ResendProvider from "next-auth/providers/resend";
 import PostgresAdapter from "@auth/pg-adapter";
 import { Resend } from "resend";
-import { pool } from "./lib/db";
+import { randomBytes } from "crypto";
+import { pool, sql } from "./lib/db";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -28,13 +29,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           throw new Error("Sign-in is restricted to @sei.com email addresses.");
         }
 
-        // Route through an intermediate confirmation page rather than the raw
-        // callback URL. Corporate mail security gateways (Barracuda, Defender
-        // Safe Links, etc.) pre-fetch links in emails to scan them, which
-        // consumes single-use magic-link tokens before the real user clicks.
-        // The confirmation page is harmless to pre-fetch; only a human
-        // clicking the button there hits the real token-consuming callback.
-        const confirmUrl = `${new URL(url).origin}/auth/verify?url=${encodeURIComponent(url)}`;
+        // Corporate mail security gateways (Barracuda, Defender Safe Links,
+        // etc.) fetch and crawl links in emails to scan them, which can
+        // consume single-use magic-link tokens before the real user clicks.
+        // The email never contains the real token: it links to an opaque
+        // ticket that's only resolved to the real URL via a POST action
+        // triggered by an actual button click, never via a fetchable GET URL.
+        const ticket = randomBytes(24).toString("hex");
+        await sql`INSERT INTO link_tickets (ticket, url) VALUES (${ticket}, ${url})`;
+        const confirmUrl = `${new URL(url).origin}/auth/verify?ticket=${ticket}`;
 
         if (process.env.NODE_ENV === "development") {
           console.log(`\n======================================================`);

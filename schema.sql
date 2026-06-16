@@ -57,6 +57,16 @@ CREATE TABLE IF NOT EXISTS consultants (
   skills     TEXT   NOT NULL DEFAULT ''
 );
 
+-- Opaque, single-use pointers to real magic-link URLs. Lets the email
+-- contain only a meaningless ticket instead of the real sign-in token,
+-- so corporate link-scanning gateways can't consume the real token by
+-- fetching/crawling the link before the user clicks it.
+CREATE TABLE IF NOT EXISTS link_tickets (
+  ticket     TEXT        PRIMARY KEY,
+  url        TEXT        NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS catches (
   user_id       UUID    NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   consultant_id INTEGER NOT NULL REFERENCES consultants(id) ON DELETE CASCADE,
