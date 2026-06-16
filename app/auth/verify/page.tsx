@@ -1,3 +1,5 @@
+import SignInButton from "./SignInButton";
+
 export default async function VerifyPage({
   searchParams,
 }: {
@@ -21,12 +23,7 @@ export default async function VerifyPage({
         Click below to finish signing in. This extra step prevents email security scanners from
         using up your one-time sign-in link before you do.
       </p>
-      <a
-        href={url}
-        className="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
-      >
-        Sign In
-      </a>
+      <SignInButton url={url} />
     </main>
   );
 }
