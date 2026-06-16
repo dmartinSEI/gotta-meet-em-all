@@ -1,4 +1,4 @@
-const RESTRICTED_ERRORS = new Set(["AccessDenied", "EmailSignin", "Configuration"]);
+const RESTRICTED_ERRORS = new Set(["AccessDenied"]);
 
 export default async function AuthErrorPage({
   searchParams,
