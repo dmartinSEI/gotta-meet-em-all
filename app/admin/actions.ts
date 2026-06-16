@@ -23,7 +23,7 @@ async function insertConsultants(consultants: Consultant[]) {
   const valid = consultants.filter(
     (c) => c.email && EMAIL_RE.test(c.email) && c.first_name && c.last_name
   );
-  if (valid.length === 0) return { success: true, count: 0 };
+  if (valid.length === 0) return { success: true as const, count: 0 };
 
   const params: string[] = [];
   const placeholders = valid.map((c, i) => {
@@ -43,7 +43,7 @@ async function insertConsultants(consultants: Consultant[]) {
     params
   );
 
-  return { success: true, count: valid.length };
+  return { success: true as const, count: valid.length };
 }
 
 // Called directly with pre-parsed data (e.g. from tests or other server code)
