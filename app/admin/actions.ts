@@ -18,6 +18,7 @@ async function requireAdmin() {
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_FILE_BYTES = 5 * 1024 * 1024;
 
 async function insertConsultants(consultants: Consultant[]) {
   const valid = consultants.filter(
@@ -64,6 +65,9 @@ export async function importConsultants(formData: FormData) {
 
     const file = formData.get("file") as File;
     if (!file || file.size === 0) return { success: false as const, error: "No file selected." };
+    if (file.size > MAX_FILE_BYTES) {
+      return { success: false as const, error: "File is too large. Max size is 5MB." };
+    }
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const workbook = XLSX.read(buffer, { type: "buffer" });

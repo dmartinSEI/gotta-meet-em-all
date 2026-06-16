@@ -5,6 +5,8 @@ import { importConsultants } from "./actions";
 
 type Status = { ok: boolean; message: string };
 
+const MAX_FILE_BYTES = 5 * 1024 * 1024;
+
 export default function UploadForm() {
   const formRef = useRef<HTMLFormElement>(null);
   const [loading, setLoading] = useState(false);
@@ -12,10 +14,17 @@ export default function UploadForm() {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setLoading(true);
     setStatus(null);
 
-    const result = await importConsultants(new FormData(e.currentTarget));
+    const formData = new FormData(e.currentTarget);
+    const file = formData.get("file") as File | null;
+    if (file && file.size > MAX_FILE_BYTES) {
+      setStatus({ ok: false, message: "File is too large. Max size is 5MB." });
+      return;
+    }
+
+    setLoading(true);
+    const result = await importConsultants(formData);
 
     if (result.success) {
       const n = result.count;

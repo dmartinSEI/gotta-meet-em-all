@@ -24,10 +24,35 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     ResendProvider({
       apiKey: process.env.RESEND_API_KEY,
       from: "Gotta Meet Em All <noreply@gottameetemall.com>",
-      sendVerificationRequest: async ({ identifier, url }) => {
+      sendVerificationRequest: async ({ identifier, url, request }) => {
         if (!isAllowedEmail(identifier)) {
           throw new Error("Sign-in is restricted to @sei.com email addresses.");
         }
+
+        const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+
+        // Opportunistic cleanup: drop expired tickets and old attempt records
+        // since there's no cron job. Cheap relative to the email send itself.
+        await sql`DELETE FROM link_tickets WHERE created_at < now() - interval '1 hour'`;
+        await sql`DELETE FROM sign_in_attempts WHERE created_at < now() - interval '1 day'`;
+
+        // Rate limit to stop sign-in spam: email-bombing a coworker's inbox
+        // with repeated magic links, or burning the Resend send quota.
+        const { rows: byEmail } = await sql<{ count: string }>`
+          SELECT count(*) FROM sign_in_attempts
+          WHERE identifier = ${identifier} AND created_at > now() - interval '15 minutes'
+        `;
+        if (Number(byEmail[0].count) >= 3) {
+          throw new Error("Too many sign-in requests for this email. Please wait a few minutes and try again.");
+        }
+        const { rows: byIp } = await sql<{ count: string }>`
+          SELECT count(*) FROM sign_in_attempts
+          WHERE ip = ${ip} AND created_at > now() - interval '15 minutes'
+        `;
+        if (Number(byIp[0].count) >= 10) {
+          throw new Error("Too many sign-in requests from this network. Please wait a few minutes and try again.");
+        }
+        await sql`INSERT INTO sign_in_attempts (identifier, ip) VALUES (${identifier}, ${ip})`;
 
         // Corporate mail security gateways (Barracuda, Defender Safe Links,
         // etc.) fetch and crawl links in emails to scan them, which can

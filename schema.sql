@@ -67,6 +67,17 @@ CREATE TABLE IF NOT EXISTS link_tickets (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Tracks magic-link send requests so we can rate-limit sign-in spam
+-- (e.g. email-bombing a coworker, or burning the Resend send quota).
+CREATE TABLE IF NOT EXISTS sign_in_attempts (
+  id         SERIAL      PRIMARY KEY,
+  identifier TEXT        NOT NULL,
+  ip         TEXT        NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS sign_in_attempts_identifier_idx ON sign_in_attempts (identifier, created_at);
+CREATE INDEX IF NOT EXISTS sign_in_attempts_ip_idx ON sign_in_attempts (ip, created_at);
+
 CREATE TABLE IF NOT EXISTS catches (
   user_id       UUID    NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   consultant_id INTEGER NOT NULL REFERENCES consultants(id) ON DELETE CASCADE,
