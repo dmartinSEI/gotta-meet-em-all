@@ -4,8 +4,12 @@ import { sql } from "@/lib/db";
 import { auth } from "../auth";
 import { revalidatePath } from "next/cache";
 import { currentMonth } from "@/lib/bounty";
+import { checkAndAwardBadges } from "@/lib/badges";
+import type { BadgeInfo } from "@/lib/types";
 
-export async function catchConsultant(consultantId: number) {
+type ActionResult = { success: boolean; newBadges: BadgeInfo[] };
+
+export async function catchConsultant(consultantId: number): Promise<ActionResult> {
   try {
     const session = await auth();
     if (!session?.user?.email) throw new Error("Unauthorized");
@@ -28,15 +32,17 @@ export async function catchConsultant(consultantId: number) {
         AND completed_at IS NULL
     `;
 
+    const newBadges = await checkAndAwardBadges(session.user.email).catch(() => []);
+
     revalidatePath("/", "layout");
-    return { success: true };
+    return { success: true, newBadges };
   } catch (error) {
     console.error("Failed to catch:", error);
-    return { success: false };
+    return { success: false, newBadges: [] };
   }
 }
 
-export async function upgradeConsultant(consultantId: number, newLevel: 2 | 3) {
+export async function upgradeConsultant(consultantId: number, newLevel: 2 | 3): Promise<ActionResult> {
   try {
     const session = await auth();
     if (!session?.user?.email) throw new Error("Unauthorized");
@@ -49,15 +55,17 @@ export async function upgradeConsultant(consultantId: number, newLevel: 2 | 3) {
         AND level < ${newLevel}
     `;
 
+    const newBadges = await checkAndAwardBadges(session.user.email).catch(() => []);
+
     revalidatePath("/", "layout");
-    return { success: true };
+    return { success: true, newBadges };
   } catch (error) {
     console.error("Failed to upgrade:", error);
-    return { success: false };
+    return { success: false, newBadges: [] };
   }
 }
 
-export async function uncatchConsultant(consultantId: number) {
+export async function uncatchConsultant(consultantId: number): Promise<{ success: boolean }> {
   try {
     const session = await auth();
     if (!session?.user?.email) throw new Error("Unauthorized");

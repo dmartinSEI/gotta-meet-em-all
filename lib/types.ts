@@ -1,3 +1,10 @@
+export interface BadgeInfo {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+}
+
 export interface Consultant {
   email: string;
   first_name: string;

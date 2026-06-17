@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { catchConsultant, upgradeConsultant, uncatchConsultant } from "./actions";
+import type { BadgeInfo } from "@/lib/types";
 
 type Level = 1 | 2 | 3;
 
@@ -18,6 +19,12 @@ const LEVEL_STYLES: Record<Level, string> = {
 };
 
 const LEVEL_DOTS: Record<Level, string> = { 1: "●○○", 2: "●●○", 3: "●●●" };
+
+function fireBadgeEvent(badges: BadgeInfo[]) {
+  if (badges.length > 0 && typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("badge-earned", { detail: badges }));
+  }
+}
 
 export default function CatchButton({
   consultantId,
@@ -36,7 +43,10 @@ export default function CatchButton({
   async function handleMeet() {
     setLoading(true);
     const result = await catchConsultant(consultantId);
-    if (result.success) setLevel(1);
+    if (result.success) {
+      setLevel(1);
+      fireBadgeEvent(result.newBadges);
+    }
     setLoading(false);
   }
 
@@ -45,7 +55,10 @@ export default function CatchButton({
     setLoading(true);
     const newLevel = (level + 1) as 2 | 3;
     const result = await upgradeConsultant(consultantId, newLevel);
-    if (result.success) setLevel(newLevel);
+    if (result.success) {
+      setLevel(newLevel);
+      fireBadgeEvent(result.newBadges);
+    }
     setLoading(false);
   }
 
