@@ -2,14 +2,12 @@
 
 import { useMemo, useState } from "react";
 import Image from "next/image";
-import CatchButton from "./CatchButton";
 import CardModal from "./CardModal";
 import type { ConsultantRow } from "@/lib/types";
-import { getRarity, RARITY_STYLES } from "@/lib/xp";
+import { getRarity, RARITY_STYLES, CATCH_LEVEL_ICONS, CATCH_LEVEL_LABELS } from "@/lib/xp";
 import { pickPhoto } from "@/lib/cards";
 
 type StatusFilter = "all" | "unmet" | "met";
-type Level = 1 | 2 | 3;
 
 const AVATAR_COLORS = [
   "bg-blue-400", "bg-purple-400", "bg-green-400", "bg-orange-400",
@@ -117,7 +115,7 @@ export default function ConsultantGrid({
                   {c.catch_level !== null && (
                     <div className="absolute inset-0 bg-black/10 flex items-end justify-end p-2">
                       <span className="text-white text-xs font-bold bg-black/40 rounded-full px-2 py-0.5">
-                        Met ✓
+                        {CATCH_LEVEL_ICONS[c.catch_level]} {CATCH_LEVEL_LABELS[c.catch_level]}
                       </span>
                     </div>
                   )}
@@ -152,12 +150,6 @@ export default function ConsultantGrid({
                       )}
                     </div>
                   )}
-                  <div className="mt-auto pt-2" onClick={(e) => e.stopPropagation()}>
-                    <CatchButton
-                      consultantId={c.id}
-                      initialLevel={(c.catch_level as Level | null)}
-                    />
-                  </div>
                 </div>
               </div>
             );
