@@ -5,8 +5,7 @@ import Image from "next/image";
 import CatchButton from "./CatchButton";
 import CardModal from "./CardModal";
 import type { ConsultantRow } from "@/lib/types";
-import { RARITY_STYLES } from "@/lib/xp";
-import type { Rarity } from "@/lib/xp";
+import { getRarity, RARITY_STYLES } from "@/lib/xp";
 import { pickPhoto } from "@/lib/cards";
 
 type StatusFilter = "all" | "unmet" | "met";
@@ -29,10 +28,10 @@ function InitialsAvatar({ name }: { name: string }) {
 
 export default function ConsultantGrid({
   consultants,
-  viewerRarity,
+  rosterSize,
 }: {
   consultants: ConsultantRow[];
-  viewerRarity: Rarity;
+  rosterSize: number;
 }) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -90,8 +89,8 @@ export default function ConsultantGrid({
             const skillList = c.skills
               ? c.skills.split(",").map((s) => s.trim()).filter(Boolean)
               : [];
-            const cardBorder = c.is_own_card
-              ? RARITY_STYLES[viewerRarity]
+            const cardBorder = c.catch_level !== null
+              ? RARITY_STYLES[getRarity(c.consultant_xp, rosterSize)]
               : "border-gray-200";
 
             return (
@@ -170,7 +169,7 @@ export default function ConsultantGrid({
         <CardModal
           consultant={selectedCard.consultant}
           sourceRect={selectedCard.rect}
-          viewerRarity={viewerRarity}
+          rosterSize={rosterSize}
           onClose={() => setSelectedCard(null)}
         />
       )}

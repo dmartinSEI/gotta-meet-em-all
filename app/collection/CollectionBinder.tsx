@@ -4,8 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import CardModal from "../CardModal";
 import type { ConsultantRow } from "@/lib/types";
-import type { Rarity } from "@/lib/xp";
-import { pickPhoto, catchLevelToRarity } from "@/lib/cards";
+import { getRarity, type Rarity } from "@/lib/xp";
+import { pickPhoto } from "@/lib/cards";
 
 type AnimState = "idle" | "exit-fwd" | "exit-back" | "enter-fwd" | "enter-back";
 
@@ -45,10 +45,10 @@ function MiniAvatar({ name }: { name: string }) {
 interface Props {
   consultants: ConsultantRow[];
   totalRoster: number;
-  viewerRarity: Rarity;
+  rosterSize: number;
 }
 
-export default function CollectionBinder({ consultants, totalRoster, viewerRarity }: Props) {
+export default function CollectionBinder({ consultants, totalRoster, rosterSize }: Props) {
   const totalPages = Math.max(1, Math.ceil(consultants.length / CARDS_PER_PAGE));
   const [page, setPage] = useState(0);
   const [anim, setAnim] = useState<AnimState>("idle");
@@ -153,6 +153,7 @@ export default function CollectionBinder({ consultants, totalRoster, viewerRarit
                     <FilledSlot
                       key={consultant.id}
                       consultant={consultant}
+                      rosterSize={rosterSize}
                       onOpen={(c, rect) => setSelectedCard({ consultant: c, rect })}
                     />
                   ) : (
@@ -194,7 +195,7 @@ export default function CollectionBinder({ consultants, totalRoster, viewerRarit
         <CardModal
           consultant={selectedCard.consultant}
           sourceRect={selectedCard.rect}
-          viewerRarity={viewerRarity}
+          rosterSize={rosterSize}
           onClose={() => setSelectedCard(null)}
         />
       )}
@@ -204,12 +205,14 @@ export default function CollectionBinder({ consultants, totalRoster, viewerRarit
 
 function FilledSlot({
   consultant,
+  rosterSize,
   onOpen,
 }: {
   consultant: ConsultantRow;
+  rosterSize: number;
   onOpen: (c: ConsultantRow, rect: DOMRect) => void;
 }) {
-  const rarity = catchLevelToRarity(consultant.catch_level);
+  const rarity = getRarity(consultant.consultant_xp, rosterSize);
   const photo = pickPhoto(consultant);
   const fullName = `${consultant.first_name} ${consultant.last_name}`;
 

@@ -4,7 +4,7 @@ import { auth, signOut } from "../../../auth";
 import { sql } from "@/lib/db";
 import ConsultantGrid from "../../ConsultantGrid";
 import type { ConsultantRow } from "@/lib/types";
-import { getRarity, RARITY_LABELS, RARITY_BADGE_STYLES, XP_PER_LEVEL } from "@/lib/xp";
+import { getRarity, RARITY_LABELS, RARITY_BADGE_STYLES } from "@/lib/xp";
 
 interface OfficeRecord {
   name: string;
@@ -73,7 +73,17 @@ export default async function OfficePage({
          JOIN users cu ON cu.id = ub.user_id
          WHERE cu.email = c.email),
         '[]'::json
-      ) AS badge_ids
+      ) AS badge_ids,
+      (
+        COALESCE((
+          SELECT SUM(CASE ca2.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END)
+          FROM catches ca2 JOIN users cu ON cu.id = ca2.user_id WHERE cu.email = c.email
+        ), 0)
+        + COALESCE((
+          SELECT SUM(b.bonus_xp) FROM bounties b JOIN users cu ON cu.id = b.user_id
+          WHERE cu.email = c.email AND b.completed_at IS NOT NULL
+        ), 0)
+      )::int AS consultant_xp
     FROM consultants c
     WHERE c.office = ${office.name}
     ORDER BY c.last_name, c.first_name
@@ -84,12 +94,6 @@ export default async function OfficePage({
   const pct = total > 0 ? Math.round((met / total) * 100) : 0;
 
   const globalRarity = getRarity(totalXp, globalRosterSize);
-
-  const officeXp = rows.reduce((sum, c) => {
-    if (!c.catch_level) return sum;
-    return sum + XP_PER_LEVEL[c.catch_level as 1 | 2 | 3];
-  }, 0);
-  const officeRarity = getRarity(officeXp, total);
 
   return (
     <main className="p-8 max-w-6xl mx-auto">
@@ -144,7 +148,7 @@ export default async function OfficePage({
             </div>
           </div>
 
-          <ConsultantGrid consultants={rows} viewerRarity={officeRarity} />
+          <ConsultantGrid consultants={rows} rosterSize={globalRosterSize} />
         </>
       )}
     </main>

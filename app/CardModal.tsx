@@ -4,9 +4,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import CatchButton from "./CatchButton";
 import type { ConsultantRow } from "@/lib/types";
-import { RARITY_LABELS, CATCH_LEVEL_LABELS } from "@/lib/xp";
+import { getRarity, RARITY_LABELS, CATCH_LEVEL_LABELS } from "@/lib/xp";
 import type { Rarity } from "@/lib/xp";
-import { pickPhoto, catchLevelToRarity } from "@/lib/cards";
+import { pickPhoto } from "@/lib/cards";
 import { BADGE_MAP } from "@/lib/badge-data";
 
 type Level = 1 | 2 | 3;
@@ -59,16 +59,16 @@ function foilStyle(rarity: Rarity, mx: number, my: number): React.CSSProperties 
 interface Props {
   consultant: ConsultantRow;
   sourceRect: DOMRect;
-  viewerRarity: Rarity;
+  rosterSize: number;
   onClose: () => void;
 }
 
-export default function CardModal({ consultant, sourceRect, viewerRarity, onClose }: Props) {
+export default function CardModal({ consultant, sourceRect, rosterSize, onClose }: Props) {
   const [phase, setPhase]  = useState<Phase>("init");
   const [mouse, setMouse]  = useState({ x: 50, y: 50 });
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const rarity      = consultant.is_own_card ? viewerRarity : catchLevelToRarity(consultant.catch_level);
+  const rarity      = getRarity(consultant.consultant_xp, rosterSize);
   const fullName    = `${consultant.first_name} ${consultant.last_name}`;
   const photo       = pickPhoto(consultant);
   const skillList   = consultant.skills

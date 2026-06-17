@@ -38,4 +38,5 @@ export interface ConsultantRow {
   catch_level: number | null;
   is_own_card: boolean;
   badge_ids: string[];
+  consultant_xp: number;
 }

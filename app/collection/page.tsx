@@ -23,7 +23,17 @@ export default async function CollectionPage() {
            JOIN users cu ON cu.id = ub.user_id
            WHERE cu.email = c.email),
           '[]'::json
-        ) AS badge_ids
+        ) AS badge_ids,
+        (
+          COALESCE((
+            SELECT SUM(CASE ca2.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END)
+            FROM catches ca2 JOIN users cu ON cu.id = ca2.user_id WHERE cu.email = c.email
+          ), 0)
+          + COALESCE((
+            SELECT SUM(b.bonus_xp) FROM bounties b JOIN users cu ON cu.id = b.user_id
+            WHERE cu.email = c.email AND b.completed_at IS NOT NULL
+          ), 0)
+        )::int AS consultant_xp
       FROM consultants c
       JOIN catches ca ON ca.consultant_id = c.id
       JOIN users u ON u.id = ca.user_id
@@ -83,7 +93,7 @@ export default async function CollectionPage() {
         <CollectionBinder
           consultants={rows}
           totalRoster={totalRoster}
-          viewerRarity={viewerRarity}
+          rosterSize={totalRoster}
         />
       )}
     </main>
