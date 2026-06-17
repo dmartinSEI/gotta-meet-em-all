@@ -13,10 +13,17 @@ export default async function CollectionPage() {
   const [{ rows }, { rows: rosterRows }] = await Promise.all([
     sql<ConsultantRow>`
       SELECT
-        c.id, c.first_name, c.last_name, c.title, c.office, c.bio, c.skills,
+        c.id, c.email, c.first_name, c.last_name, c.title, c.office, c.bio, c.skills,
         c.photo_url, c.photo_url_l1, c.photo_url_l2, c.photo_url_l3,
         (c.email = ${session.user.email}) AS is_own_card,
-        ca.level AS catch_level
+        ca.level AS catch_level,
+        COALESCE(
+          (SELECT json_agg(ub.badge_id ORDER BY ub.earned_at)
+           FROM user_badges ub
+           JOIN users cu ON cu.id = ub.user_id
+           WHERE cu.email = c.email),
+          '[]'::json
+        ) AS badge_ids
       FROM consultants c
       JOIN catches ca ON ca.consultant_id = c.id
       JOIN users u ON u.id = ca.user_id

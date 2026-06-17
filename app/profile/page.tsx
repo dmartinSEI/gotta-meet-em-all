@@ -2,7 +2,7 @@ import { auth } from "../../auth";
 import { redirect } from "next/navigation";
 import { sql } from "@/lib/db";
 import ProfileForm from "./ProfileForm";
-import { ALL_BADGES } from "@/lib/badges";
+import { ALL_BADGES } from "@/lib/badge-data";
 
 export default async function ProfilePage() {
   const session = await auth();

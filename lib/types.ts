@@ -24,6 +24,7 @@ export interface OfficeRow {
 
 export interface ConsultantRow {
   id: number;
+  email: string;
   first_name: string;
   last_name: string;
   title: string;
@@ -36,4 +37,5 @@ export interface ConsultantRow {
   photo_url_l3: string;
   catch_level: number | null;
   is_own_card: boolean;
+  badge_ids: string[];
 }

@@ -4,9 +4,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import CatchButton from "./CatchButton";
 import type { ConsultantRow } from "@/lib/types";
-import { RARITY_LABELS, RARITY_BADGE_STYLES, CATCH_LEVEL_LABELS } from "@/lib/xp";
+import { RARITY_LABELS, CATCH_LEVEL_LABELS } from "@/lib/xp";
 import type { Rarity } from "@/lib/xp";
 import { pickPhoto, catchLevelToRarity } from "@/lib/cards";
+import { BADGE_MAP } from "@/lib/badge-data";
 
 type Level = 1 | 2 | 3;
 type Phase = "init" | "flying" | "flipping" | "ready";
@@ -14,38 +15,46 @@ type Phase = "init" | "flying" | "flipping" | "ready";
 const CARD_W = 280;
 const CARD_H = 420;
 
-function foilOverlay(rarity: Rarity, mx: number, my: number): React.CSSProperties {
-  if (rarity === "common") return {};
-  const angle = mx * 1.8;
-  const shine = `radial-gradient(circle at ${mx}% ${my}%, rgba(255,255,255,0.6) 0%, transparent 55%)`;
-  const gradients: Record<Exclude<Rarity, "common">, string> = {
-    uncommon: `${shine}, linear-gradient(135deg, rgba(74,222,128,0.35), rgba(16,185,129,0.2))`,
-    rare:     `${shine}, linear-gradient(135deg, rgba(96,165,250,0.45), rgba(59,130,246,0.25))`,
-    epic:     `${shine}, linear-gradient(135deg, rgba(192,132,252,0.5), rgba(139,92,246,0.3))`,
-    legendary:`${shine}, linear-gradient(${angle}deg, rgba(255,0,128,0.4), rgba(255,165,0,0.4), rgba(64,224,208,0.4), rgba(160,32,240,0.4), rgba(255,0,128,0.4))`,
-  };
-  return {
-    background: gradients[rarity as Exclude<Rarity, "common">],
-    mixBlendMode: "color-dodge" as const,
-    pointerEvents: "none" as const,
-  };
-}
+const RARITY_COLOR: Record<Rarity, string> = {
+  common:    "#d1d5db",
+  uncommon:  "#4ade80",
+  rare:      "#60a5fa",
+  epic:      "#c084fc",
+  legendary: "#fbbf24",
+};
 
-const RARITY_BORDER: Record<Rarity, string> = {
-  common:    "1px solid #e5e7eb",
-  uncommon:  "2px solid #4ade80",
-  rare:      "2px solid #60a5fa",
-  epic:      "2px solid #c084fc",
-  legendary: "2px solid #fbbf24",
+const RARITY_HEADER: Record<Rarity, string> = {
+  common:    "linear-gradient(135deg, #374151 0%, #1f2937 100%)",
+  uncommon:  "linear-gradient(135deg, #166534 0%, #14532d 100%)",
+  rare:      "linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%)",
+  epic:      "linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%)",
+  legendary: "linear-gradient(135deg, #d97706 0%, #92400e 100%)",
 };
 
 const RARITY_GLOW: Record<Rarity, string> = {
   common:    "0 25px 50px rgba(0,0,0,0.4)",
-  uncommon:  "0 0 18px 3px rgba(74,222,128,0.4), 0 25px 50px rgba(0,0,0,0.4)",
-  rare:      "0 0 18px 3px rgba(96,165,250,0.5), 0 25px 50px rgba(0,0,0,0.4)",
-  epic:      "0 0 24px 6px rgba(192,132,252,0.55), 0 25px 50px rgba(0,0,0,0.4)",
-  legendary: "0 0 32px 10px rgba(251,191,36,0.6), 0 25px 50px rgba(0,0,0,0.4)",
+  uncommon:  "0 0 20px 4px rgba(74,222,128,0.35),  0 25px 50px rgba(0,0,0,0.4)",
+  rare:      "0 0 20px 4px rgba(96,165,250,0.4),   0 25px 50px rgba(0,0,0,0.4)",
+  epic:      "0 0 26px 7px rgba(192,132,252,0.45), 0 25px 50px rgba(0,0,0,0.4)",
+  legendary: "0 0 36px 12px rgba(251,191,36,0.55), 0 25px 50px rgba(0,0,0,0.4)",
 };
+
+function foilStyle(rarity: Rarity, mx: number, my: number): React.CSSProperties {
+  if (rarity === "common") return { display: "none" };
+  const angle = mx * 1.8;
+  const shine = `radial-gradient(circle at ${mx}% ${my}%, rgba(255,255,255,0.65) 0%, transparent 55%)`;
+  const overlays: Record<Exclude<Rarity, "common">, string> = {
+    uncommon:  `${shine}, linear-gradient(135deg, rgba(74,222,128,0.4), rgba(16,185,129,0.25))`,
+    rare:      `${shine}, linear-gradient(135deg, rgba(96,165,250,0.5), rgba(59,130,246,0.3))`,
+    epic:      `${shine}, linear-gradient(135deg, rgba(192,132,252,0.55), rgba(139,92,246,0.35))`,
+    legendary: `${shine}, linear-gradient(${angle}deg, rgba(255,0,128,0.45), rgba(255,165,0,0.45), rgba(64,224,208,0.45), rgba(160,32,240,0.45), rgba(255,0,128,0.45))`,
+  };
+  return {
+    background:   overlays[rarity as Exclude<Rarity, "common">],
+    mixBlendMode: "color-dodge" as const,
+    pointerEvents: "none" as const,
+  };
+}
 
 interface Props {
   consultant: ConsultantRow;
@@ -55,43 +64,38 @@ interface Props {
 }
 
 export default function CardModal({ consultant, sourceRect, viewerRarity, onClose }: Props) {
-  const [phase, setPhase] = useState<Phase>("init");
-  const [mouse, setMouse] = useState({ x: 50, y: 50 });
+  const [phase, setPhase]  = useState<Phase>("init");
+  const [mouse, setMouse]  = useState({ x: 50, y: 50 });
   const cardRef = useRef<HTMLDivElement>(null);
 
-  const rarity = consultant.is_own_card
-    ? viewerRarity
-    : catchLevelToRarity(consultant.catch_level);
-
-  const fullName = `${consultant.first_name} ${consultant.last_name}`;
-  const skillList = consultant.skills
+  const rarity      = consultant.is_own_card ? viewerRarity : catchLevelToRarity(consultant.catch_level);
+  const fullName    = `${consultant.first_name} ${consultant.last_name}`;
+  const photo       = pickPhoto(consultant);
+  const skillList   = consultant.skills
     ? consultant.skills.split(",").map((s) => s.trim()).filter(Boolean)
     : [];
+  const earnedBadges = (consultant.badge_ids ?? [])
+    .map((id) => BADGE_MAP.get(id))
+    .filter((b): b is NonNullable<typeof b> => b !== undefined);
 
-  const photo = pickPhoto(consultant);
+  const rarityColor  = RARITY_COLOR[rarity];
+  const cardBorder   = `4px solid ${rarityColor}`;
 
-  // Compute initial offset: make the modal card appear at the source card's screen position
   const initOffset = useMemo(() => {
-    const destCX = window.innerWidth / 2;
+    const destCX = window.innerWidth  / 2;
     const destCY = window.innerHeight / 2;
-    const srcCX = sourceRect.left + sourceRect.width / 2;
-    const srcCY = sourceRect.top + sourceRect.height / 2;
-    return {
-      x: srcCX - destCX,
-      y: srcCY - destCY,
-      scale: sourceRect.width / CARD_W,
-    };
+    const srcCX  = sourceRect.left + sourceRect.width  / 2;
+    const srcCY  = sourceRect.top  + sourceRect.height / 2;
+    return { x: srcCX - destCX, y: srcCY - destCY, scale: sourceRect.width / CARD_W };
   }, [sourceRect]);
 
-  // Phase sequence: init → flying → flipping → ready
   useEffect(() => {
     const raf = requestAnimationFrame(() => setPhase("flying"));
-    const t1 = setTimeout(() => setPhase("flipping"), 420);
-    const t2 = setTimeout(() => setPhase("ready"), 420 + 560);
+    const t1  = setTimeout(() => setPhase("flipping"), 420);
+    const t2  = setTimeout(() => setPhase("ready"),    420 + 560);
     return () => { cancelAnimationFrame(raf); clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
-  // Close on Escape
   useEffect(() => {
     function onKey(e: KeyboardEvent) { if (e.key === "Escape") onClose(); }
     window.addEventListener("keydown", onKey);
@@ -102,27 +106,25 @@ export default function CardModal({ consultant, sourceRect, viewerRarity, onClos
     if (phase !== "ready" || !cardRef.current) return;
     const r = cardRef.current.getBoundingClientRect();
     setMouse({
-      x: Math.round(((e.clientX - r.left) / r.width) * 100),
-      y: Math.round(((e.clientY - r.top) / r.height) * 100),
+      x: Math.round(((e.clientX - r.left)  / r.width)  * 100),
+      y: Math.round(((e.clientY - r.top)   / r.height) * 100),
     });
   }, [phase]);
 
   const handleMouseLeave = useCallback(() => setMouse({ x: 50, y: 50 }), []);
 
-  // Positioner: flies card from source to center
-  const positionerTransform = phase === "init"
+  const positionerTransform  = phase === "init"
     ? `translate(${initOffset.x}px, ${initOffset.y}px) scale(${initOffset.scale})`
     : "translate(0,0) scale(1)";
   const positionerTransition = phase === "flying"
     ? "transform 0.42s cubic-bezier(0.34,1.56,0.64,1)"
     : "none";
 
-  // Flipper: rotates card from front to back, then tracks mouse tilt
   const tiltX = phase === "ready" ? (mouse.y - 50) * 0.14 : 0;
   const tiltY = phase === "ready" ? (mouse.x - 50) * -0.14 : 0;
   const flipperTransform =
-    phase === "init" || phase === "flying"  ? "rotateY(0deg)"
-    : phase === "flipping"                  ? "rotateY(180deg)"
+    phase === "init" || phase === "flying" ? "rotateY(0deg)"
+    : phase === "flipping"                 ? "rotateY(180deg)"
     : `rotateY(${180 + tiltY}deg) rotateX(${tiltX}deg)`;
   const flipperTransition =
     phase === "flipping" ? "transform 0.56s cubic-bezier(0.4,0,0.2,1)"
@@ -133,28 +135,24 @@ export default function CardModal({ consultant, sourceRect, viewerRarity, onClos
     <div
       className="fixed inset-0 z-50 flex flex-col items-center justify-center"
       style={{
-        backgroundColor: phase === "init" ? "rgba(0,0,0,0)" : "rgba(0,0,0,0.72)",
-        backdropFilter: phase === "init" ? "blur(0px)" : "blur(5px)",
+        backgroundColor: phase === "init" ? "rgba(0,0,0,0)"  : "rgba(0,0,0,0.75)",
+        backdropFilter:  phase === "init" ? "blur(0px)"      : "blur(6px)",
         transition: "background-color 0.35s ease, backdrop-filter 0.35s ease",
       }}
       onClick={onClose}
     >
-      {/* Positioner — handles fly from source rect to center */}
       <div
         style={{ transform: positionerTransform, transition: positionerTransition }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Perspective wrapper */}
         <div style={{ perspective: "900px", width: CARD_W, height: CARD_H }}>
-          {/* Flipper — handles flip + tilt */}
           <div
             ref={cardRef}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
             style={{
               position: "relative",
-              width: CARD_W,
-              height: CARD_H,
+              width: CARD_W, height: CARD_H,
               transformStyle: "preserve-3d",
               transform: flipperTransform,
               transition: flipperTransition,
@@ -162,83 +160,174 @@ export default function CardModal({ consultant, sourceRect, viewerRarity, onClos
               boxShadow: RARITY_GLOW[rarity],
             }}
           >
-            {/* ── FRONT FACE ── */}
+
+            {/* ── FRONT FACE (portrait) ──────────────────────────────── */}
             <div style={{
               position: "absolute", inset: 0, backfaceVisibility: "hidden",
-              borderRadius: 16, overflow: "hidden",
-              border: RARITY_BORDER[rarity], background: "#fff",
+              borderRadius: 14, overflow: "hidden",
+              border: cardBorder,
+              background: "#000",
             }}>
               {photo ? (
                 <Image src={photo} alt={fullName} fill sizes="280px" className="object-cover object-top" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-blue-400 text-white font-bold text-5xl">
+                <div className="w-full h-full flex items-center justify-center text-white font-black text-6xl"
+                     style={{ background: RARITY_HEADER[rarity] }}>
                   {fullName.split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase()}
                 </div>
               )}
               <div style={{
                 position: "absolute", bottom: 0, left: 0, right: 0,
-                background: "linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%)",
-                padding: "28px 16px 16px",
+                background: "linear-gradient(to top, rgba(0,0,0,0.88) 0%, transparent 100%)",
+                padding: "36px 16px 16px",
               }}>
                 <p className="text-white font-bold text-lg leading-tight">{fullName}</p>
-                {consultant.title && <p className="text-white/75 text-sm">{consultant.title}</p>}
+                {consultant.title && <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 13 }}>{consultant.title}</p>}
               </div>
             </div>
 
-            {/* ── BACK FACE ── */}
+            {/* ── BACK FACE (TCG info card) ──────────────────────────── */}
             <div style={{
               position: "absolute", inset: 0, backfaceVisibility: "hidden",
               transform: "rotateY(180deg)",
-              borderRadius: 16, overflow: "hidden",
-              border: RARITY_BORDER[rarity],
-              background: "linear-gradient(160deg, #fff 55%, #f5f8ff 100%)",
+              borderRadius: 14, overflow: "hidden",
+              border: cardBorder,
+              background: "#f8fafc",
+              display: "flex", flexDirection: "column",
             }}>
-              {/* Foil shimmer overlay */}
-              <div style={{ position: "absolute", inset: 0, borderRadius: 16, ...foilOverlay(rarity, mouse.x, mouse.y) }} />
 
-              <div className="relative z-10 flex flex-col h-full p-4 gap-3 overflow-y-auto">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="font-bold text-gray-900 leading-tight">{fullName}</p>
-                    {consultant.title  && <p className="text-xs text-gray-500">{consultant.title}</p>}
-                    {consultant.office && <p className="text-xs text-gray-400">{consultant.office}</p>}
+              {/* Rarity-gradient header */}
+              <div style={{ background: RARITY_HEADER[rarity], padding: "10px 12px 9px", flexShrink: 0 }}>
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 6 }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <p style={{ color: "#fff", fontWeight: 900, fontSize: 14, lineHeight: 1.25, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {fullName}
+                    </p>
+                    {consultant.title && (
+                      <p style={{ color: "rgba(255,255,255,0.75)", fontSize: 11, lineHeight: 1.3, marginTop: 1 }}>
+                        {consultant.title}
+                      </p>
+                    )}
+                    {consultant.office && (
+                      <p style={{ color: "rgba(255,255,255,0.50)", fontSize: 10, lineHeight: 1.3, marginTop: 1 }}>
+                        {consultant.office}
+                      </p>
+                    )}
                   </div>
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${RARITY_BADGE_STYLES[rarity]}`}>
+                  <div style={{
+                    background: "rgba(255,255,255,0.18)",
+                    border: "1px solid rgba(255,255,255,0.35)",
+                    color: "#fff",
+                    fontSize: 8, fontWeight: 800,
+                    textTransform: "uppercase", letterSpacing: "0.08em",
+                    padding: "3px 7px", borderRadius: 4,
+                    flexShrink: 0, marginTop: 2, lineHeight: 1.4,
+                  }}>
                     {RARITY_LABELS[rarity]}
-                  </span>
-                </div>
-
-                {consultant.catch_level !== null && (
-                  <div className="text-xs py-1 px-3 rounded-full bg-gray-100 text-gray-600 font-medium self-start">
-                    {CATCH_LEVEL_LABELS[consultant.catch_level]} · {[10, 25, 50][consultant.catch_level - 1]} XP
                   </div>
-                )}
-
-                {consultant.bio ? (
-                  <p className="text-xs text-gray-600 leading-relaxed">{consultant.bio}</p>
-                ) : (
-                  <p className="text-xs text-gray-300 italic">No bio yet.</p>
-                )}
-
-                {skillList.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {skillList.map((skill, i) => (
-                      <span key={i} className="px-1.5 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full border border-blue-100">
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                )}
-
-                <div className="mt-auto">
-                  <CatchButton consultantId={consultant.id} initialLevel={consultant.catch_level as Level | null} />
                 </div>
               </div>
+
+              {/* Bordered image with foil shimmer */}
+              <div style={{
+                margin: "8px 10px 0", height: 138, borderRadius: 8, overflow: "hidden",
+                border: `2.5px solid ${rarityColor}`,
+                flexShrink: 0, position: "relative", background: "#e2e8f0",
+              }}>
+                {photo ? (
+                  <Image src={photo} alt={fullName} fill sizes="260px" className="object-cover object-top" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-white font-black text-4xl"
+                       style={{ background: RARITY_HEADER[rarity] }}>
+                    {fullName.split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase()}
+                  </div>
+                )}
+                <div style={{ position: "absolute", inset: 0, ...foilStyle(rarity, mouse.x, mouse.y) }} />
+              </div>
+
+              {/* Rarity rule */}
+              <div style={{ margin: "8px 10px 0", height: 1, background: `${rarityColor}55`, flexShrink: 0 }} />
+
+              {/* Info content */}
+              <div style={{ flex: 1, overflow: "hidden", padding: "8px 12px 0", display: "flex", flexDirection: "column", gap: 7 }}>
+
+                {/* Catch level */}
+                {consultant.catch_level !== null && (
+                  <div style={{ alignSelf: "flex-start" }}>
+                    <span style={{
+                      fontSize: 10, padding: "2px 8px", borderRadius: 99,
+                      background: "#f1f5f9", border: "1px solid #e2e8f0",
+                      color: "#475569", fontWeight: 600,
+                    }}>
+                      {CATCH_LEVEL_LABELS[consultant.catch_level]} · +{[10, 25, 50][consultant.catch_level - 1]} XP
+                    </span>
+                  </div>
+                )}
+
+                {/* Skills */}
+                {skillList.length > 0 && (
+                  <div>
+                    <p style={{ fontSize: 8, textTransform: "uppercase", letterSpacing: "0.1em", color: "#94a3b8", fontWeight: 700, marginBottom: 4 }}>
+                      Skills
+                    </p>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
+                      {skillList.slice(0, 6).map((skill, i) => (
+                        <span key={i} style={{
+                          padding: "2px 7px", borderRadius: 99,
+                          background: "#eff6ff", color: "#1d4ed8",
+                          fontSize: 9, border: "1px solid #bfdbfe",
+                        }}>
+                          {skill}
+                        </span>
+                      ))}
+                      {skillList.length > 6 && (
+                        <span style={{ fontSize: 9, color: "#94a3b8", alignSelf: "center" }}>
+                          +{skillList.length - 6}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Email */}
+                {consultant.email && (
+                  <p style={{ fontSize: 10, color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    📧 {consultant.email}
+                  </p>
+                )}
+
+                {/* Earned badges */}
+                {earnedBadges.length > 0 && (
+                  <div>
+                    <p style={{ fontSize: 8, textTransform: "uppercase", letterSpacing: "0.1em", color: "#94a3b8", fontWeight: 700, marginBottom: 4 }}>
+                      Achievements
+                    </p>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                      {earnedBadges.map((b) => (
+                        <span key={b.id} title={`${b.name}: ${b.description}`}
+                              style={{ fontSize: 17, lineHeight: 1, cursor: "default" }}>
+                          {b.icon}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+              </div>
+
+              {/* CatchButton */}
+              <div style={{ padding: "8px 12px 12px", borderTop: "1px solid #f1f5f9", flexShrink: 0 }}>
+                <CatchButton
+                  consultantId={consultant.id}
+                  initialLevel={consultant.catch_level as Level | null}
+                />
+              </div>
+
             </div>
           </div>
         </div>
 
-        <p className="text-center text-white/40 text-xs mt-3 select-none">
+        <p style={{ textAlign: "center", color: "rgba(255,255,255,0.35)", fontSize: 11, marginTop: 12, userSelect: "none" }}>
           Click outside or press Esc to close
         </p>
       </div>

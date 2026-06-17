@@ -58,7 +58,7 @@ export default async function OfficePage({
   // Batch 2: consultants for this office
   const { rows } = await sql<ConsultantRow>`
     SELECT
-      c.id, c.first_name, c.last_name, c.title, c.office, c.bio, c.skills,
+      c.id, c.email, c.first_name, c.last_name, c.title, c.office, c.bio, c.skills,
       c.photo_url, c.photo_url_l1, c.photo_url_l2, c.photo_url_l3,
       (c.email = ${session.user.email}) AS is_own_card,
       (
@@ -66,7 +66,14 @@ export default async function OfficePage({
         JOIN users u ON u.id = ca.user_id
         WHERE ca.consultant_id = c.id
           AND u.email = ${session.user.email}
-      ) AS catch_level
+      ) AS catch_level,
+      COALESCE(
+        (SELECT json_agg(ub.badge_id ORDER BY ub.earned_at)
+         FROM user_badges ub
+         JOIN users cu ON cu.id = ub.user_id
+         WHERE cu.email = c.email),
+        '[]'::json
+      ) AS badge_ids
     FROM consultants c
     WHERE c.office = ${office.name}
     ORDER BY c.last_name, c.first_name
