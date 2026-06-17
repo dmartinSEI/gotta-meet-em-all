@@ -9,14 +9,14 @@ import type { BadgeInfo } from "@/lib/types";
 
 type ActionResult = { success: boolean; newBadges: BadgeInfo[] };
 
-export async function catchConsultant(consultantId: number): Promise<ActionResult> {
+export async function catchConsultant(consultantId: number, level: 1 | 2 | 3 = 1): Promise<ActionResult> {
   try {
     const session = await auth();
     if (!session?.user?.email) throw new Error("Unauthorized");
 
     await sql`
       INSERT INTO catches (user_id, consultant_id, level)
-      SELECT id, ${consultantId}, 1
+      SELECT id, ${consultantId}, ${level}
       FROM users
       WHERE email = ${session.user.email}
       ON CONFLICT (user_id, consultant_id) DO NOTHING

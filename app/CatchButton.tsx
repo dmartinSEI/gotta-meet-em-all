@@ -3,22 +3,22 @@
 import { useEffect, useRef, useState } from "react";
 import { catchConsultant, upgradeConsultant, uncatchConsultant } from "./actions";
 import type { BadgeInfo } from "@/lib/types";
+import { CATCH_LEVEL_LABELS, CATCH_LEVEL_ICONS, CATCH_LEVEL_DESC, XP_PER_LEVEL } from "@/lib/xp";
 
 type Level = 1 | 2 | 3;
-
-const LEVEL_LABELS: Record<Level, string> = {
-  1: "Met",
-  2: "Collaborated",
-  3: "Partnered",
-};
+const ALL_LEVELS: Level[] = [1, 2, 3];
 
 const LEVEL_STYLES: Record<Level, string> = {
-  1: "bg-blue-50 text-blue-700 border-blue-200",
+  1: "bg-sky-50 text-sky-700 border-sky-200",
   2: "bg-green-50 text-green-700 border-green-200",
   3: "bg-purple-50 text-purple-700 border-purple-200",
 };
 
-const LEVEL_DOTS: Record<Level, string> = { 1: "●○○", 2: "●●○", 3: "●●●" };
+const LEVEL_HOVER: Record<Level, string> = {
+  1: "hover:bg-sky-50 hover:text-sky-700 hover:border-sky-300",
+  2: "hover:bg-green-50 hover:text-green-700 hover:border-green-300",
+  3: "hover:bg-purple-50 hover:text-purple-700 hover:border-purple-300",
+};
 
 function fireBadgeEvent(badges: BadgeInfo[]) {
   if (badges.length > 0 && typeof window !== "undefined") {
@@ -34,78 +34,96 @@ export default function CatchButton({
   initialLevel?: Level | null;
 }) {
   const [level, setLevel] = useState<Level | null>(initialLevel);
-  const [loading, setLoading] = useState(false);
+  const [loadingLevel, setLoadingLevel] = useState<Level | null>(null);
+  const [removing, setRemoving] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
-  async function handleMeet() {
-    setLoading(true);
-    const result = await catchConsultant(consultantId);
+  const isLoading = loadingLevel !== null || removing;
+
+  async function handleCatch(targetLevel: Level) {
+    setLoadingLevel(targetLevel);
+    const result = await catchConsultant(consultantId, targetLevel);
     if (result.success) {
-      setLevel(1);
+      setLevel(targetLevel);
       fireBadgeEvent(result.newBadges);
     }
-    setLoading(false);
+    setLoadingLevel(null);
   }
 
-  async function handleUpgrade() {
-    if (!level || level >= 3) return;
-    setLoading(true);
-    const newLevel = (level + 1) as 2 | 3;
-    const result = await upgradeConsultant(consultantId, newLevel);
+  async function handleUpgrade(targetLevel: Level) {
+    setLoadingLevel(targetLevel);
+    const result = await upgradeConsultant(consultantId, targetLevel as 2 | 3);
     if (result.success) {
-      setLevel(newLevel);
+      setLevel(targetLevel);
       fireBadgeEvent(result.newBadges);
     }
-    setLoading(false);
+    setLoadingLevel(null);
   }
 
   async function handleUnmeet() {
-    setLoading(true);
+    setRemoving(true);
     const result = await uncatchConsultant(consultantId);
     if (result.success) setLevel(null);
     else setConfirming(false);
-    setLoading(false);
+    setRemoving(false);
   }
 
+  // ── Uncaught: show all 3 options up front ──────────────────────────────
   if (level === null) {
     return (
-      <button
-        onClick={handleMeet}
-        disabled={loading}
-        className="w-full py-1.5 rounded-lg text-sm font-bold border transition-colors disabled:opacity-50 bg-gray-50 text-gray-600 border-gray-200 hover:bg-blue-600 hover:text-white hover:border-blue-600"
-      >
-        {loading ? "…" : "Meet!"}
-      </button>
+      <div className="flex flex-col gap-1">
+        {ALL_LEVELS.map((lvl) => (
+          <button
+            key={lvl}
+            onClick={() => handleCatch(lvl)}
+            disabled={isLoading}
+            className={`w-full py-1.5 px-2 rounded-lg text-xs font-medium border transition-colors disabled:opacity-50 bg-white text-gray-500 border-gray-200 ${LEVEL_HOVER[lvl]}`}
+          >
+            {loadingLevel === lvl
+              ? "…"
+              : `${CATCH_LEVEL_ICONS[lvl]} ${CATCH_LEVEL_LABELS[lvl]}  ·  +${XP_PER_LEVEL[lvl]} XP`}
+          </button>
+        ))}
+      </div>
     );
   }
 
+  // ── Caught: show current tier + upgrades above it + undo ───────────────
+  const upgrades = ALL_LEVELS.filter((lvl) => lvl > level);
+
   return (
     <div className="flex flex-col gap-1.5">
+      {/* Current tier badge */}
       <div className={`w-full py-1.5 rounded-lg text-xs font-semibold border text-center ${LEVEL_STYLES[level]}`}>
-        {LEVEL_DOTS[level]} {LEVEL_LABELS[level]}
+        {CATCH_LEVEL_ICONS[level]} {CATCH_LEVEL_LABELS[level]} ✓
       </div>
 
-      {level < 3 && (
+      {/* Upgrade options for tiers above current */}
+      {upgrades.map((lvl) => (
         <button
-          onClick={handleUpgrade}
-          disabled={loading}
-          className="w-full py-1 rounded-lg text-xs font-medium border transition-colors disabled:opacity-50 bg-white text-gray-500 border-gray-200 hover:bg-gray-50"
+          key={lvl}
+          onClick={() => handleUpgrade(lvl)}
+          disabled={isLoading}
+          className={`w-full py-1 rounded-lg text-xs font-medium border transition-colors disabled:opacity-50 bg-white text-gray-500 border-gray-200 ${LEVEL_HOVER[lvl]}`}
         >
-          {loading ? "…" : `↑ ${LEVEL_LABELS[(level + 1) as Level]}`}
+          {loadingLevel === lvl
+            ? "…"
+            : `↑ ${CATCH_LEVEL_ICONS[lvl]} ${CATCH_LEVEL_LABELS[lvl]}`}
         </button>
-      )}
+      ))}
 
+      {/* Undo with confirmation */}
       {confirming ? (
         <div className="flex gap-1">
           <button
             onClick={handleUnmeet}
-            disabled={loading}
+            disabled={isLoading}
             className="flex-1 py-1 rounded-lg text-xs font-medium border bg-red-50 text-red-600 border-red-200 hover:bg-red-100 disabled:opacity-50"
           >
-            {loading ? "…" : "Remove"}
+            {removing ? "…" : "Remove"}
           </button>
           <button
             onClick={() => setConfirming(false)}

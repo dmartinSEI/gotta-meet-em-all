@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import CatchButton from "./CatchButton";
 import type { ConsultantRow } from "@/lib/types";
-import { getRarity, RARITY_LABELS, CATCH_LEVEL_LABELS } from "@/lib/xp";
+import { getRarity, RARITY_LABELS, CATCH_LEVEL_LABELS, CATCH_LEVEL_ICONS, XP_PER_LEVEL } from "@/lib/xp";
 import type { Rarity } from "@/lib/xp";
 import { pickPhoto } from "@/lib/cards";
 import { BADGE_MAP } from "@/lib/badge-data";
@@ -259,7 +259,7 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
                       background: "#f1f5f9", border: "1px solid #e2e8f0",
                       color: "#475569", fontWeight: 600,
                     }}>
-                      {CATCH_LEVEL_LABELS[consultant.catch_level]} · +{[10, 25, 50][consultant.catch_level - 1]} XP
+                      {CATCH_LEVEL_ICONS[consultant.catch_level]} {CATCH_LEVEL_LABELS[consultant.catch_level]} · +{XP_PER_LEVEL[consultant.catch_level as 1 | 2 | 3]} XP
                     </span>
                   </div>
                 )}

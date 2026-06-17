@@ -43,7 +43,19 @@ export function getRarity(xp: number, rosterSize: number): Rarity {
 }
 
 export const CATCH_LEVEL_LABELS: Record<number, string> = {
-  1: "Met",
+  1: "Connected",
   2: "Collaborated",
-  3: "Partnered",
+  3: "Delivered",
+};
+
+export const CATCH_LEVEL_ICONS: Record<number, string> = {
+  1: "☕",
+  2: "🤝",
+  3: "🚀",
+};
+
+export const CATCH_LEVEL_DESC: Record<number, string> = {
+  1: "grabbed time to talk, or got introduced",
+  2: "worked through a project or problem together",
+  3: "built, shipped, or presented something together",
 };
