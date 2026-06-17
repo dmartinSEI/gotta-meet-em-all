@@ -76,16 +76,20 @@ export default function CatchButton({
     return (
       <div className="flex flex-col gap-1">
         {ALL_LEVELS.map((lvl) => (
-          <button
-            key={lvl}
-            onClick={() => handleCatch(lvl)}
-            disabled={isLoading}
-            className={`w-full py-1.5 px-2 rounded-lg text-xs font-medium border transition-colors disabled:opacity-50 bg-white text-gray-500 border-gray-200 ${LEVEL_HOVER[lvl]}`}
-          >
-            {loadingLevel === lvl
-              ? "…"
-              : `${CATCH_LEVEL_ICONS[lvl]} ${CATCH_LEVEL_LABELS[lvl]}  ·  +${XP_PER_LEVEL[lvl]} XP`}
-          </button>
+          <div key={lvl} className="relative group">
+            <div className="absolute bottom-full left-0 right-0 mb-1.5 px-2 py-1 bg-gray-900 text-white text-[10px] leading-snug rounded-md text-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-10">
+              {CATCH_LEVEL_DESC[lvl]}
+            </div>
+            <button
+              onClick={() => handleCatch(lvl)}
+              disabled={isLoading}
+              className={`w-full py-1.5 px-2 rounded-lg text-xs font-medium border transition-colors disabled:opacity-50 bg-white text-gray-500 border-gray-200 ${LEVEL_HOVER[lvl]}`}
+            >
+              {loadingLevel === lvl
+                ? "…"
+                : `${CATCH_LEVEL_ICONS[lvl]} ${CATCH_LEVEL_LABELS[lvl]}  ·  +${XP_PER_LEVEL[lvl]} XP`}
+            </button>
+          </div>
         ))}
       </div>
     );
@@ -103,16 +107,20 @@ export default function CatchButton({
 
       {/* Upgrade options for tiers above current */}
       {upgrades.map((lvl) => (
-        <button
-          key={lvl}
-          onClick={() => handleUpgrade(lvl)}
-          disabled={isLoading}
-          className={`w-full py-1 rounded-lg text-xs font-medium border transition-colors disabled:opacity-50 bg-white text-gray-500 border-gray-200 ${LEVEL_HOVER[lvl]}`}
-        >
-          {loadingLevel === lvl
-            ? "…"
-            : `↑ ${CATCH_LEVEL_ICONS[lvl]} ${CATCH_LEVEL_LABELS[lvl]}`}
-        </button>
+        <div key={lvl} className="relative group">
+          <div className="absolute bottom-full left-0 right-0 mb-1.5 px-2 py-1 bg-gray-900 text-white text-[10px] leading-snug rounded-md text-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none z-10">
+            {CATCH_LEVEL_DESC[lvl]}
+          </div>
+          <button
+            onClick={() => handleUpgrade(lvl)}
+            disabled={isLoading}
+            className={`w-full py-1 rounded-lg text-xs font-medium border transition-colors disabled:opacity-50 bg-white text-gray-500 border-gray-200 ${LEVEL_HOVER[lvl]}`}
+          >
+            {loadingLevel === lvl
+              ? "…"
+              : `↑ ${CATCH_LEVEL_ICONS[lvl]} ${CATCH_LEVEL_LABELS[lvl]}`}
+          </button>
+        </div>
       ))}
 
       {/* Undo with confirmation */}
