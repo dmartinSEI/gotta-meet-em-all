@@ -119,6 +119,9 @@ export default async function OfficePage({
           <h1 className="text-3xl font-bold">{office.name}</h1>
         </div>
         <div className="flex items-center gap-4">
+          <Link href="/collection" className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+            My Collection
+          </Link>
           <Link href="/profile" className="text-sm text-blue-600 hover:text-blue-800 font-medium">
             My Profile
           </Link>
