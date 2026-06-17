@@ -6,9 +6,9 @@ import { catchConsultant, upgradeConsultant, uncatchConsultant } from "./actions
 type Level = 1 | 2 | 3;
 
 const LEVEL_LABELS: Record<Level, string> = {
-  1: "Introduced",
-  2: "Hung Out",
-  3: "Worked Together",
+  1: "Met",
+  2: "Collaborated",
+  3: "Partnered",
 };
 
 const LEVEL_STYLES: Record<Level, string> = {

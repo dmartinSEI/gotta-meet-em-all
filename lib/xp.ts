@@ -42,7 +42,7 @@ export function getRarity(xp: number, rosterSize: number): Rarity {
 }
 
 export const CATCH_LEVEL_LABELS: Record<number, string> = {
-  1: "Introduced",
-  2: "Hung Out",
-  3: "Worked Together",
+  1: "Met",
+  2: "Collaborated",
+  3: "Partnered",
 };
