@@ -54,7 +54,8 @@ CREATE TABLE IF NOT EXISTS consultants (
   title      TEXT   NOT NULL DEFAULT '',
   office     TEXT   NOT NULL DEFAULT '',
   bio        TEXT   NOT NULL DEFAULT '',
-  skills     TEXT   NOT NULL DEFAULT ''
+  skills     TEXT   NOT NULL DEFAULT '',
+  photo_url  TEXT   NOT NULL DEFAULT ''
 );
 
 -- Opaque, single-use pointers to real magic-link URLs. Lets the email

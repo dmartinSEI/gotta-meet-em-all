@@ -14,6 +14,7 @@ export interface ConsultantRow {
   office: string;
   bio: string;
   skills: string;
+  photo_url: string;
   is_caught: boolean;
   is_own_card: boolean;
 }

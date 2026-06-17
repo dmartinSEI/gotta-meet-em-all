@@ -1,7 +1,9 @@
 "use server";
 
 import * as XLSX from "xlsx";
+import { put } from "@vercel/blob";
 import { pool } from "@/lib/db";
+import { sql } from "@/lib/db";
 import { auth } from "../../auth";
 import type { Consultant } from "@/lib/types";
 
@@ -85,5 +87,62 @@ export async function importConsultants(formData: FormData) {
   } catch (error) {
     console.error("importConsultants error:", error);
     return { success: false as const, error: "Import failed. Check the file format and try again." };
+  }
+}
+
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+
+export async function importPhotos(formData: FormData) {
+  try {
+    await requireAdmin();
+
+    const files = formData.getAll("photos") as File[];
+    if (files.length === 0 || (files.length === 1 && files[0].size === 0)) {
+      return { success: false as const, error: "No files selected." };
+    }
+
+    let matched = 0;
+    const unmatched: string[] = [];
+    const errors: string[] = [];
+
+    for (const file of files) {
+      if (file.size === 0) continue;
+      if (file.size > MAX_FILE_BYTES) {
+        errors.push(`${file.name}: file too large (max 5MB)`);
+        continue;
+      }
+      if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+        errors.push(`${file.name}: unsupported type (use jpg, png, or webp)`);
+        continue;
+      }
+
+      // Filename convention: dmartin@sei.com.jpg → email = dmartin@sei.com
+      const email = file.name.replace(/\.[^.]+$/, "").toLowerCase().trim();
+      if (!email.includes("@")) {
+        errors.push(`${file.name}: filename must be the consultant's email address`);
+        continue;
+      }
+
+      const { url } = await put(`photos/${email}`, file, {
+        access: "public",
+        addRandomSuffix: false,
+        contentType: file.type,
+      });
+
+      const result = await sql`
+        UPDATE consultants SET photo_url = ${url} WHERE email = ${email}
+      `;
+
+      if (result.rowCount === 0) {
+        unmatched.push(file.name);
+      } else {
+        matched++;
+      }
+    }
+
+    return { success: true as const, matched, unmatched, errors };
+  } catch (error) {
+    console.error("importPhotos error:", error);
+    return { success: false as const, error: "Photo import failed. Please try again." };
   }
 }

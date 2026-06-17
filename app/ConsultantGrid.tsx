@@ -1,10 +1,26 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import CatchButton from "./CatchButton";
 import type { ConsultantRow } from "@/lib/types";
 
 type StatusFilter = "all" | "unmet" | "met";
+
+const AVATAR_COLORS = [
+  "bg-blue-400", "bg-purple-400", "bg-green-400", "bg-orange-400",
+  "bg-pink-400", "bg-teal-400", "bg-indigo-400", "bg-rose-400",
+];
+
+function InitialsAvatar({ name }: { name: string }) {
+  const initials = name.split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase();
+  const color = AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
+  return (
+    <div className={`w-full h-full flex items-center justify-center text-white font-bold text-3xl ${color}`}>
+      {initials}
+    </div>
+  );
+}
 
 export default function ConsultantGrid({ consultants }: { consultants: ConsultantRow[] }) {
   const [search, setSearch] = useState("");
@@ -75,49 +91,71 @@ export default function ConsultantGrid({ consultants }: { consultants: Consultan
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {filtered.map((c) => {
-            const isOwnCard = c.is_own_card;
+            const fullName = `${c.first_name} ${c.last_name}`;
             const skillList = c.skills
               ? c.skills.split(",").map((s) => s.trim()).filter(Boolean)
               : [];
             return (
               <div
                 key={c.id}
-                className={`flex flex-col border rounded-xl p-4 gap-1 bg-white shadow-sm ${isOwnCard ? "ring-2 ring-blue-400" : ""}`}
+                className={`flex flex-col rounded-xl overflow-hidden bg-white shadow-sm border transition-shadow hover:shadow-md ${
+                  c.is_own_card ? "ring-2 ring-blue-400" : ""
+                } ${c.is_caught ? "opacity-75" : ""}`}
               >
-                <div className="flex items-start justify-between gap-1">
-                  <p className="font-semibold text-gray-900">
-                    {c.first_name} {c.last_name}
-                  </p>
-                  {isOwnCard && (
-                    <a
-                      href="/profile"
-                      className="text-xs text-blue-500 hover:text-blue-700 shrink-0"
-                    >
-                      Edit
-                    </a>
+                {/* Portrait */}
+                <div className="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden">
+                  {c.photo_url ? (
+                    <Image
+                      src={c.photo_url}
+                      alt={fullName}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      className="object-cover object-top"
+                    />
+                  ) : (
+                    <InitialsAvatar name={fullName} />
+                  )}
+                  {c.is_caught && (
+                    <div className="absolute inset-0 bg-black/20 flex items-end justify-end p-2">
+                      <span className="text-white text-xs font-bold bg-green-600 rounded-full px-2 py-0.5">
+                        Met ✓
+                      </span>
+                    </div>
                   )}
                 </div>
-                {c.title && <p className="text-sm text-gray-500">{c.title}</p>}
-                {c.office && <p className="text-xs text-gray-400">{c.office}</p>}
-                {skillList.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {skillList.slice(0, 3).map((skill, i) => (
-                      <span
-                        key={i}
-                        className="px-1.5 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full border border-blue-100"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                    {skillList.length > 3 && (
-                      <span className="px-1.5 py-0.5 text-gray-400 text-xs">
-                        +{skillList.length - 3} more
-                      </span>
+
+                {/* Info */}
+                <div className="flex flex-col gap-1 p-3 flex-1">
+                  <div className="flex items-start justify-between gap-1">
+                    <p className="font-semibold text-gray-900 leading-tight">{fullName}</p>
+                    {c.is_own_card && (
+                      <a href="/profile" className="text-xs text-blue-500 hover:text-blue-700 shrink-0">
+                        Edit
+                      </a>
                     )}
                   </div>
-                )}
-                <div className="mt-3">
-                  <CatchButton consultantId={c.id} initialCaught={c.is_caught} />
+                  {c.title && <p className="text-xs text-gray-500">{c.title}</p>}
+                  {c.office && <p className="text-xs text-gray-400">{c.office}</p>}
+                  {skillList.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {skillList.slice(0, 3).map((skill, i) => (
+                        <span
+                          key={i}
+                          className="px-1.5 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full border border-blue-100"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                      {skillList.length > 3 && (
+                        <span className="px-1.5 py-0.5 text-gray-400 text-xs">
+                          +{skillList.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  <div className="mt-auto pt-2">
+                    <CatchButton consultantId={c.id} initialCaught={c.is_caught} />
+                  </div>
                 </div>
               </div>
             );
