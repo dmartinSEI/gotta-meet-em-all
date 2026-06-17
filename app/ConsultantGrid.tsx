@@ -5,7 +5,8 @@ import Image from "next/image";
 import CatchButton from "./CatchButton";
 import CardModal from "./CardModal";
 import type { ConsultantRow } from "@/lib/types";
-import { getRarity, RARITY_STYLES, XP_PER_LEVEL } from "@/lib/xp";
+import { RARITY_STYLES } from "@/lib/xp";
+import type { Rarity } from "@/lib/xp";
 
 type StatusFilter = "all" | "unmet" | "met";
 type Level = 1 | 2 | 3;
@@ -35,41 +36,26 @@ function pickPhoto(c: ConsultantRow): string {
 
 export default function ConsultantGrid({
   consultants,
-  rosterSize,
+  rosterSize: _rosterSize,
+  viewerRarity,
 }: {
   consultants: ConsultantRow[];
   rosterSize: number;
+  viewerRarity: Rarity;
 }) {
   const [search, setSearch] = useState("");
-  const [officeFilter, setOfficeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [selectedCard, setSelectedCard] = useState<{ consultant: ConsultantRow; rect: DOMRect } | null>(null);
-
-  const offices = useMemo(
-    () => ["all", ...Array.from(new Set(consultants.map((c) => c.office).filter(Boolean))).sort()],
-    [consultants]
-  );
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
     return consultants.filter((c) => {
       if (q && !`${c.first_name} ${c.last_name}`.toLowerCase().includes(q)) return false;
-      if (officeFilter !== "all" && c.office !== officeFilter) return false;
       if (statusFilter === "met" && c.catch_level === null) return false;
       if (statusFilter === "unmet" && c.catch_level !== null) return false;
       return true;
     });
-  }, [consultants, search, officeFilter, statusFilter]);
-
-  // Viewer's own XP and rarity (for their own card border)
-  const viewerXp = useMemo(
-    () => consultants.reduce((sum, c) => {
-      if (!c.catch_level) return sum;
-      return sum + XP_PER_LEVEL[c.catch_level as Level];
-    }, 0),
-    [consultants]
-  );
-  const viewerRarity = getRarity(viewerXp, rosterSize);
+  }, [consultants, search, statusFilter]);
 
   return (
     <div>
@@ -82,17 +68,6 @@ export default function ConsultantGrid({
           onChange={(e) => setSearch(e.target.value)}
           className="flex-1 min-w-48 px-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-        <select
-          value={officeFilter}
-          onChange={(e) => setOfficeFilter(e.target.value)}
-          className="px-4 py-2 border rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          {offices.map((o) => (
-            <option key={o} value={o}>
-              {o === "all" ? "All offices" : o}
-            </option>
-          ))}
-        </select>
         <div className="flex rounded-lg border overflow-hidden text-sm">
           {(["all", "unmet", "met"] as StatusFilter[]).map((s) => (
             <button

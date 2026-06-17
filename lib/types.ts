@@ -6,6 +6,16 @@ export interface Consultant {
   office?: string;
 }
 
+export interface OfficeRow {
+  name: string;
+  slug: string;
+  unlock_xp: number;
+  description: string;
+  sort_order: number;
+  total_count: number;
+  met_count: number;
+}
+
 export interface ConsultantRow {
   id: number;
   first_name: string;

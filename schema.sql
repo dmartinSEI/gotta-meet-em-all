@@ -89,3 +89,22 @@ CREATE TABLE IF NOT EXISTS catches (
   caught_at     TIMESTAMPTZ  NOT NULL DEFAULT now(),
   PRIMARY KEY (user_id, consultant_id)
 );
+
+-- One row per SEI office/region. The slug is the URL segment (/office/cincinnati).
+-- unlock_xp = global XP a user must have to browse this office.
+-- 0 = always accessible; >0 = locked until threshold is reached.
+CREATE TABLE IF NOT EXISTS offices (
+  id          SERIAL  PRIMARY KEY,
+  name        TEXT    UNIQUE NOT NULL,  -- matches consultants.office exactly
+  slug        TEXT    UNIQUE NOT NULL,
+  unlock_xp   INTEGER NOT NULL DEFAULT 0,
+  description TEXT    NOT NULL DEFAULT '',
+  sort_order  INTEGER NOT NULL DEFAULT 0
+);
+
+-- Seed the initial offices.
+INSERT INTO offices (name, slug, unlock_xp, description, sort_order) VALUES
+  ('Cincinnati', 'cincinnati', 0,   'Home base.',      1),
+  ('Services',   'services',   0,   'SEI Services.',   2),
+  ('Charlotte',  'charlotte',  100, 'Charlotte office.', 3)
+ON CONFLICT (name) DO NOTHING;
