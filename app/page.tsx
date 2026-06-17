@@ -2,25 +2,60 @@ import Link from "next/link";
 import { auth, signOut } from "../auth";
 import { sql } from "@/lib/db";
 import type { OfficeRow } from "@/lib/types";
-import { getRarity, RARITY_LABELS, RARITY_BADGE_STYLES } from "@/lib/xp";
+import { getRarity, RARITY_LABELS } from "@/lib/xp";
 import { getOrAssignBounty } from "@/lib/bounty";
 import BountyCard from "./BountyCard";
+import type { Rarity } from "@/lib/xp";
+
+const HEADER_RARITY: Record<Rarity, string> = {
+  common:    "bg-white/10 text-white/80 border border-white/20",
+  uncommon:  "bg-green-400/20 text-green-300 border border-green-400/40",
+  rare:      "bg-blue-400/20 text-blue-300 border border-blue-400/40",
+  epic:      "bg-purple-400/20 text-purple-200 border border-purple-400/40",
+  legendary: "bg-yellow-400/20 text-yellow-300 border border-yellow-400/40",
+};
+
+function SeiLogoMark({ size = 32 }: { size?: number }) {
+  const s = size;
+  return (
+    <div className="relative shrink-0" style={{ width: s, height: s }}>
+      <div className="absolute inset-0 rounded-full border-[2.5px] border-[#C8102E]" />
+      <div
+        className="absolute rounded-full border-[1.5px] border-[#C8102E]"
+        style={{ inset: Math.round(s * 0.22) }}
+      />
+      <div
+        className="absolute rounded-full bg-[#C8102E]"
+        style={{ inset: Math.round(s * 0.38) }}
+      />
+    </div>
+  );
+}
 
 export default async function HomePage() {
   const session = await auth();
 
   if (!session?.user?.email) {
     return (
-      <main className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <h1 className="text-4xl font-bold">Gotta Meet Em All</h1>
-        <p className="text-gray-500">Sign in to start meeting your colleagues.</p>
-        <a
-          href="/api/auth/signin"
-          className="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
-        >
-          Sign In
-        </a>
-      </main>
+      <div className="min-h-screen bg-[#2D1B4E] flex flex-col items-center justify-center relative overflow-hidden">
+        <svg className="absolute inset-0 w-full h-full opacity-10" aria-hidden>
+          {[80, 140, 200, 260, 320, 380, 440].map((r) => (
+            <circle key={r} cx="50%" cy="50%" r={r} fill="none" stroke="#C8102E" strokeWidth="1" />
+          ))}
+        </svg>
+        <div className="relative flex flex-col items-center text-center px-6">
+          <SeiLogoMark size={56} />
+          <p className="text-[#C8102E] text-[10px] font-bold tracking-[0.3em] uppercase mt-4 mb-1">SEI</p>
+          <h1 className="text-white font-black text-5xl tracking-tight mb-3">Gotta Meet Em All</h1>
+          <p className="text-white/40 text-sm mb-10">Gamified colleague networking for the firm.</p>
+          <a
+            href="/api/auth/signin"
+            className="px-7 py-3 bg-[#C8102E] text-white rounded-xl font-bold text-sm hover:bg-[#a50d25] transition-colors"
+          >
+            Sign in with SEI Email →
+          </a>
+        </div>
+      </div>
     );
   }
 
@@ -62,73 +97,134 @@ export default async function HomePage() {
   const rarity = getRarity(totalXp, globalRosterSize);
 
   return (
-    <main className="p-8 max-w-5xl mx-auto">
-      <div className="flex items-center justify-between mb-10">
-        <h1 className="text-3xl font-bold">Gotta Meet Em All</h1>
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-400">{totalXp} XP</span>
-          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${RARITY_BADGE_STYLES[rarity]}`}>
-            {RARITY_LABELS[rarity]}
-          </span>
-          <Link href="/leaderboard" className="text-sm text-blue-600 hover:text-blue-800 font-medium">
-            Leaderboard
-          </Link>
-          <Link href="/collection" className="text-sm text-blue-600 hover:text-blue-800 font-medium">
-            My Collection
-          </Link>
-          <Link href="/profile" className="text-sm text-blue-600 hover:text-blue-800 font-medium">
-            My Profile
-          </Link>
-          <form action={async () => { "use server"; await signOut(); }}>
-            <button className="text-sm text-gray-400 hover:text-gray-600">Sign out</button>
-          </form>
-        </div>
-      </div>
+    <div className="min-h-screen">
 
-      {bounty && <BountyCard bounty={bounty} />}
+      {/* ── Header ──────────────────────────────────────────────── */}
+      <header className="relative bg-[#2D1B4E] overflow-hidden">
+        {/* Concentric circle decoration */}
+        <svg
+          className="absolute right-0 top-0 h-full w-80 opacity-[0.12]"
+          viewBox="0 0 320 80"
+          preserveAspectRatio="xMaxYMid meet"
+          aria-hidden
+        >
+          {[35, 65, 95, 125, 155, 185, 215, 250].map((r) => (
+            <circle key={r} cx="320" cy="40" r={r} fill="none" stroke="#C8102E" strokeWidth="1" />
+          ))}
+        </svg>
 
-      {officeRows.length === 0 ? (
-        <p className="text-gray-500">
-          No offices set up yet.{" "}
-          <a href="/admin" className="text-blue-600 underline">Go to admin</a>{" "}
-          to get started.
-        </p>
-      ) : (
-        <>
-          <p className="text-sm text-gray-400 mb-5">Choose an office to start meeting people.</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {officeRows.map((office) => {
-              const pct =
-                office.total_count > 0
-                  ? Math.round((office.met_count / office.total_count) * 100)
-                  : 0;
-              return (
-                <Link
-                  key={office.name}
-                  href={`/office/${office.slug}`}
-                  className="flex flex-col gap-3 p-5 bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all"
-                >
-                  <div>
-                    <p className="font-bold text-gray-900 text-lg leading-tight">{office.name}</p>
-                    {office.description && (
-                      <p className="text-xs text-gray-400 mt-0.5">{office.description}</p>
-                    )}
-                  </div>
-                  <p className="text-sm text-gray-500">
-                    {office.met_count} / {office.total_count} met &mdash; {pct}%
-                  </p>
-                  <div className="w-full bg-gray-100 rounded-full h-1.5">
-                    <div
-                      className="bg-blue-500 h-1.5 rounded-full transition-all"
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                </Link>
-              );
-            })}
+        <div className="relative max-w-5xl mx-auto px-8 py-5 flex items-center justify-between gap-6">
+          {/* Brand */}
+          <div className="flex items-center gap-3 shrink-0">
+            <SeiLogoMark size={34} />
+            <div>
+              <p className="text-[#C8102E] text-[8px] font-black tracking-[0.25em] uppercase leading-none mb-1">
+                SEI
+              </p>
+              <h1 className="text-white font-black text-xl leading-none tracking-tight">
+                Gotta Meet Em All
+              </h1>
+            </div>
           </div>
-        </>
-      )}
-    </main>
+
+          {/* Nav + XP */}
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-white/50 text-sm tabular-nums">{totalXp} XP</span>
+              <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${HEADER_RARITY[rarity]}`}>
+                {RARITY_LABELS[rarity]}
+              </span>
+            </div>
+            <div className="w-px h-4 bg-white/20 shrink-0" />
+            <nav className="flex items-center gap-4 flex-wrap">
+              <Link href="/leaderboard"
+                className="text-white/65 hover:text-white text-sm font-medium transition-colors whitespace-nowrap">
+                Leaderboard
+              </Link>
+              <Link href="/collection"
+                className="text-white/65 hover:text-white text-sm font-medium transition-colors whitespace-nowrap">
+                My Collection
+              </Link>
+              <Link href="/profile"
+                className="text-white/65 hover:text-white text-sm font-medium transition-colors whitespace-nowrap">
+                My Profile
+              </Link>
+              <form action={async () => { "use server"; await signOut(); }}>
+                <button className="text-white/35 hover:text-white/65 text-sm transition-colors">
+                  Sign out
+                </button>
+              </form>
+            </nav>
+          </div>
+        </div>
+      </header>
+
+      {/* ── Content ─────────────────────────────────────────────── */}
+      <main className="max-w-5xl mx-auto px-8 py-8">
+
+        {bounty && <BountyCard bounty={bounty} />}
+
+        {officeRows.length === 0 ? (
+          <p className="text-[#2D1B4E]/50">
+            No offices set up yet.{" "}
+            <a href="/admin" className="text-[#C8102E] underline">Go to admin</a>{" "}
+            to get started.
+          </p>
+        ) : (
+          <>
+            <p className="text-[9px] font-black tracking-[0.2em] uppercase text-[#2D1B4E]/40 mb-5">
+              Choose an office
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {officeRows.map((office) => {
+                const pct =
+                  office.total_count > 0
+                    ? Math.round((office.met_count / office.total_count) * 100)
+                    : 0;
+                const done = pct === 100 && office.total_count > 0;
+                return (
+                  <Link
+                    key={office.name}
+                    href={`/office/${office.slug}`}
+                    className="group flex flex-col gap-3 p-5 bg-white rounded-2xl border border-[#2D1B4E]/10 shadow-sm hover:shadow-lg hover:border-[#C8102E]/30 transition-all duration-200"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="font-bold text-[#2D1B4E] text-lg leading-tight group-hover:text-[#C8102E] transition-colors truncate">
+                          {office.name}
+                        </p>
+                        {office.description && (
+                          <p className="text-xs text-[#2D1B4E]/40 mt-0.5 truncate">{office.description}</p>
+                        )}
+                      </div>
+                      <span
+                        className="text-lg font-black tabular-nums shrink-0"
+                        style={{ color: done ? "#16a34a" : "#C8102E" }}
+                      >
+                        {pct}%
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-xs text-[#2D1B4E]/40 mb-2">
+                        {office.met_count} of {office.total_count} connected
+                      </p>
+                      <div className="w-full rounded-full h-1.5 overflow-hidden bg-[#2D1B4E]/8">
+                        <div
+                          className="h-1.5 rounded-full transition-all duration-500"
+                          style={{
+                            width: `${pct}%`,
+                            background: done ? "#16a34a" : "#C8102E",
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </>
+        )}
+      </main>
+    </div>
   );
 }
