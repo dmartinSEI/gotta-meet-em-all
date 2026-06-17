@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import CatchButton from "./CatchButton";
+import CardModal from "./CardModal";
 import type { ConsultantRow } from "@/lib/types";
 import { getRarity, RARITY_STYLES, XP_PER_LEVEL } from "@/lib/xp";
 
@@ -42,6 +43,7 @@ export default function ConsultantGrid({
   const [search, setSearch] = useState("");
   const [officeFilter, setOfficeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [selectedCard, setSelectedCard] = useState<ConsultantRow | null>(null);
 
   const offices = useMemo(
     () => ["all", ...Array.from(new Set(consultants.map((c) => c.office).filter(Boolean))).sort()],
@@ -129,7 +131,8 @@ export default function ConsultantGrid({
             return (
               <div
                 key={c.id}
-                className={`flex flex-col rounded-xl overflow-hidden bg-white shadow-sm border transition-shadow hover:shadow-md ${cardBorder} ${
+                onClick={() => setSelectedCard(c)}
+                className={`flex flex-col rounded-xl overflow-hidden bg-white shadow-sm border transition-shadow hover:shadow-md cursor-pointer ${cardBorder} ${
                   c.catch_level !== null && !c.is_own_card ? "opacity-80" : ""
                 }`}
               >
@@ -184,7 +187,7 @@ export default function ConsultantGrid({
                       )}
                     </div>
                   )}
-                  <div className="mt-auto pt-2">
+                  <div className="mt-auto pt-2" onClick={(e) => e.stopPropagation()}>
                     <CatchButton
                       consultantId={c.id}
                       initialLevel={(c.catch_level as Level | null)}
@@ -195,6 +198,14 @@ export default function ConsultantGrid({
             );
           })}
         </div>
+      )}
+
+      {selectedCard && (
+        <CardModal
+          consultant={selectedCard}
+          viewerRarity={viewerRarity}
+          onClose={() => setSelectedCard(null)}
+        />
       )}
     </div>
   );
