@@ -43,7 +43,7 @@ export default function ConsultantGrid({
   const [search, setSearch] = useState("");
   const [officeFilter, setOfficeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [selectedCard, setSelectedCard] = useState<ConsultantRow | null>(null);
+  const [selectedCard, setSelectedCard] = useState<{ consultant: ConsultantRow; rect: DOMRect } | null>(null);
 
   const offices = useMemo(
     () => ["all", ...Array.from(new Set(consultants.map((c) => c.office).filter(Boolean))).sort()],
@@ -131,7 +131,7 @@ export default function ConsultantGrid({
             return (
               <div
                 key={c.id}
-                onClick={() => setSelectedCard(c)}
+                onClick={(e) => setSelectedCard({ consultant: c, rect: e.currentTarget.getBoundingClientRect() })}
                 className={`flex flex-col rounded-xl overflow-hidden bg-white shadow-sm border transition-shadow hover:shadow-md cursor-pointer ${cardBorder} ${
                   c.catch_level !== null && !c.is_own_card ? "opacity-80" : ""
                 }`}
@@ -202,7 +202,8 @@ export default function ConsultantGrid({
 
       {selectedCard && (
         <CardModal
-          consultant={selectedCard}
+          consultant={selectedCard.consultant}
+          sourceRect={selectedCard.rect}
           viewerRarity={viewerRarity}
           onClose={() => setSelectedCard(null)}
         />
