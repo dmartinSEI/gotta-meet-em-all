@@ -76,6 +76,16 @@ export async function uncatchConsultant(consultantId: number): Promise<{ success
         AND user_id = (SELECT id FROM users WHERE email = ${session.user.email})
     `;
 
+    // Reverse the bounty completion if this was the monthly target
+    await sql`
+      UPDATE bounties
+      SET completed_at = NULL
+      WHERE user_id = (SELECT id FROM users WHERE email = ${session.user.email})
+        AND consultant_id = ${consultantId}
+        AND month = ${currentMonth()}
+        AND completed_at IS NOT NULL
+    `;
+
     revalidatePath("/", "layout");
     return { success: true };
   } catch (error) {

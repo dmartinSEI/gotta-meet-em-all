@@ -98,35 +98,32 @@ export default function CatchButton({
         </button>
       )}
 
-      {/* Undo only at level 1 — can't un-work with someone */}
-      {level === 1 && (
-        confirming ? (
-          <div className="flex gap-1">
-            <button
-              onClick={handleUnmeet}
-              disabled={loading}
-              className="flex-1 py-1 rounded-lg text-xs font-medium border bg-red-50 text-red-600 border-red-200 hover:bg-red-100 disabled:opacity-50"
-            >
-              {loading ? "…" : "Remove"}
-            </button>
-            <button
-              onClick={() => setConfirming(false)}
-              className="flex-1 py-1 rounded-lg text-xs font-medium border bg-white text-gray-500 border-gray-200 hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-          </div>
-        ) : (
+      {confirming ? (
+        <div className="flex gap-1">
           <button
-            onClick={() => {
-              setConfirming(true);
-              timer.current = setTimeout(() => setConfirming(false), 3000);
-            }}
-            className="w-full py-1 rounded-lg text-xs font-medium border bg-white text-gray-300 border-gray-100 hover:text-gray-400"
+            onClick={handleUnmeet}
+            disabled={loading}
+            className="flex-1 py-1 rounded-lg text-xs font-medium border bg-red-50 text-red-600 border-red-200 hover:bg-red-100 disabled:opacity-50"
           >
-            Undo
+            {loading ? "…" : "Remove"}
           </button>
-        )
+          <button
+            onClick={() => setConfirming(false)}
+            className="flex-1 py-1 rounded-lg text-xs font-medium border bg-white text-gray-500 border-gray-200 hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={() => {
+            setConfirming(true);
+            timer.current = setTimeout(() => setConfirming(false), 3000);
+          }}
+          className="w-full py-1 rounded-lg text-xs font-medium border bg-white text-gray-300 border-gray-100 hover:text-gray-400"
+        >
+          Undo
+        </button>
       )}
     </div>
   );
