@@ -36,12 +36,16 @@ export default async function OfficePage({
     `,
     sql<GlobalStats>`
       SELECT
-        COALESCE(SUM(
-          CASE ca.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END
+        COALESCE((
+          SELECT SUM(CASE ca.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END)
+          FROM catches ca WHERE ca.user_id = u.id
+        ), 0)::int
+        + COALESCE((
+          SELECT SUM(b.bonus_xp) FROM bounties b
+          WHERE b.user_id = u.id AND b.completed_at IS NOT NULL
         ), 0)::int AS total_xp,
         (SELECT COUNT(*)::int FROM consultants) AS roster_size
-      FROM catches ca
-      JOIN users u ON u.id = ca.user_id
+      FROM users u
       WHERE u.email = ${session.user.email}
     `,
   ]);

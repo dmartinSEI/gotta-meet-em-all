@@ -68,13 +68,17 @@ export default async function LeaderboardPage() {
       c.photo_url,
       COALESCE(SUM(
         CASE ca.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END
-      ), 0)::int AS total_xp,
+      ), 0)::int
+      + COALESCE((
+          SELECT SUM(b.bonus_xp) FROM bounties b
+          WHERE b.user_id = u.id AND b.completed_at IS NOT NULL
+        ), 0)::int AS total_xp,
       COUNT(ca.consultant_id)::int AS total_met,
       (SELECT COUNT(*)::int FROM consultants) AS roster_size
     FROM consultants c
     JOIN users u ON u.email = c.email
     LEFT JOIN catches ca ON ca.user_id = u.id
-    GROUP BY c.id, c.first_name, c.last_name, c.email, c.office, c.photo_url
+    GROUP BY c.id, c.first_name, c.last_name, c.email, c.office, c.photo_url, u.id
     ORDER BY total_xp DESC, total_met DESC, c.last_name, c.first_name
   `;
 

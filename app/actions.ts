@@ -3,6 +3,7 @@
 import { sql } from "@/lib/db";
 import { auth } from "../auth";
 import { revalidatePath } from "next/cache";
+import { currentMonth } from "@/lib/bounty";
 
 export async function catchConsultant(consultantId: number) {
   try {
@@ -15,6 +16,16 @@ export async function catchConsultant(consultantId: number) {
       FROM users
       WHERE email = ${session.user.email}
       ON CONFLICT (user_id, consultant_id) DO NOTHING
+    `;
+
+    // Complete the monthly bounty if this is the target consultant
+    await sql`
+      UPDATE bounties
+      SET completed_at = NOW()
+      WHERE user_id = (SELECT id FROM users WHERE email = ${session.user.email})
+        AND consultant_id = ${consultantId}
+        AND month = ${currentMonth()}
+        AND completed_at IS NULL
     `;
 
     revalidatePath("/", "layout");

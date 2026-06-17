@@ -3,6 +3,8 @@ import { auth, signOut } from "../auth";
 import { sql } from "@/lib/db";
 import type { OfficeRow } from "@/lib/types";
 import { getRarity, RARITY_LABELS, RARITY_BADGE_STYLES } from "@/lib/xp";
+import { getOrAssignBounty } from "@/lib/bounty";
+import BountyCard from "./BountyCard";
 
 export default async function HomePage() {
   const session = await auth();
@@ -22,7 +24,7 @@ export default async function HomePage() {
     );
   }
 
-  const [{ rows: officeRows }, { rows: xpRows }] = await Promise.all([
+  const [{ rows: officeRows }, { rows: xpRows }, bounty] = await Promise.all([
     sql<OfficeRow>`
       SELECT
         o.name,
@@ -40,13 +42,19 @@ export default async function HomePage() {
       ORDER BY o.sort_order
     `,
     sql`
-      SELECT COALESCE(SUM(
-        CASE ca.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END
-      ), 0)::int AS total_xp
-      FROM catches ca
-      JOIN users u ON u.id = ca.user_id
+      SELECT
+        COALESCE((
+          SELECT SUM(CASE ca.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END)
+          FROM catches ca WHERE ca.user_id = u.id
+        ), 0)::int
+        + COALESCE((
+          SELECT SUM(b.bonus_xp) FROM bounties b
+          WHERE b.user_id = u.id AND b.completed_at IS NOT NULL
+        ), 0)::int AS total_xp
+      FROM users u
       WHERE u.email = ${session.user.email}
     `,
+    getOrAssignBounty(session.user.email),
   ]);
 
   const totalXp: number = (xpRows[0] as { total_xp: number } | undefined)?.total_xp ?? 0;
@@ -76,6 +84,8 @@ export default async function HomePage() {
           </form>
         </div>
       </div>
+
+      {bounty && <BountyCard bounty={bounty} />}
 
       {officeRows.length === 0 ? (
         <p className="text-gray-500">
