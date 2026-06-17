@@ -9,7 +9,6 @@ export interface Consultant {
 export interface OfficeRow {
   name: string;
   slug: string;
-  lock_type: "none" | "gateway";
   description: string;
   sort_order: number;
   total_count: number;

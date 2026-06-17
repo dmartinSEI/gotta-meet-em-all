@@ -6,23 +6,15 @@ import ConsultantGrid from "../../ConsultantGrid";
 import type { ConsultantRow } from "@/lib/types";
 import { getRarity, RARITY_LABELS, RARITY_BADGE_STYLES, XP_PER_LEVEL } from "@/lib/xp";
 
-const GATEWAY_THRESHOLD = 0.8;
-
 interface OfficeRecord {
   name: string;
   slug: string;
-  lock_type: "none" | "gateway";
   description: string;
 }
 
 interface GlobalStats {
   total_xp: number;
   roster_size: number;
-}
-
-interface GatewayRow {
-  total_count: number;
-  met_count: number;
 }
 
 export default async function OfficePage({
@@ -37,7 +29,7 @@ export default async function OfficePage({
   // Batch 1: office lookup + global stats in parallel
   const [{ rows: officeRows }, { rows: statsRows }] = await Promise.all([
     sql<OfficeRecord>`
-      SELECT name, slug, lock_type, description
+      SELECT name, slug, description
       FROM offices
       WHERE slug = ${slug}
       LIMIT 1
@@ -59,48 +51,22 @@ export default async function OfficePage({
   const totalXp = statsRows[0]?.total_xp ?? 0;
   const globalRosterSize = statsRows[0]?.roster_size ?? 0;
 
-  // Batch 2: consultants + gateway check (if needed) in parallel
-  const [{ rows }, gatewayResult] = await Promise.all([
-    sql<ConsultantRow>`
-      SELECT
-        c.id, c.first_name, c.last_name, c.title, c.office, c.bio, c.skills,
-        c.photo_url, c.photo_url_l1, c.photo_url_l2, c.photo_url_l3,
-        (c.email = ${session.user.email}) AS is_own_card,
-        (
-          SELECT ca.level FROM catches ca
-          JOIN users u ON u.id = ca.user_id
-          WHERE ca.consultant_id = c.id
-            AND u.email = ${session.user.email}
-        ) AS catch_level
-      FROM consultants c
-      WHERE c.office = ${office.name}
-      ORDER BY c.last_name, c.first_name
-    `,
-    office.lock_type === "gateway"
-      ? sql<GatewayRow>`
-          SELECT
-            COUNT(c.id)::int          AS total_count,
-            COUNT(ca.consultant_id)::int AS met_count
-          FROM offices o
-          LEFT JOIN consultants c ON c.office = o.name
-          LEFT JOIN catches ca
-            ON  ca.consultant_id = c.id
-            AND ca.user_id = (SELECT id FROM users WHERE email = ${session.user.email})
-          WHERE o.lock_type = 'none'
-          GROUP BY o.name
-        `
-      : Promise.resolve({ rows: [] as GatewayRow[] }),
-  ]);
-
-  // Enforce gateway lock
-  if (office.lock_type === "gateway") {
-    const gatewayUnlocked =
-      gatewayResult.rows.length === 0 ||
-      gatewayResult.rows.every(
-        (s) => s.total_count === 0 || s.met_count >= Math.ceil(s.total_count * GATEWAY_THRESHOLD)
-      );
-    if (!gatewayUnlocked) redirect("/");
-  }
+  // Batch 2: consultants for this office
+  const { rows } = await sql<ConsultantRow>`
+    SELECT
+      c.id, c.first_name, c.last_name, c.title, c.office, c.bio, c.skills,
+      c.photo_url, c.photo_url_l1, c.photo_url_l2, c.photo_url_l3,
+      (c.email = ${session.user.email}) AS is_own_card,
+      (
+        SELECT ca.level FROM catches ca
+        JOIN users u ON u.id = ca.user_id
+        WHERE ca.consultant_id = c.id
+          AND u.email = ${session.user.email}
+      ) AS catch_level
+    FROM consultants c
+    WHERE c.office = ${office.name}
+    ORDER BY c.last_name, c.first_name
+  `;
 
   const total = rows.length;
   const met = rows.filter((c) => c.catch_level !== null).length;
