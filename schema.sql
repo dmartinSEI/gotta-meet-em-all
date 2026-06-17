@@ -47,15 +47,18 @@ CREATE TABLE IF NOT EXISTS sessions (
 -- ---- Application tables -------------------------------------
 
 CREATE TABLE IF NOT EXISTS consultants (
-  id         SERIAL PRIMARY KEY,
-  email      TEXT   UNIQUE NOT NULL,
-  first_name TEXT   NOT NULL,
-  last_name  TEXT   NOT NULL,
-  title      TEXT   NOT NULL DEFAULT '',
-  office     TEXT   NOT NULL DEFAULT '',
-  bio        TEXT   NOT NULL DEFAULT '',
-  skills     TEXT   NOT NULL DEFAULT '',
-  photo_url  TEXT   NOT NULL DEFAULT ''
+  id           SERIAL PRIMARY KEY,
+  email        TEXT   UNIQUE NOT NULL,
+  first_name   TEXT   NOT NULL,
+  last_name    TEXT   NOT NULL,
+  title        TEXT   NOT NULL DEFAULT '',
+  office       TEXT   NOT NULL DEFAULT '',
+  bio          TEXT   NOT NULL DEFAULT '',
+  skills       TEXT   NOT NULL DEFAULT '',
+  photo_url    TEXT   NOT NULL DEFAULT '',
+  photo_url_l1 TEXT   NOT NULL DEFAULT '',
+  photo_url_l2 TEXT   NOT NULL DEFAULT '',
+  photo_url_l3 TEXT   NOT NULL DEFAULT ''
 );
 
 -- Opaque, single-use pointers to real magic-link URLs. Lets the email
@@ -80,7 +83,9 @@ CREATE INDEX IF NOT EXISTS sign_in_attempts_identifier_idx ON sign_in_attempts (
 CREATE INDEX IF NOT EXISTS sign_in_attempts_ip_idx ON sign_in_attempts (ip, created_at);
 
 CREATE TABLE IF NOT EXISTS catches (
-  user_id       UUID    NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  consultant_id INTEGER NOT NULL REFERENCES consultants(id) ON DELETE CASCADE,
+  user_id       UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  consultant_id INTEGER      NOT NULL REFERENCES consultants(id) ON DELETE CASCADE,
+  level         SMALLINT     NOT NULL DEFAULT 1 CHECK (level BETWEEN 1 AND 3),
+  caught_at     TIMESTAMPTZ  NOT NULL DEFAULT now(),
   PRIMARY KEY (user_id, consultant_id)
 );

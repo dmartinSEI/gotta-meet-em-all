@@ -2,6 +2,7 @@ import { auth, signOut } from "../auth";
 import { sql } from "@/lib/db";
 import ConsultantGrid from "./ConsultantGrid";
 import type { ConsultantRow } from "@/lib/types";
+import { getRarity, RARITY_LABELS, RARITY_BADGE_STYLES, XP_PER_LEVEL } from "@/lib/xp";
 
 export default async function HomePage() {
   const session = await auth();
@@ -30,20 +31,33 @@ export default async function HomePage() {
       c.office,
       c.bio,
       c.skills,
+      c.photo_url,
+      c.photo_url_l1,
+      c.photo_url_l2,
+      c.photo_url_l3,
       (c.email = ${session.user.email}) AS is_own_card,
-      EXISTS (
-        SELECT 1 FROM catches ca
+      (
+        SELECT ca.level FROM catches ca
         JOIN users u ON u.id = ca.user_id
         WHERE ca.consultant_id = c.id
           AND u.email = ${session.user.email}
-      ) AS is_caught
+      ) AS catch_level
     FROM consultants c
     ORDER BY c.last_name, c.first_name
   `;
 
   const total = rows.length;
-  const caught = rows.filter((c) => c.is_caught).length;
-  const pct = total > 0 ? Math.round((caught / total) * 100) : 0;
+  const met = rows.filter((c) => c.catch_level !== null).length;
+  const pct = total > 0 ? Math.round((met / total) * 100) : 0;
+
+  const totalXp = rows.reduce((sum, c) => {
+    if (!c.catch_level) return sum;
+    return sum + XP_PER_LEVEL[c.catch_level as 1 | 2 | 3];
+  }, 0);
+
+  const rarity = getRarity(totalXp, total);
+  const rarityLabel = RARITY_LABELS[rarity];
+  const rarityStyle = RARITY_BADGE_STYLES[rarity];
 
   return (
     <main className="p-8 max-w-6xl mx-auto">
@@ -75,11 +89,19 @@ export default async function HomePage() {
         </p>
       ) : (
         <>
-          {/* Overall progress */}
-          <div className="mb-8">
-            <p className="text-sm text-gray-500 mb-2">
-              {caught} of {total} met &mdash; {pct}%
-            </p>
+          {/* Progress + XP bar */}
+          <div className="mb-8 flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-500">
+                {met} of {total} met &mdash; {pct}%
+              </p>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-400">{totalXp} XP</span>
+                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${rarityStyle}`}>
+                  {rarityLabel}
+                </span>
+              </div>
+            </div>
             <div className="w-full bg-gray-100 rounded-full h-2">
               <div
                 className="bg-blue-500 h-2 rounded-full transition-all duration-500"
@@ -88,7 +110,7 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <ConsultantGrid consultants={rows} />
+          <ConsultantGrid consultants={rows} rosterSize={total} />
         </>
       )}
     </main>

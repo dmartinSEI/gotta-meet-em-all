@@ -116,22 +116,39 @@ export async function importPhotos(formData: FormData) {
         continue;
       }
 
-      // Filename convention: dmartin@sei.com.jpg → email = dmartin@sei.com
-      const email = file.name.replace(/\.[^.]+$/, "").toLowerCase().trim();
+      // Filename conventions:
+      //   dmartin@sei.com.jpg       → base photo (photo_url)
+      //   dmartin@sei.com_l1.jpg    → Introduced portrait (photo_url_l1)
+      //   dmartin@sei.com_l2.jpg    → Hung Out portrait   (photo_url_l2)
+      //   dmartin@sei.com_l3.jpg    → Worked Together portrait (photo_url_l3)
+      const nameWithoutExt = file.name.replace(/\.[^.]+$/, "").toLowerCase().trim();
+      const levelMatch = nameWithoutExt.match(/^(.+)_(l[123])$/);
+      const email = levelMatch ? levelMatch[1] : nameWithoutExt;
+      const levelSuffix = levelMatch ? levelMatch[2] : null; // "l1" | "l2" | "l3" | null
+
       if (!email.includes("@")) {
-        errors.push(`${file.name}: filename must be the consultant's email address`);
+        errors.push(`${file.name}: filename must start with the consultant's email address`);
         continue;
       }
 
-      const { url } = await put(`photos/${email}`, file, {
+      const column = levelSuffix ? `photo_url_${levelSuffix}` : "photo_url";
+      const blobKey = levelSuffix ? `photos/${email}_${levelSuffix}` : `photos/${email}`;
+
+      const { url } = await put(blobKey, file, {
         access: "public",
         addRandomSuffix: false,
         contentType: file.type,
       });
 
-      const result = await sql`
-        UPDATE consultants SET photo_url = ${url} WHERE email = ${email}
-      `;
+      const result = levelSuffix === "l1"
+        ? await sql`UPDATE consultants SET photo_url_l1 = ${url} WHERE email = ${email}`
+        : levelSuffix === "l2"
+        ? await sql`UPDATE consultants SET photo_url_l2 = ${url} WHERE email = ${email}`
+        : levelSuffix === "l3"
+        ? await sql`UPDATE consultants SET photo_url_l3 = ${url} WHERE email = ${email}`
+        : await sql`UPDATE consultants SET photo_url = ${url} WHERE email = ${email}`;
+
+      void column; // column name derived above for clarity, SQL uses explicit branches
 
       if (result.rowCount === 0) {
         unmatched.push(file.name);

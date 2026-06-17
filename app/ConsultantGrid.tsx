@@ -4,8 +4,10 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import CatchButton from "./CatchButton";
 import type { ConsultantRow } from "@/lib/types";
+import { getRarity, RARITY_STYLES, XP_PER_LEVEL } from "@/lib/xp";
 
 type StatusFilter = "all" | "unmet" | "met";
+type Level = 1 | 2 | 3;
 
 const AVATAR_COLORS = [
   "bg-blue-400", "bg-purple-400", "bg-green-400", "bg-orange-400",
@@ -22,7 +24,21 @@ function InitialsAvatar({ name }: { name: string }) {
   );
 }
 
-export default function ConsultantGrid({ consultants }: { consultants: ConsultantRow[] }) {
+function pickPhoto(c: ConsultantRow): string {
+  const level = c.catch_level as Level | null;
+  if (level === 3 && c.photo_url_l3) return c.photo_url_l3;
+  if (level && level >= 2 && c.photo_url_l2) return c.photo_url_l2;
+  if (level && level >= 1 && c.photo_url_l1) return c.photo_url_l1;
+  return c.photo_url;
+}
+
+export default function ConsultantGrid({
+  consultants,
+  rosterSize,
+}: {
+  consultants: ConsultantRow[];
+  rosterSize: number;
+}) {
   const [search, setSearch] = useState("");
   const [officeFilter, setOfficeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -37,11 +53,21 @@ export default function ConsultantGrid({ consultants }: { consultants: Consultan
     return consultants.filter((c) => {
       if (q && !`${c.first_name} ${c.last_name}`.toLowerCase().includes(q)) return false;
       if (officeFilter !== "all" && c.office !== officeFilter) return false;
-      if (statusFilter === "met" && !c.is_caught) return false;
-      if (statusFilter === "unmet" && c.is_caught) return false;
+      if (statusFilter === "met" && c.catch_level === null) return false;
+      if (statusFilter === "unmet" && c.catch_level !== null) return false;
       return true;
     });
   }, [consultants, search, officeFilter, statusFilter]);
+
+  // Viewer's own XP and rarity (for their own card border)
+  const viewerXp = useMemo(
+    () => consultants.reduce((sum, c) => {
+      if (!c.catch_level) return sum;
+      return sum + XP_PER_LEVEL[c.catch_level as Level];
+    }, 0),
+    [consultants]
+  );
+  const viewerRarity = getRarity(viewerXp, rosterSize);
 
   return (
     <div>
@@ -92,21 +118,26 @@ export default function ConsultantGrid({ consultants }: { consultants: Consultan
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {filtered.map((c) => {
             const fullName = `${c.first_name} ${c.last_name}`;
+            const photo = pickPhoto(c);
             const skillList = c.skills
               ? c.skills.split(",").map((s) => s.trim()).filter(Boolean)
               : [];
+            const cardBorder = c.is_own_card
+              ? RARITY_STYLES[viewerRarity]
+              : "border-gray-200";
+
             return (
               <div
                 key={c.id}
-                className={`flex flex-col rounded-xl overflow-hidden bg-white shadow-sm border transition-shadow hover:shadow-md ${
-                  c.is_own_card ? "ring-2 ring-blue-400" : ""
-                } ${c.is_caught ? "opacity-75" : ""}`}
+                className={`flex flex-col rounded-xl overflow-hidden bg-white shadow-sm border transition-shadow hover:shadow-md ${cardBorder} ${
+                  c.catch_level !== null && !c.is_own_card ? "opacity-80" : ""
+                }`}
               >
                 {/* Portrait */}
                 <div className="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden">
-                  {c.photo_url ? (
+                  {photo ? (
                     <Image
-                      src={c.photo_url}
+                      src={photo}
                       alt={fullName}
                       fill
                       sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
@@ -115,9 +146,9 @@ export default function ConsultantGrid({ consultants }: { consultants: Consultan
                   ) : (
                     <InitialsAvatar name={fullName} />
                   )}
-                  {c.is_caught && (
-                    <div className="absolute inset-0 bg-black/20 flex items-end justify-end p-2">
-                      <span className="text-white text-xs font-bold bg-green-600 rounded-full px-2 py-0.5">
+                  {c.catch_level !== null && (
+                    <div className="absolute inset-0 bg-black/10 flex items-end justify-end p-2">
+                      <span className="text-white text-xs font-bold bg-black/40 rounded-full px-2 py-0.5">
                         Met ✓
                       </span>
                     </div>
@@ -154,7 +185,10 @@ export default function ConsultantGrid({ consultants }: { consultants: Consultan
                     </div>
                   )}
                   <div className="mt-auto pt-2">
-                    <CatchButton consultantId={c.id} initialCaught={c.is_caught} />
+                    <CatchButton
+                      consultantId={c.id}
+                      initialLevel={(c.catch_level as Level | null)}
+                    />
                   </div>
                 </div>
               </div>
