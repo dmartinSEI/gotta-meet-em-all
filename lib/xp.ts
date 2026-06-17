@@ -31,12 +31,13 @@ export function computeXp(catches: { level: 1 | 2 | 3 }[]): number {
   return catches.reduce((sum, c) => sum + XP_PER_LEVEL[c.level], 0);
 }
 
-// Legendary floor = every consultant met at Hung Out level (level 2, 25 XP each)
+// Legendary floor = every consultant Collaborated with (level 2, 25 XP each)
 export function getRarity(xp: number, rosterSize: number): Rarity {
+  if (rosterSize === 0 || xp === 0) return "common";
   const legendaryFloor = rosterSize * XP_PER_LEVEL[2];
   if (xp >= legendaryFloor) return "legendary";
-  if (xp >= Math.round(legendaryFloor * 0.417)) return "epic";   // ~1,000 XP at 96
-  if (xp >= Math.round(legendaryFloor * 0.167)) return "rare";   // ~400 XP at 96
+  if (xp >= Math.round(legendaryFloor * 0.417)) return "epic";     // ~1,000 XP at 96
+  if (xp >= Math.round(legendaryFloor * 0.167)) return "rare";     // ~400 XP at 96
   if (xp >= Math.round(legendaryFloor * 0.042)) return "uncommon"; // ~100 XP at 96
   return "common";
 }

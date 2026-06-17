@@ -17,7 +17,7 @@ export async function catchConsultant(consultantId: number) {
       ON CONFLICT (user_id, consultant_id) DO NOTHING
     `;
 
-    revalidatePath("/");
+    revalidatePath("/", "layout");
     return { success: true };
   } catch (error) {
     console.error("Failed to catch:", error);
@@ -38,7 +38,7 @@ export async function upgradeConsultant(consultantId: number, newLevel: 2 | 3) {
         AND level < ${newLevel}
     `;
 
-    revalidatePath("/");
+    revalidatePath("/", "layout");
     return { success: true };
   } catch (error) {
     console.error("Failed to upgrade:", error);
@@ -57,7 +57,7 @@ export async function uncatchConsultant(consultantId: number) {
         AND user_id = (SELECT id FROM users WHERE email = ${session.user.email})
     `;
 
-    revalidatePath("/");
+    revalidatePath("/", "layout");
     return { success: true };
   } catch (error) {
     console.error("Failed to uncatch:", error);

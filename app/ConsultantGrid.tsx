@@ -7,6 +7,7 @@ import CardModal from "./CardModal";
 import type { ConsultantRow } from "@/lib/types";
 import { RARITY_STYLES } from "@/lib/xp";
 import type { Rarity } from "@/lib/xp";
+import { pickPhoto } from "@/lib/cards";
 
 type StatusFilter = "all" | "unmet" | "met";
 type Level = 1 | 2 | 3;
@@ -26,21 +27,11 @@ function InitialsAvatar({ name }: { name: string }) {
   );
 }
 
-function pickPhoto(c: ConsultantRow): string {
-  const level = c.catch_level as Level | null;
-  if (level === 3 && c.photo_url_l3) return c.photo_url_l3;
-  if (level && level >= 2 && c.photo_url_l2) return c.photo_url_l2;
-  if (level && level >= 1 && c.photo_url_l1) return c.photo_url_l1;
-  return c.photo_url;
-}
-
 export default function ConsultantGrid({
   consultants,
-  rosterSize: _rosterSize,
   viewerRarity,
 }: {
   consultants: ConsultantRow[];
-  rosterSize: number;
   viewerRarity: Rarity;
 }) {
   const [search, setSearch] = useState("");

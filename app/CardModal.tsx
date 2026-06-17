@@ -6,19 +6,13 @@ import CatchButton from "./CatchButton";
 import type { ConsultantRow } from "@/lib/types";
 import { RARITY_LABELS, RARITY_BADGE_STYLES, CATCH_LEVEL_LABELS } from "@/lib/xp";
 import type { Rarity } from "@/lib/xp";
+import { pickPhoto, catchLevelToRarity } from "@/lib/cards";
 
 type Level = 1 | 2 | 3;
 type Phase = "init" | "flying" | "flipping" | "ready";
 
 const CARD_W = 280;
 const CARD_H = 420;
-
-function relationshipRarity(catchLevel: number | null): Rarity {
-  if (!catchLevel) return "common";
-  if (catchLevel === 1) return "uncommon";
-  if (catchLevel === 2) return "rare";
-  return "legendary";
-}
 
 function foilOverlay(rarity: Rarity, mx: number, my: number): React.CSSProperties {
   if (rarity === "common") return {};
@@ -67,20 +61,14 @@ export default function CardModal({ consultant, sourceRect, viewerRarity, onClos
 
   const rarity = consultant.is_own_card
     ? viewerRarity
-    : relationshipRarity(consultant.catch_level);
+    : catchLevelToRarity(consultant.catch_level);
 
   const fullName = `${consultant.first_name} ${consultant.last_name}`;
   const skillList = consultant.skills
     ? consultant.skills.split(",").map((s) => s.trim()).filter(Boolean)
     : [];
 
-  const photo = (() => {
-    const lvl = consultant.catch_level as Level | null;
-    if (lvl === 3 && consultant.photo_url_l3) return consultant.photo_url_l3;
-    if (lvl && lvl >= 2 && consultant.photo_url_l2) return consultant.photo_url_l2;
-    if (lvl && lvl >= 1 && consultant.photo_url_l1) return consultant.photo_url_l1;
-    return consultant.photo_url;
-  })();
+  const photo = pickPhoto(consultant);
 
   // Compute initial offset: make the modal card appear at the source card's screen position
   const initOffset = useMemo(() => {

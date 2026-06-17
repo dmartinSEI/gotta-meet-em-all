@@ -3,8 +3,7 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { auth, signOut } from "../../auth";
 import { sql } from "@/lib/db";
-import { getRarity, RARITY_LABELS, RARITY_BADGE_STYLES, XP_PER_LEVEL } from "@/lib/xp";
-import type { Rarity } from "@/lib/xp";
+import { getRarity, RARITY_LABELS, RARITY_BADGE_STYLES } from "@/lib/xp";
 
 interface LeaderboardEntry {
   first_name: string;
@@ -14,6 +13,7 @@ interface LeaderboardEntry {
   photo_url: string;
   total_xp: number;
   total_met: number;
+  roster_size: number;
 }
 
 const AVATAR_COLORS = [
@@ -69,7 +69,8 @@ export default async function LeaderboardPage() {
       COALESCE(SUM(
         CASE ca.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END
       ), 0)::int AS total_xp,
-      COUNT(ca.consultant_id)::int AS total_met
+      COUNT(ca.consultant_id)::int AS total_met,
+      (SELECT COUNT(*)::int FROM consultants) AS roster_size
     FROM consultants c
     JOIN users u ON u.email = c.email
     LEFT JOIN catches ca ON ca.user_id = u.id
@@ -80,14 +81,10 @@ export default async function LeaderboardPage() {
   const viewerRow = rows.find((r) => r.email === session.user!.email);
   const viewerRank = viewerRow ? rows.indexOf(viewerRow) + 1 : null;
   const viewerXp = viewerRow?.total_xp ?? 0;
-
-  // Global roster size for rarity calc
-  const { rows: rosterRows } = await sql`SELECT COUNT(*)::int AS n FROM consultants`;
-  const rosterSize = (rosterRows[0] as { n: number } | undefined)?.n ?? 0;
+  const rosterSize = rows[0]?.roster_size ?? 0;
   const viewerRarity = getRarity(viewerXp, rosterSize);
 
   const top3 = rows.slice(0, 3);
-  const rest = rows.slice(3);
   const topXp = rows[0]?.total_xp ?? 1;
 
   return (

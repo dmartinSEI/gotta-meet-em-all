@@ -5,8 +5,8 @@ import Image from "next/image";
 import CardModal from "../CardModal";
 import type { ConsultantRow } from "@/lib/types";
 import type { Rarity } from "@/lib/xp";
+import { pickPhoto, catchLevelToRarity } from "@/lib/cards";
 
-type Level = 1 | 2 | 3;
 type AnimState = "idle" | "exit-fwd" | "exit-back" | "enter-fwd" | "enter-back";
 
 const CARDS_PER_PAGE = 9;
@@ -26,21 +26,6 @@ const MINI_GLOW: Record<Rarity, string> = {
   epic:      "0 0 10px 3px rgba(192,132,252,0.5), 0 2px 6px rgba(0,0,0,0.5)",
   legendary: "0 0 14px 4px rgba(251,191,36,0.55), 0 2px 6px rgba(0,0,0,0.5)",
 };
-
-function relationshipRarity(catchLevel: number | null): Rarity {
-  if (!catchLevel) return "common";
-  if (catchLevel === 1) return "uncommon";
-  if (catchLevel === 2) return "rare";
-  return "legendary";
-}
-
-function pickPhoto(c: ConsultantRow): string {
-  const lvl = c.catch_level as Level | null;
-  if (lvl === 3 && c.photo_url_l3) return c.photo_url_l3;
-  if (lvl && lvl >= 2 && c.photo_url_l2) return c.photo_url_l2;
-  if (lvl && lvl >= 1 && c.photo_url_l1) return c.photo_url_l1;
-  return c.photo_url;
-}
 
 const AVATAR_COLORS = [
   "bg-blue-500", "bg-purple-500", "bg-emerald-500", "bg-orange-500",
@@ -224,7 +209,7 @@ function FilledSlot({
   consultant: ConsultantRow;
   onOpen: (c: ConsultantRow, rect: DOMRect) => void;
 }) {
-  const rarity = relationshipRarity(consultant.catch_level);
+  const rarity = catchLevelToRarity(consultant.catch_level);
   const photo = pickPhoto(consultant);
   const fullName = `${consultant.first_name} ${consultant.last_name}`;
 
