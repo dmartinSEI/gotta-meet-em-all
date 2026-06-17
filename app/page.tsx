@@ -75,6 +75,9 @@ export default async function HomePage() {
           <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${RARITY_BADGE_STYLES[rarity]}`}>
             {RARITY_LABELS[rarity]}
           </span>
+          <Link href="/leaderboard" className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+            Leaderboard
+          </Link>
           <Link href="/collection" className="text-sm text-blue-600 hover:text-blue-800 font-medium">
             My Collection
           </Link>
