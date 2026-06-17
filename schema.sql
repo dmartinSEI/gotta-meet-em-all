@@ -91,20 +91,21 @@ CREATE TABLE IF NOT EXISTS catches (
 );
 
 -- One row per SEI office/region. The slug is the URL segment (/office/cincinnati).
--- unlock_xp = global XP a user must have to browse this office.
--- 0 = always accessible; >0 = locked until threshold is reached.
+-- lock_type controls how this office is unlocked:
+--   'none'    — always accessible (home offices, Services)
+--   'gateway' — requires meeting 80% of every 'none' office first
 CREATE TABLE IF NOT EXISTS offices (
   id          SERIAL  PRIMARY KEY,
   name        TEXT    UNIQUE NOT NULL,  -- matches consultants.office exactly
   slug        TEXT    UNIQUE NOT NULL,
-  unlock_xp   INTEGER NOT NULL DEFAULT 0,
+  lock_type   TEXT    NOT NULL DEFAULT 'none' CHECK (lock_type IN ('none', 'gateway')),
   description TEXT    NOT NULL DEFAULT '',
   sort_order  INTEGER NOT NULL DEFAULT 0
 );
 
 -- Seed the initial offices.
-INSERT INTO offices (name, slug, unlock_xp, description, sort_order) VALUES
-  ('Cincinnati', 'cincinnati', 0,   'Home base.',      1),
-  ('Services',   'services',   0,   'SEI Services.',   2),
-  ('Charlotte',  'charlotte',  100, 'Charlotte office.', 3)
+INSERT INTO offices (name, slug, lock_type, description, sort_order) VALUES
+  ('Cincinnati', 'cincinnati', 'none',    'Home base.',        1),
+  ('Services',   'services',   'none',    'SEI Services.',     2),
+  ('Charlotte',  'charlotte',  'gateway', 'Charlotte office.', 3)
 ON CONFLICT (name) DO NOTHING;
