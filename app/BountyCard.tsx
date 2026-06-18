@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import type { BountyRow } from "@/lib/bounty";
-import { daysLeftInMonth } from "@/lib/bounty";
+import type { BountyRow } from "@/lib/bounty-client";
+import { daysLeftInMonth } from "@/lib/bounty-client";
 import BountyModal from "./BountyModal";
 
 interface Props {
