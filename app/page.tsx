@@ -6,6 +6,7 @@ import { getRarity, RARITY_LABELS } from "@/lib/xp";
 import { getOrAssignBounty } from "@/lib/bounty";
 import BountyCard from "./BountyCard";
 import type { Rarity } from "@/lib/xp";
+import { SeiLogoMark } from "@/components/SeiLogo";
 
 const HEADER_RARITY: Record<Rarity, string> = {
   common:    "bg-white/10 text-white/80 border border-white/20",
@@ -14,23 +15,6 @@ const HEADER_RARITY: Record<Rarity, string> = {
   epic:      "bg-purple-400/20 text-purple-200 border border-purple-400/40",
   legendary: "bg-yellow-400/20 text-yellow-300 border border-yellow-400/40",
 };
-
-function SeiLogoMark({ size = 32 }: { size?: number }) {
-  const s = size;
-  return (
-    <div className="relative shrink-0" style={{ width: s, height: s }}>
-      <div className="absolute inset-0 rounded-full border-[2.5px] border-[#C8102E]" />
-      <div
-        className="absolute rounded-full border-[1.5px] border-[#C8102E]"
-        style={{ inset: Math.round(s * 0.22) }}
-      />
-      <div
-        className="absolute rounded-full bg-[#C8102E]"
-        style={{ inset: Math.round(s * 0.38) }}
-      />
-    </div>
-  );
-}
 
 export default async function HomePage() {
   const session = await auth();
@@ -44,7 +28,7 @@ export default async function HomePage() {
           ))}
         </svg>
         <div className="relative flex flex-col items-center text-center px-6">
-          <SeiLogoMark size={56} />
+          <SeiLogoMark size={56} color="#C8102E" />
           <p className="text-[#C8102E] text-[10px] font-bold tracking-[0.3em] uppercase mt-4 mb-1">SEI</p>
           <h1 className="text-white font-black text-5xl tracking-tight mb-3">Gotta Meet Em All</h1>
           <p className="text-white/40 text-sm mb-10">Gamified colleague networking for the firm.</p>
@@ -116,7 +100,7 @@ export default async function HomePage() {
         <div className="relative max-w-5xl mx-auto px-8 py-5 flex items-center justify-between gap-6">
           {/* Brand */}
           <div className="flex items-center gap-3 shrink-0">
-            <SeiLogoMark size={34} />
+            <SeiLogoMark size={34} color="#fff" />
             <div>
               <p className="text-[#C8102E] text-[8px] font-black tracking-[0.25em] uppercase leading-none mb-1">
                 SEI

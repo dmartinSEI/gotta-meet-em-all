@@ -1,15 +1,25 @@
 @import "tailwindcss";
 
 :root {
-  --background: #F4F2F9;
+  /* SEI brand colors */
+  --sei-red:    #C8102E;
+  --sei-navy:   #2D1B4E;
+  --sei-cream:  #FAF8F4; /* warm off-white from brand deck panels */
+
+  /* App surface colors */
+  --background: #F4F2F9; /* light lavender — app identity */
   --foreground: #1a1035;
-  --sei-purple: #2D1B4E;
-  --sei-red: #C8102E;
+
+  /* Legacy aliases (kept for backward compat in existing components) */
+  --sei-purple: var(--sei-navy);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-sei-red:   var(--sei-red);
+  --color-sei-navy:  var(--sei-navy);
+  --color-sei-cream: var(--sei-cream);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
