@@ -91,21 +91,28 @@ CREATE TABLE IF NOT EXISTS catches (
 );
 
 -- One row per SEI office/region. The slug is the URL segment (/office/cincinnati).
--- lock_type controls how this office is unlocked:
---   'none'    — always accessible (home offices, Services)
---   'gateway' — requires meeting 80% of every 'none' office first
 CREATE TABLE IF NOT EXISTS offices (
   id          SERIAL  PRIMARY KEY,
   name        TEXT    UNIQUE NOT NULL,  -- matches consultants.office exactly
   slug        TEXT    UNIQUE NOT NULL,
-  lock_type   TEXT    NOT NULL DEFAULT 'none' CHECK (lock_type IN ('none', 'gateway')),
   description TEXT    NOT NULL DEFAULT '',
   sort_order  INTEGER NOT NULL DEFAULT 0
 );
 
--- Seed the initial offices.
-INSERT INTO offices (name, slug, lock_type, description, sort_order) VALUES
-  ('Cincinnati', 'cincinnati', 'none',    'Home base.',        1),
-  ('Services',   'services',   'none',    'SEI Services.',     2),
-  ('Charlotte',  'charlotte',  'gateway', 'Charlotte office.', 3)
+-- Seed all offices. All offices are open to everyone.
+INSERT INTO offices (name, slug, description, sort_order) VALUES
+  ('Cincinnati',    'cincinnati',    'Home base.',             1),
+  ('Services',      'services',      'SEI Services.',          2),
+  ('Charlotte',     'charlotte',     'Charlotte office.',      3),
+  ('Atlanta',       'atlanta',       'Atlanta office.',        4),
+  ('Boston',        'boston',        'Boston office.',         5),
+  ('Chicago',       'chicago',       'Chicago office.',        6),
+  ('Dallas',        'dallas',        'Dallas office.',         7),
+  ('Miami',         'miami',         'Miami office.',          8),
+  ('Nashville',     'nashville',     'Nashville office.',      9),
+  ('New York City', 'new-york-city', 'New York City office.', 10),
+  ('Philadelphia',  'philadelphia',  'Philadelphia office.',  11),
+  ('Phoenix',       'phoenix',       'Phoenix office.',       12),
+  ('Seattle',       'seattle',       'Seattle office.',       13),
+  ('Washington DC', 'washington-dc', 'Washington DC office.', 14)
 ON CONFLICT (name) DO NOTHING;
