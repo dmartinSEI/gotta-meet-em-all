@@ -194,7 +194,7 @@ export default async function LeaderboardPage({
           ))}
         </svg>
 
-        <div className="relative max-w-3xl mx-auto px-8 py-5 flex items-center justify-between gap-6">
+        <div className="relative max-w-5xl mx-auto px-8 py-5 flex items-center justify-between gap-6">
           <div className="flex items-center gap-4 shrink-0">
             <img src="/brand/sei-logo-white.svg" alt="SEI" style={{ height: 28 }} />
             <div className="w-px h-5 bg-white/20" />
