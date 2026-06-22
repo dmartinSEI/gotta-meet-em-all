@@ -80,6 +80,9 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
 
   const rarityColor  = RARITY_COLOR[rarity];
   const cardBorder   = `4px solid ${rarityColor}`;
+  const officeImageUrl = consultant.office
+    ? `/brand/offices/${consultant.office.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")}.jpg`
+    : null;
 
   const initOffset = useMemo(() => {
     const destCX = window.innerWidth  / 2;
@@ -90,10 +93,16 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
   }, [sourceRect]);
 
   useEffect(() => {
-    const raf = requestAnimationFrame(() => setPhase("flying"));
-    const t1  = setTimeout(() => setPhase("flipping"), 420);
-    const t2  = setTimeout(() => setPhase("ready"),    420 + 560);
-    return () => { cancelAnimationFrame(raf); clearTimeout(t1); clearTimeout(t2); };
+    // Double rAF ensures the initial translated/scaled position is painted
+    // to the screen before the fly-in animation starts, preventing a 1-frame
+    // flash where the card appears at full size in the center.
+    let raf1: number, raf2: number;
+    raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => setPhase("flying"));
+    });
+    const t1 = setTimeout(() => setPhase("flipping"), 420);
+    const t2 = setTimeout(() => setPhase("ready"),    420 + 560);
+    return () => { cancelAnimationFrame(raf1); cancelAnimationFrame(raf2); clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
   useEffect(() => {
@@ -161,28 +170,54 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
             }}
           >
 
-            {/* ── FRONT FACE (portrait) ──────────────────────────────── */}
+            {/* ── FRONT FACE ─────────────────────────────────────────── */}
             <div style={{
               position: "absolute", inset: 0, backfaceVisibility: "hidden",
               borderRadius: 14, overflow: "hidden",
               border: cardBorder,
-              background: "#000",
+              background: "linear-gradient(160deg, #1a0e36 0%, #2D1B4E 100%)",
+              ...(officeImageUrl ? {
+                backgroundImage: `url(${officeImageUrl})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              } : {}),
             }}>
-              {photo ? (
-                <Image src={photo} alt={fullName} fill sizes="280px" className="object-cover object-top" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-white font-black text-6xl"
-                     style={{ background: RARITY_HEADER[rarity] }}>
-                  {fullName.split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase()}
+              {/* Subtle SEI circle decoration */}
+              <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.07, pointerEvents: "none" }} aria-hidden>
+                {[50, 90, 130].map((r) => (
+                  <circle key={r} cx="110%" cy="50%" r={r} fill="none" stroke="#C8102E" strokeWidth="1" />
+                ))}
+              </svg>
+
+              {/* Scrim */}
+              <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.28)" }} />
+
+              {/* Circle profile photo — centered, shifted up */}
+              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", paddingBottom: "28%" }}>
+                <div style={{
+                  width: 88, height: 88, borderRadius: "50%", overflow: "hidden", flexShrink: 0,
+                  border: `4px solid ${rarityColor}`,
+                  boxShadow: `0 0 0 4px rgba(255,255,255,0.08), 0 6px 24px rgba(0,0,0,0.60)`,
+                  background: "#2D1B4E", position: "relative",
+                }}>
+                  {photo ? (
+                    <Image src={photo} alt={fullName} fill sizes="88px" className="object-cover object-top" />
+                  ) : (
+                    <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: RARITY_HEADER[rarity], color: "#fff", fontWeight: 900, fontSize: 28 }}>
+                      {fullName.split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase()}
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
+
+              {/* Bottom gradient + name */}
               <div style={{
                 position: "absolute", bottom: 0, left: 0, right: 0,
-                background: "linear-gradient(to top, rgba(0,0,0,0.88) 0%, transparent 100%)",
-                padding: "36px 16px 16px",
+                background: "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.4) 55%, transparent 100%)",
+                padding: "48px 16px 16px",
               }}>
-                <p className="text-white font-bold text-lg leading-tight">{fullName}</p>
-                {consultant.title && <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 13 }}>{consultant.title}</p>}
+                <p style={{ color: "#fff", fontWeight: 900, fontSize: 17, lineHeight: 1.2 }}>{fullName}</p>
+                {consultant.title && <p style={{ color: "rgba(255,255,255,0.65)", fontSize: 12, marginTop: 2 }}>{consultant.title}</p>}
               </div>
             </div>
 
