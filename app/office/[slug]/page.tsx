@@ -118,52 +118,54 @@ export default async function OfficePage({
           ))}
         </svg>
 
-        <div className="relative max-w-5xl mx-auto px-8 py-5 flex items-center justify-between gap-6">
-          <div className="flex items-center gap-4 shrink-0">
+        <div className="relative max-w-5xl mx-auto px-4 md:px-8 py-5 flex items-center justify-between gap-4 md:gap-6">
+          <div className="flex items-center gap-3 md:gap-4 shrink-0">
             <img src="/brand/sei-logo-white.svg" alt="SEI" style={{ height: 28 }} />
-            <div className="w-px h-5 bg-white/20" />
+            <div className="hidden md:block w-px h-5 bg-white/20" />
             <Link
               href="/"
-              className="text-white font-black text-lg leading-none tracking-tight whitespace-nowrap hover:text-white/80 transition-colors"
+              className="hidden md:block text-white font-black text-lg leading-none tracking-tight whitespace-nowrap hover:text-white/80 transition-colors"
             >
               Gotta Meet Em All
             </Link>
           </div>
 
-          <div className="flex items-center gap-4 min-w-0">
+          <div className="flex items-center gap-3 md:gap-4 min-w-0">
             <div className="flex items-center gap-2 shrink-0">
               <span className="text-white/50 text-sm tabular-nums">{totalXp} XP</span>
               <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${HEADER_RARITY[globalRarity]}`}>
                 {RARITY_LABELS[globalRarity]}
               </span>
             </div>
-            <div className="w-px h-4 bg-white/20 shrink-0" />
-            <nav className="flex items-center gap-4 flex-wrap">
-              <Link href="/" className="text-white text-sm font-semibold whitespace-nowrap">
-                Offices
-              </Link>
-              <Link href="/leaderboard" className="text-white/65 hover:text-white text-sm font-medium transition-colors whitespace-nowrap">
-                Leaderboard
-              </Link>
-              <Link href="/collection" className="text-white/65 hover:text-white text-sm font-medium transition-colors whitespace-nowrap">
-                My Collection
-              </Link>
-              <Link href="/profile" className="text-white/65 hover:text-white text-sm font-medium transition-colors whitespace-nowrap">
-                My Profile
-              </Link>
-              <form action={async () => { "use server"; await signOut(); }}>
-                <button className="text-white/35 hover:text-white/65 text-sm transition-colors">
-                  Sign out
-                </button>
-              </form>
-            </nav>
+            <div className="hidden md:flex items-center gap-4">
+              <div className="w-px h-4 bg-white/20" />
+              <nav className="flex items-center gap-4 flex-wrap">
+                <Link href="/" className="text-white text-sm font-semibold whitespace-nowrap">
+                  Offices
+                </Link>
+                <Link href="/leaderboard" className="text-white/65 hover:text-white text-sm font-medium transition-colors whitespace-nowrap">
+                  Leaderboard
+                </Link>
+                <Link href="/collection" className="text-white/65 hover:text-white text-sm font-medium transition-colors whitespace-nowrap">
+                  My Collection
+                </Link>
+                <Link href="/profile" className="text-white/65 hover:text-white text-sm font-medium transition-colors whitespace-nowrap">
+                  My Profile
+                </Link>
+                <form action={async () => { "use server"; await signOut(); }}>
+                  <button className="text-white/35 hover:text-white/65 text-sm transition-colors">
+                    Sign out
+                  </button>
+                </form>
+              </nav>
+            </div>
           </div>
         </div>
       </header>
 
       {/* ── Office sub-header ────────────────────────────────────── */}
       <div className="bg-white border-b" style={{ borderColor: "rgba(45,27,78,0.08)" }}>
-        <div className="max-w-5xl mx-auto px-8 py-4 flex items-center justify-between gap-6">
+        <div className="max-w-5xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between gap-4 md:gap-6">
           <div className="min-w-0">
             <p className="text-[9px] font-black tracking-[0.2em] uppercase text-[#2D1B4E]/40 mb-0.5">Office</p>
             <h1 className="text-xl font-black text-[#2D1B4E] leading-tight">{office.name}</h1>
@@ -194,7 +196,7 @@ export default async function OfficePage({
       </div>
 
       {/* ── Content ─────────────────────────────────────────────── */}
-      <main className="max-w-5xl mx-auto px-8 py-8">
+      <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 md:py-8">
         {total === 0 ? (
           <div className="text-center py-20">
             <p className="text-[#2D1B4E] font-bold mb-1">No consultants in this office yet.</p>
