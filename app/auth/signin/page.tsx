@@ -4,7 +4,7 @@ import AnimatedAuthBackground from "../../AnimatedAuthBackground";
 export default function SignInPage() {
   return (
     <AnimatedAuthBackground>
-      <img src="/brand/sei-logo.png" alt="SEI" style={{ height: 44, filter: "brightness(0) invert(1)" }} className="mb-7" />
+      <img src="/brand/sei-logoblack-002.svg" alt="SEI" style={{ height: 44, filter: "brightness(0) invert(1)" }} className="mb-7" />
       <h1 className="text-white font-black text-4xl tracking-tight mb-2">Gotta Meet Em All</h1>
       <p className="text-white/40 text-sm mb-8">Enter your SEI email to receive a sign-in link.</p>
 
