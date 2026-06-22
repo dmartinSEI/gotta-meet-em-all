@@ -88,12 +88,9 @@ export default function CollectionGallery({ consultants, totalRoster, totalsByOf
         </div>
 
         <div className="relative flex-1 min-w-48">
-          <div className="flex justify-between mb-2">
-            <p className="text-white/40 text-xs">{pct}% of the firm</p>
-            {pct === 100 && (
-              <p className="text-green-400 text-xs font-semibold">Complete! 🎉</p>
-            )}
-          </div>
+          {pct === 100 && (
+            <p className="text-green-400 text-xs font-semibold mb-2">Complete! 🎉</p>
+          )}
           <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.10)" }}>
             <div
               className="h-2 rounded-full transition-all duration-700"
