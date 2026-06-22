@@ -1,3 +1,5 @@
+import AnimatedAuthBackground from "../../AnimatedAuthBackground";
+
 const RESTRICTED_ERRORS = new Set(["AccessDenied"]);
 
 export default async function AuthErrorPage({
@@ -9,31 +11,37 @@ export default async function AuthErrorPage({
   const isRestricted = error ? RESTRICTED_ERRORS.has(error) : false;
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen gap-4 px-4 text-center">
-      <h1 className="text-2xl font-bold">Gotta Meet Em All</h1>
+    <AnimatedAuthBackground>
+      <div
+        className="flex items-center justify-center rounded-full mb-6"
+        style={{
+          width: 64, height: 64,
+          background: "rgba(200,16,46,0.12)",
+          border: "1.5px solid rgba(200,16,46,0.28)",
+        }}
+      >
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none"
+             stroke="#C8102E" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 8v4M12 16h.01" />
+        </svg>
+      </div>
 
-      {isRestricted ? (
-        <>
-          <p className="text-lg font-semibold text-gray-800">This app is for SEI employees only</p>
-          <p className="text-sm text-gray-500 max-w-sm">
-            Sign-in is restricted to @sei.com email addresses. Please try again with your SEI email.
-          </p>
-        </>
-      ) : (
-        <>
-          <p className="text-lg font-semibold text-gray-800">Sign-in failed</p>
-          <p className="text-sm text-gray-500 max-w-sm">
-            Something went wrong while signing you in. Please try again.
-          </p>
-        </>
-      )}
+      <h1 className="text-white font-black text-3xl tracking-tight mb-2">
+        {isRestricted ? "Access restricted" : "Sign-in failed"}
+      </h1>
+      <p className="text-white/45 text-sm max-w-xs leading-relaxed mb-8">
+        {isRestricted
+          ? "This app is for SEI employees only. Please sign in with your @sei.com email address."
+          : "Something went wrong while signing you in. Please try again."}
+      </p>
 
       <a
-        href="/api/auth/signin"
-        className="px-5 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700"
+        href="/auth/signin"
+        className="px-7 py-3 bg-[#C8102E] hover:bg-[#a50d25] text-white rounded-xl font-bold text-sm transition-colors"
       >
-        Try Again
+        Try again
       </a>
-    </main>
+    </AnimatedAuthBackground>
   );
 }

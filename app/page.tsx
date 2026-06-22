@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { auth, signOut } from "../auth";
+import AnimatedAuthBackground from "./AnimatedAuthBackground";
 import { sql } from "@/lib/db";
 import type { OfficeRow } from "@/lib/types";
 import { getRarity, RARITY_LABELS } from "@/lib/xp";
@@ -20,24 +21,17 @@ export default async function HomePage() {
 
   if (!session?.user?.email) {
     return (
-      <div className="min-h-screen bg-[#2D1B4E] flex flex-col items-center justify-center relative overflow-hidden">
-        <svg className="absolute inset-0 w-full h-full opacity-10" aria-hidden>
-          {[80, 140, 200, 260, 320, 380, 440].map((r) => (
-            <circle key={r} cx="50%" cy="50%" r={r} fill="none" stroke="#C8102E" strokeWidth="1" />
-          ))}
-        </svg>
-        <div className="relative flex flex-col items-center text-center px-6">
-          <img src="/brand/sei-logo-white.svg" alt="SEI" style={{ height: 48 }} />
-          <h1 className="text-white font-black text-5xl tracking-tight mt-6 mb-3">Gotta Meet Em All</h1>
-          <p className="text-white/40 text-sm mb-10">Gamified colleague networking for the firm.</p>
-          <a
-            href="/api/auth/signin"
-            className="px-7 py-3 bg-[#C8102E] text-white rounded-xl font-bold text-sm hover:bg-[#a50d25] transition-colors"
-          >
-            Sign in with SEI Email →
-          </a>
-        </div>
-      </div>
+      <AnimatedAuthBackground>
+        <img src="/brand/sei-logo-white.svg" alt="SEI" style={{ height: 48 }} className="mb-6" />
+        <h1 className="text-white font-black text-5xl tracking-tight mb-3">Gotta Meet Em All</h1>
+        <p className="text-white/40 text-sm mb-10">Gamified colleague networking for the firm.</p>
+        <a
+          href="/auth/signin"
+          className="px-7 py-3 bg-[#C8102E] text-white rounded-xl font-bold text-sm hover:bg-[#a50d25] transition-colors"
+        >
+          Sign in with SEI Email →
+        </a>
+      </AnimatedAuthBackground>
     );
   }
 

@@ -18,7 +18,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PostgresAdapter(pool),
   secret: process.env.AUTH_SECRET,
   pages: {
-    error: "/auth/error",
+    signIn:        "/auth/signin",
+    verifyRequest: "/auth/check-email",
+    error:         "/auth/error",
   },
   providers: [
     ResendProvider({
