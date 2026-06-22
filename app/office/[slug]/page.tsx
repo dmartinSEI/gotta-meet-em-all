@@ -4,7 +4,7 @@ import { auth, signOut } from "../../../auth";
 import { sql } from "@/lib/db";
 import ConsultantGrid from "../../ConsultantGrid";
 import type { ConsultantRow } from "@/lib/types";
-import { getRarity, RARITY_LABELS, RARITY_BADGE_STYLES } from "@/lib/xp";
+import { getRarity, RARITY_LABELS, type Rarity } from "@/lib/xp";
 
 interface OfficeRecord {
   name: string;
@@ -17,6 +17,14 @@ interface GlobalStats {
   roster_size: number;
 }
 
+const HEADER_RARITY: Record<Rarity, string> = {
+  common:    "bg-white/10 text-white/80 border border-white/20",
+  uncommon:  "bg-green-400/20 text-green-300 border border-green-400/40",
+  rare:      "bg-blue-400/20 text-blue-300 border border-blue-400/40",
+  epic:      "bg-purple-400/20 text-purple-200 border border-purple-400/40",
+  legendary: "bg-yellow-400/20 text-yellow-300 border border-yellow-400/40",
+};
+
 export default async function OfficePage({
   params,
 }: {
@@ -26,7 +34,6 @@ export default async function OfficePage({
   const session = await auth();
   if (!session?.user?.email) redirect("/");
 
-  // Batch 1: office lookup + global stats in parallel
   const [{ rows: officeRows }, { rows: statsRows }] = await Promise.all([
     sql<OfficeRecord>`
       SELECT name, slug, description
@@ -55,7 +62,6 @@ export default async function OfficePage({
   const totalXp = statsRows[0]?.total_xp ?? 0;
   const globalRosterSize = statsRows[0]?.roster_size ?? 0;
 
-  // Batch 2: consultants for this office
   const { rows } = await sql<ConsultantRow>`
     SELECT
       c.id, c.email, c.first_name, c.last_name, c.title, c.office, c.bio, c.skills,
@@ -92,65 +98,119 @@ export default async function OfficePage({
   const total = rows.length;
   const met = rows.filter((c) => c.catch_level !== null).length;
   const pct = total > 0 ? Math.round((met / total) * 100) : 0;
+  const done = pct === 100 && total > 0;
 
   const globalRarity = getRarity(totalXp, globalRosterSize);
 
   return (
-    <main className="p-8 max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <Link href="/" className="text-sm text-gray-400 hover:text-gray-600 transition-colors">
-            ← Offices
-          </Link>
-          <h1 className="text-3xl font-bold">{office.name}</h1>
+    <div className="min-h-screen">
+
+      {/* ── Header ──────────────────────────────────────────────── */}
+      <header className="relative bg-[#2D1B4E] overflow-hidden">
+        <svg
+          className="absolute right-0 top-0 h-full w-80 opacity-[0.12]"
+          viewBox="0 0 320 80"
+          preserveAspectRatio="xMaxYMid meet"
+          aria-hidden
+        >
+          {[35, 65, 95, 125, 155, 185, 215, 250].map((r) => (
+            <circle key={r} cx="320" cy="40" r={r} fill="none" stroke="#C8102E" strokeWidth="1" />
+          ))}
+        </svg>
+
+        <div className="relative max-w-5xl mx-auto px-8 py-5 flex items-center justify-between gap-6">
+          <div className="flex items-center gap-4 shrink-0">
+            <img src="/brand/sei-logo-white.svg" alt="SEI" style={{ height: 28 }} />
+            <div className="w-px h-5 bg-white/20" />
+            <Link
+              href="/"
+              className="text-white font-black text-lg leading-none tracking-tight whitespace-nowrap hover:text-white/80 transition-colors"
+            >
+              Gotta Meet Em All
+            </Link>
+          </div>
+
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-white/50 text-sm tabular-nums">{totalXp} XP</span>
+              <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${HEADER_RARITY[globalRarity]}`}>
+                {RARITY_LABELS[globalRarity]}
+              </span>
+            </div>
+            <div className="w-px h-4 bg-white/20 shrink-0" />
+            <nav className="flex items-center gap-4 flex-wrap">
+              <Link href="/" className="text-white text-sm font-semibold whitespace-nowrap">
+                Offices
+              </Link>
+              <Link href="/leaderboard" className="text-white/65 hover:text-white text-sm font-medium transition-colors whitespace-nowrap">
+                Leaderboard
+              </Link>
+              <Link href="/collection" className="text-white/65 hover:text-white text-sm font-medium transition-colors whitespace-nowrap">
+                My Collection
+              </Link>
+              <Link href="/profile" className="text-white/65 hover:text-white text-sm font-medium transition-colors whitespace-nowrap">
+                My Profile
+              </Link>
+              <form action={async () => { "use server"; await signOut(); }}>
+                <button className="text-white/35 hover:text-white/65 text-sm transition-colors">
+                  Sign out
+                </button>
+              </form>
+            </nav>
+          </div>
         </div>
-        <div className="flex items-center gap-4">
-          <Link href="/leaderboard" className="text-sm text-blue-600 hover:text-blue-800 font-medium">
-            Leaderboard
-          </Link>
-          <Link href="/collection" className="text-sm text-blue-600 hover:text-blue-800 font-medium">
-            My Collection
-          </Link>
-          <Link href="/profile" className="text-sm text-blue-600 hover:text-blue-800 font-medium">
-            My Profile
-          </Link>
-          <form action={async () => { "use server"; await signOut(); }}>
-            <button className="text-sm text-gray-400 hover:text-gray-600">Sign out</button>
-          </form>
+      </header>
+
+      {/* ── Office sub-header ────────────────────────────────────── */}
+      <div className="bg-white border-b" style={{ borderColor: "rgba(45,27,78,0.08)" }}>
+        <div className="max-w-5xl mx-auto px-8 py-4 flex items-center justify-between gap-6">
+          <div className="min-w-0">
+            <p className="text-[9px] font-black tracking-[0.2em] uppercase text-[#2D1B4E]/40 mb-0.5">Office</p>
+            <h1 className="text-xl font-black text-[#2D1B4E] leading-tight">{office.name}</h1>
+            {office.description && (
+              <p className="text-xs mt-0.5" style={{ color: "rgba(45,27,78,0.40)" }}>{office.description}</p>
+            )}
+          </div>
+
+          {total > 0 && (
+            <div className="shrink-0 flex items-center gap-4">
+              <div className="text-right">
+                <p className="text-[9px] font-black tracking-[0.2em] uppercase text-[#2D1B4E]/40 mb-1">Progress</p>
+                <div className="flex items-center gap-2">
+                  <div className="w-32 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(45,27,78,0.08)" }}>
+                    <div
+                      className="h-1.5 rounded-full transition-all duration-500"
+                      style={{ width: `${pct}%`, background: done ? "#22c55e" : "#C8102E" }}
+                    />
+                  </div>
+                  <span className="text-xs tabular-nums font-semibold" style={{ color: done ? "#16a34a" : "#2D1B4E" }}>
+                    {met}/{total}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {total === 0 ? (
-        <p className="text-gray-500">
-          No consultants in this office yet.{" "}
-          <a href="/admin" className="text-blue-600 underline">Upload the roster</a>{" "}
-          to get started.
-        </p>
-      ) : (
-        <>
-          <div className="mb-8 flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-500">
-                {met} of {total} met &mdash; {pct}%
-              </p>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-400">{totalXp} XP</span>
-                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${RARITY_BADGE_STYLES[globalRarity]}`}>
-                  {RARITY_LABELS[globalRarity]}
-                </span>
-              </div>
-            </div>
-            <div className="w-full bg-gray-100 rounded-full h-2">
-              <div
-                className="bg-blue-500 h-2 rounded-full transition-all duration-500"
-                style={{ width: `${pct}%` }}
-              />
-            </div>
+      {/* ── Content ─────────────────────────────────────────────── */}
+      <main className="max-w-5xl mx-auto px-8 py-8">
+        {total === 0 ? (
+          <div className="text-center py-20">
+            <p className="text-[#2D1B4E] font-bold mb-1">No consultants in this office yet.</p>
+            <p className="text-sm mb-5" style={{ color: "rgba(45,27,78,0.40)" }}>
+              <a href="/admin" className="text-[#C8102E] hover:underline">Upload the roster</a> to get started.
+            </p>
           </div>
-
-          <ConsultantGrid consultants={rows} rosterSize={globalRosterSize} />
-        </>
-      )}
-    </main>
+        ) : (
+          <ConsultantGrid
+            consultants={rows}
+            rosterSize={globalRosterSize}
+            officeName={office.name}
+            officeImageUrl={null}
+          />
+        )}
+      </main>
+    </div>
   );
 }

@@ -4,21 +4,38 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import CardModal from "./CardModal";
 import type { ConsultantRow } from "@/lib/types";
-import { getRarity, RARITY_STYLES, CATCH_LEVEL_ICONS, CATCH_LEVEL_LABELS } from "@/lib/xp";
+import { getRarity, CATCH_LEVEL_ICONS, CATCH_LEVEL_LABELS, type Rarity } from "@/lib/xp";
 import { pickPhoto } from "@/lib/cards";
 
 type StatusFilter = "all" | "unmet" | "met";
 
+const RARITY_RING: Record<Rarity, string> = {
+  common:    "rgba(255,255,255,0.55)",
+  uncommon:  "#4ade80",
+  rare:      "#60a5fa",
+  epic:      "#c084fc",
+  legendary: "#fbbf24",
+};
+
+const CARD_GLOW: Record<Rarity, string> = {
+  common:    "0 2px 10px rgba(0,0,0,0.10)",
+  uncommon:  "0 0 10px 2px rgba(74,222,128,0.30),  0 2px 10px rgba(0,0,0,0.12)",
+  rare:      "0 0 10px 2px rgba(96,165,250,0.35),   0 2px 10px rgba(0,0,0,0.12)",
+  epic:      "0 0 14px 3px rgba(192,132,252,0.42),  0 2px 10px rgba(0,0,0,0.12)",
+  legendary: "0 0 18px 5px rgba(251,191,36,0.50),   0 2px 10px rgba(0,0,0,0.12)",
+};
+
 const AVATAR_COLORS = [
-  "bg-blue-400", "bg-purple-400", "bg-green-400", "bg-orange-400",
-  "bg-pink-400", "bg-teal-400", "bg-indigo-400", "bg-rose-400",
+  "#3b82f6", "#8b5cf6", "#10b981", "#f97316",
+  "#ec4899", "#14b8a6", "#6366f1", "#f43f5e",
 ];
 
 function InitialsAvatar({ name }: { name: string }) {
   const initials = name.split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase();
-  const color = AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
+  const bg = AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
   return (
-    <div className={`w-full h-full flex items-center justify-center text-white font-bold text-3xl ${color}`}>
+    <div className="w-full h-full flex items-center justify-center text-white font-bold text-xl"
+         style={{ background: bg }}>
       {initials}
     </div>
   );
@@ -27,9 +44,13 @@ function InitialsAvatar({ name }: { name: string }) {
 export default function ConsultantGrid({
   consultants,
   rosterSize,
+  officeName,
+  officeImageUrl,
 }: {
   consultants: ConsultantRow[];
   rosterSize: number;
+  officeName: string;
+  officeImageUrl?: string | null;
 }) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -39,7 +60,7 @@ export default function ConsultantGrid({
     const q = search.toLowerCase();
     return consultants.filter((c) => {
       if (q && !`${c.first_name} ${c.last_name}`.toLowerCase().includes(q)) return false;
-      if (statusFilter === "met" && c.catch_level === null) return false;
+      if (statusFilter === "met"   && c.catch_level === null) return false;
       if (statusFilter === "unmet" && c.catch_level !== null) return false;
       return true;
     });
@@ -48,24 +69,28 @@ export default function ConsultantGrid({
   return (
     <div>
       {/* Filter bar */}
-      <div className="flex flex-wrap gap-3 mb-4">
+      <div className="flex flex-wrap gap-3 mb-5">
         <input
           type="search"
           placeholder="Search by name…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 min-w-48 px-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 min-w-48 px-4 py-2 text-sm rounded-xl focus:outline-none"
+          style={{
+            border: "1.5px solid rgba(45,27,78,0.12)",
+            background: "#fff",
+            color: "#2D1B4E",
+          }}
         />
-        <div className="flex rounded-lg border overflow-hidden text-sm">
+        <div className="flex rounded-xl overflow-hidden text-sm" style={{ border: "1.5px solid rgba(45,27,78,0.12)" }}>
           {(["all", "unmet", "met"] as StatusFilter[]).map((s) => (
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
-              className={`px-4 py-2 capitalize transition-colors ${
-                statusFilter === s
-                  ? "bg-blue-600 text-white"
-                  : "bg-white text-gray-600 hover:bg-gray-50"
-              }`}
+              className="px-4 py-2 capitalize transition-colors"
+              style={statusFilter === s
+                ? { background: "#2D1B4E", color: "#fff" }
+                : { background: "#fff", color: "rgba(45,27,78,0.55)" }}
             >
               {s}
             </button>
@@ -73,84 +98,134 @@ export default function ConsultantGrid({
         </div>
       </div>
 
-      <p className="text-xs text-gray-400 mb-4">
-        Showing {filtered.length} of {consultants.length}
+      <p className="text-[10px] font-medium mb-4" style={{ color: "rgba(45,27,78,0.35)" }}>
+        {filtered.length} of {consultants.length} consultants
       </p>
 
       {filtered.length === 0 ? (
-        <p className="text-gray-400 text-sm py-12 text-center">No consultants match your filters.</p>
+        <p className="text-center py-16 text-sm" style={{ color: "rgba(45,27,78,0.35)" }}>
+          No consultants match your filters.
+        </p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
           {filtered.map((c) => {
             const fullName = `${c.first_name} ${c.last_name}`;
             const photo = pickPhoto(c);
-            const skillList = c.skills
-              ? c.skills.split(",").map((s) => s.trim()).filter(Boolean)
-              : [];
-            const cardBorder = c.catch_level !== null
-              ? RARITY_STYLES[getRarity(c.consultant_xp, rosterSize)]
-              : "border-gray-200";
+            const caught = c.catch_level !== null;
+            const rarity = getRarity(c.consultant_xp, rosterSize);
+            const ringColor = caught ? RARITY_RING[rarity] : "rgba(255,255,255,0.40)";
 
             return (
               <div
                 key={c.id}
+                className="relative cursor-pointer rounded-xl overflow-hidden select-none group"
+                style={{
+                  aspectRatio: "3 / 4",
+                  border: caught
+                    ? `2px solid ${RARITY_RING[rarity]}`
+                    : "1.5px solid rgba(45,27,78,0.10)",
+                  boxShadow: caught
+                    ? CARD_GLOW[rarity]
+                    : "0 2px 8px rgba(0,0,0,0.06)",
+                  transition: "transform 0.15s ease, box-shadow 0.15s ease",
+                }}
                 onClick={(e) => setSelectedCard({ consultant: c, rect: e.currentTarget.getBoundingClientRect() })}
-                className={`flex flex-col rounded-xl overflow-hidden bg-white shadow-sm border transition-shadow hover:shadow-md cursor-pointer ${cardBorder} ${
-                  c.catch_level !== null && !c.is_own_card ? "opacity-80" : ""
-                }`}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.transform = "scale(1.04) translateY(-2px)";
+                  (e.currentTarget as HTMLElement).style.zIndex = "10";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.transform = "";
+                  (e.currentTarget as HTMLElement).style.zIndex = "";
+                }}
               >
-                {/* Portrait */}
-                <div className="relative w-full aspect-[4/5] bg-gray-100 overflow-hidden">
-                  {photo ? (
-                    <Image
-                      src={photo}
-                      alt={fullName}
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      className="object-cover object-top"
-                    />
-                  ) : (
-                    <InitialsAvatar name={fullName} />
-                  )}
-                  {c.catch_level !== null && (
-                    <div className="absolute inset-0 bg-black/10 flex items-end justify-end p-2">
-                      <span className="text-white text-xs font-bold bg-black/40 rounded-full px-2 py-0.5">
-                        {CATCH_LEVEL_ICONS[c.catch_level]} {CATCH_LEVEL_LABELS[c.catch_level]}
-                      </span>
-                    </div>
+                {/* Office background */}
+                <div className="absolute inset-0" style={{ background: "linear-gradient(160deg, #1a0e36 0%, #2D1B4E 100%)" }}>
+                  {officeImageUrl && (
+                    <Image src={officeImageUrl} alt={officeName} fill sizes="200px" className="object-cover" />
                   )}
                 </div>
 
-                {/* Info */}
-                <div className="flex flex-col gap-1 p-3 flex-1">
-                  <div className="flex items-start justify-between gap-1">
-                    <p className="font-semibold text-gray-900 leading-tight">{fullName}</p>
-                    {c.is_own_card && (
-                      <a href="/profile" className="text-xs text-blue-500 hover:text-blue-700 shrink-0">
-                        Edit
-                      </a>
+                {/* Subtle SEI circle decoration */}
+                <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.07]" aria-hidden>
+                  {[28, 52, 76].map((r) => (
+                    <circle key={r} cx="110%" cy="50%" r={r} fill="none" stroke="#C8102E" strokeWidth="1" />
+                  ))}
+                </svg>
+
+                {/* Scrim — lighter when caught so the photo pops */}
+                <div
+                  className="absolute inset-0"
+                  style={{ background: caught ? "rgba(0,0,0,0.22)" : "rgba(0,0,0,0.48)" }}
+                />
+
+                {/* Circular profile photo — centered, shifted up */}
+                <div
+                  className="absolute inset-0 flex items-center justify-center"
+                  style={{ paddingBottom: "28%" }}
+                >
+                  <div
+                    style={{
+                      width: 64, height: 64,
+                      borderRadius: "50%",
+                      overflow: "hidden",
+                      flexShrink: 0,
+                      border: `3px solid ${ringColor}`,
+                      boxShadow: caught
+                        ? `0 0 0 3px rgba(255,255,255,0.08), 0 4px 18px rgba(0,0,0,0.55)`
+                        : "0 4px 14px rgba(0,0,0,0.45)",
+                      position: "relative",
+                      background: "#2D1B4E",
+                    }}
+                  >
+                    {photo ? (
+                      <Image src={photo} alt={fullName} fill sizes="64px" className="object-cover object-top" />
+                    ) : (
+                      <InitialsAvatar name={fullName} />
                     )}
                   </div>
-                  {c.title && <p className="text-xs text-gray-500">{c.title}</p>}
-                  {c.office && <p className="text-xs text-gray-400">{c.office}</p>}
-                  {skillList.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {skillList.slice(0, 3).map((skill, i) => (
-                        <span
-                          key={i}
-                          className="px-1.5 py-0.5 bg-blue-50 text-blue-700 text-xs rounded-full border border-blue-100"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                      {skillList.length > 3 && (
-                        <span className="px-1.5 py-0.5 text-gray-400 text-xs">
-                          +{skillList.length - 3} more
-                        </span>
-                      )}
-                    </div>
+                </div>
+
+                {/* Bottom name strip */}
+                <div
+                  className="absolute bottom-0 left-0 right-0"
+                  style={{
+                    background: "linear-gradient(to top, rgba(0,0,0,0.90) 0%, rgba(0,0,0,0.35) 65%, transparent 100%)",
+                    padding: "28px 9px 9px",
+                  }}
+                >
+                  <p className="text-white font-bold leading-tight truncate" style={{ fontSize: 11 }}>
+                    {fullName}
+                  </p>
+                  {c.title && (
+                    <p className="leading-tight truncate mt-0.5" style={{ fontSize: 9, color: "rgba(255,255,255,0.48)" }}>
+                      {c.title}
+                    </p>
                   )}
                 </div>
+
+                {/* Catch level badge */}
+                {caught && (
+                  <div
+                    className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full flex items-center justify-center text-xs leading-none"
+                    style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
+                    title={CATCH_LEVEL_LABELS[c.catch_level!]}
+                  >
+                    {CATCH_LEVEL_ICONS[c.catch_level!]}
+                  </div>
+                )}
+
+                {/* "You" pill for own card */}
+                {c.is_own_card && (
+                  <a
+                    href="/profile"
+                    className="absolute top-1.5 left-1.5 text-white font-bold rounded leading-none"
+                    style={{ fontSize: 9, padding: "3px 6px", background: "rgba(200,16,46,0.80)", backdropFilter: "blur(4px)" }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    You
+                  </a>
+                )}
               </div>
             );
           })}
