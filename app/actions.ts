@@ -5,6 +5,7 @@ import { auth } from "../auth";
 import { revalidatePath } from "next/cache";
 import { currentMonth } from "@/lib/bounty";
 import { checkAndAwardBadges } from "@/lib/badges";
+import { XP_PER_LEVEL } from "@/lib/xp";
 import type { BadgeInfo } from "@/lib/types";
 
 type ActionResult = { success: boolean; newBadges: BadgeInfo[] };
@@ -14,7 +15,7 @@ export async function catchConsultant(consultantId: number, level: 1 | 2 | 3 = 1
     const session = await auth();
     if (!session?.user?.email) throw new Error("Unauthorized");
 
-    await sql`
+    const result = await sql`
       INSERT INTO catches (user_id, consultant_id, level)
       SELECT id, ${consultantId}, ${level}
       FROM users
@@ -22,7 +23,14 @@ export async function catchConsultant(consultantId: number, level: 1 | 2 | 3 = 1
       ON CONFLICT (user_id, consultant_id) DO NOTHING
     `;
 
-    // Complete the monthly bounty if this is the target consultant
+    if (result.rowCount && result.rowCount > 0) {
+      await sql`
+        INSERT INTO catch_events (user_id, consultant_id, xp_gained)
+        SELECT id, ${consultantId}, ${XP_PER_LEVEL[level]}
+        FROM users WHERE email = ${session.user.email}
+      `;
+    }
+
     await sql`
       UPDATE bounties
       SET completed_at = NOW()
@@ -33,7 +41,6 @@ export async function catchConsultant(consultantId: number, level: 1 | 2 | 3 = 1
     `;
 
     const newBadges = await checkAndAwardBadges(session.user.email).catch(() => []);
-
     revalidatePath("/", "layout");
     return { success: true, newBadges };
   } catch (error) {
@@ -47,7 +54,16 @@ export async function upgradeConsultant(consultantId: number, newLevel: 2 | 3): 
     const session = await auth();
     if (!session?.user?.email) throw new Error("Unauthorized");
 
-    await sql`
+    // Fetch current level so we can compute the XP delta
+    const { rows } = await sql<{ level: number }>`
+      SELECT ca.level FROM catches ca
+      JOIN users u ON u.id = ca.user_id
+      WHERE ca.consultant_id = ${consultantId}
+        AND u.email = ${session.user.email}
+    `;
+    const currentLevel = rows[0]?.level as 1 | 2 | 3 | undefined;
+
+    const result = await sql`
       UPDATE catches
       SET level = ${newLevel}
       WHERE consultant_id = ${consultantId}
@@ -55,8 +71,16 @@ export async function upgradeConsultant(consultantId: number, newLevel: 2 | 3): 
         AND level < ${newLevel}
     `;
 
-    const newBadges = await checkAndAwardBadges(session.user.email).catch(() => []);
+    if (result.rowCount && result.rowCount > 0 && currentLevel) {
+      const xpDelta = XP_PER_LEVEL[newLevel] - XP_PER_LEVEL[currentLevel];
+      await sql`
+        INSERT INTO catch_events (user_id, consultant_id, xp_gained)
+        SELECT id, ${consultantId}, ${xpDelta}
+        FROM users WHERE email = ${session.user.email}
+      `;
+    }
 
+    const newBadges = await checkAndAwardBadges(session.user.email).catch(() => []);
     revalidatePath("/", "layout");
     return { success: true, newBadges };
   } catch (error) {
@@ -70,13 +94,19 @@ export async function uncatchConsultant(consultantId: number): Promise<{ success
     const session = await auth();
     if (!session?.user?.email) throw new Error("Unauthorized");
 
+    // Remove XP events first (no FK cascade from catches → catch_events)
+    await sql`
+      DELETE FROM catch_events
+      WHERE consultant_id = ${consultantId}
+        AND user_id = (SELECT id FROM users WHERE email = ${session.user.email})
+    `;
+
     await sql`
       DELETE FROM catches
       WHERE consultant_id = ${consultantId}
         AND user_id = (SELECT id FROM users WHERE email = ${session.user.email})
     `;
 
-    // Reverse the bounty completion if this was the monthly target
     await sql`
       UPDATE bounties
       SET completed_at = NULL

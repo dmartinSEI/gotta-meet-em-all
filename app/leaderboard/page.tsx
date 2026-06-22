@@ -94,12 +94,41 @@ export default async function LeaderboardPage({
   const officeFilter = office?.trim() || null;
 
   // Build query dynamically based on filters
-  const monthCatch  = isMonthly ? "AND ca.caught_at  >= date_trunc('month', now())" : "";
-  const monthBounty = isMonthly ? "AND b.completed_at >= date_trunc('month', now())" : "";
   const queryParams: string[] = [];
   const officeWhere = officeFilter
     ? (queryParams.push(officeFilter), `WHERE c.office = $1`)
     : "";
+
+  // All-time: sum XP from catches (current level). Monthly: sum from catch_events
+  // this month (captures upgrade deltas recorded at upgrade time) + bounty XP.
+  const xpExpr = isMonthly
+    ? `COALESCE((
+         SELECT SUM(ce.xp_gained) FROM catch_events ce
+         WHERE ce.user_id = u.id
+           AND ce.created_at >= date_trunc('month', now())
+       ), 0)::int
+       + COALESCE((
+           SELECT SUM(b.bonus_xp) FROM bounties b
+           WHERE b.user_id = u.id AND b.completed_at IS NOT NULL
+             AND b.completed_at >= date_trunc('month', now())
+         ), 0)::int`
+    : `COALESCE(SUM(
+         CASE ca.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END
+       ), 0)::int
+       + COALESCE((
+           SELECT SUM(b.bonus_xp) FROM bounties b
+           WHERE b.user_id = u.id AND b.completed_at IS NOT NULL
+         ), 0)::int`;
+
+  const metExpr = isMonthly
+    ? `COALESCE((
+         SELECT COUNT(*)::int FROM catches ca2
+         WHERE ca2.user_id = u.id
+           AND ca2.caught_at >= date_trunc('month', now())
+       ), 0)::int`
+    : `COUNT(ca.consultant_id)::int`;
+
+  const catchesJoin = isMonthly ? "" : "LEFT JOIN catches ca ON ca.user_id = u.id";
 
   const [{ rows }, { rows: officeRows }, { rows: statsRows }] = await Promise.all([
     pool.query<LeaderboardEntry>(`
@@ -109,18 +138,12 @@ export default async function LeaderboardPage({
         c.email,
         c.office,
         c.photo_url,
-        COALESCE(SUM(
-          CASE ca.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END
-        ), 0)::int
-        + COALESCE((
-            SELECT SUM(b.bonus_xp) FROM bounties b
-            WHERE b.user_id = u.id AND b.completed_at IS NOT NULL ${monthBounty}
-          ), 0)::int AS total_xp,
-        COUNT(ca.consultant_id)::int AS total_met,
+        ${xpExpr} AS total_xp,
+        ${metExpr} AS total_met,
         (SELECT COUNT(*)::int FROM consultants) AS roster_size
       FROM consultants c
       JOIN users u ON u.email = c.email
-      LEFT JOIN catches ca ON ca.user_id = u.id ${monthCatch}
+      ${catchesJoin}
       ${officeWhere}
       GROUP BY c.id, c.first_name, c.last_name, c.email, c.office, c.photo_url, u.id
       ORDER BY total_xp DESC, total_met DESC, c.last_name, c.first_name
