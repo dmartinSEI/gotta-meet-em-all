@@ -6,7 +6,6 @@ import { getRarity, RARITY_LABELS } from "@/lib/xp";
 import { getOrAssignBounty } from "@/lib/bounty";
 import BountyCard from "./BountyCard";
 import type { Rarity } from "@/lib/xp";
-import { SeiLogoMark } from "@/components/SeiLogo";
 
 const HEADER_RARITY: Record<Rarity, string> = {
   common:    "bg-white/10 text-white/80 border border-white/20",
@@ -28,9 +27,8 @@ export default async function HomePage() {
           ))}
         </svg>
         <div className="relative flex flex-col items-center text-center px-6">
-          <SeiLogoMark size={56} color="#C8102E" />
-          <p className="text-[#C8102E] text-[10px] font-bold tracking-[0.3em] uppercase mt-4 mb-1">SEI</p>
-          <h1 className="text-white font-black text-5xl tracking-tight mb-3">Gotta Meet Em All</h1>
+          <img src="/brand/sei-logo-white.svg" alt="SEI" style={{ height: 48 }} />
+          <h1 className="text-white font-black text-5xl tracking-tight mt-6 mb-3">Gotta Meet Em All</h1>
           <p className="text-white/40 text-sm mb-10">Gamified colleague networking for the firm.</p>
           <a
             href="/api/auth/signin"
@@ -99,16 +97,12 @@ export default async function HomePage() {
 
         <div className="relative max-w-5xl mx-auto px-8 py-5 flex items-center justify-between gap-6">
           {/* Brand */}
-          <div className="flex items-center gap-3 shrink-0">
-            <SeiLogoMark size={34} color="#fff" />
-            <div>
-              <p className="text-[#C8102E] text-[8px] font-black tracking-[0.25em] uppercase leading-none mb-1">
-                SEI
-              </p>
-              <h1 className="text-white font-black text-xl leading-none tracking-tight">
-                Gotta Meet Em All
-              </h1>
-            </div>
+          <div className="flex items-center gap-4 shrink-0">
+            <img src="/brand/sei-logo-white.svg" alt="SEI" style={{ height: 28 }} />
+            <div className="w-px h-5 bg-white/20" />
+            <h1 className="text-white font-black text-lg leading-none tracking-tight whitespace-nowrap">
+              Gotta Meet Em All
+            </h1>
           </div>
 
           {/* Nav + XP */}

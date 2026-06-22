@@ -1,0 +1,18 @@
+<svg viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- SEI spiral mark — 3 nested counterclockwise arcs, center (30,30) -->
+  <!-- Outer arc: r=24, 315° to 40°, sweeps 275° CCW -->
+  <path d="M 47 13 A 24 24 0 1 0 48.4 45.4"
+        stroke="white" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+  <!-- Middle arc: r=15, 30° to 115°, sweeps 275° CCW -->
+  <path d="M 43 37.5 A 15 15 0 1 0 23.7 43.6"
+        stroke="white" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+  <!-- Inner arc: r=7, 100° to 225°, sweeps 235° CCW -->
+  <path d="M 28.8 36.9 A 7 7 0 1 0 25.1 25.1"
+        stroke="white" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <!-- SEI wordmark -->
+  <text x="68" y="44"
+        font-family="Arial Black, Helvetica Neue, Arial, sans-serif"
+        font-weight="900"
+        font-size="40"
+        fill="white">SEI</text>
+</svg>
