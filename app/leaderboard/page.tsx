@@ -196,7 +196,7 @@ export default async function LeaderboardPage({
 
         <div className="relative max-w-5xl mx-auto px-4 md:px-8 py-5 flex items-center justify-between gap-4 md:gap-6">
           <div className="flex items-center gap-3 md:gap-4 shrink-0">
-            <img src="/brand/sei-logo-white.svg" alt="SEI" style={{ height: 28 }} />
+            <img src="/brand/sei-logo.svg" alt="SEI" style={{ height: 28, filter: "brightness(0) invert(1)" }} />
             <div className="hidden md:block w-px h-5 bg-white/20" />
             <Link href="/" className="hidden md:block text-white font-black text-lg leading-none tracking-tight whitespace-nowrap hover:text-white/80 transition-colors">
               Gotta Meet Em All

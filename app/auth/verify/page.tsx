@@ -11,7 +11,7 @@ export default async function VerifyPage({
   if (!ticket) {
     return (
       <AnimatedAuthBackground>
-        <img src="/brand/sei-logo-white.svg" alt="SEI" style={{ height: 44 }} className="mb-7" />
+        <img src="/brand/sei-logo.svg" alt="SEI" style={{ height: 44, filter: "brightness(0) invert(1)" }} className="mb-7" />
         <div
           className="flex items-center justify-center rounded-full mb-5"
           style={{ width: 64, height: 64, background: "rgba(200,16,46,0.12)", border: "1.5px solid rgba(200,16,46,0.28)" }}
