@@ -34,7 +34,7 @@ export default async function VerifyPage({
 
   return (
     <AnimatedAuthBackground>
-      <img src="/brand/sei-logo-white.svg" alt="SEI" style={{ height: 44 }} className="mb-7" />
+      <img src="/brand/sei-logo.svg" alt="SEI" style={{ height: 44, filter: "brightness(0) invert(1)" }} className="mb-7" />
       <h1 className="text-white font-black text-3xl tracking-tight mb-2">Almost there</h1>
       <p className="text-white/45 text-sm mb-8 max-w-xs leading-relaxed">
         Click below to finish signing in. This extra step stops email security
