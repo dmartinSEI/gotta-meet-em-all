@@ -207,7 +207,7 @@ export default async function OfficePage({
             consultants={rows}
             rosterSize={globalRosterSize}
             officeName={office.name}
-            officeImageUrl={null}
+            officeImageUrl={`/brand/offices/${office.slug}.jpg`}
           />
         )}
       </main>

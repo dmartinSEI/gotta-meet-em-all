@@ -171,6 +171,10 @@ export default function CollectionGallery({ consultants, totalRoster, totalsByOf
   );
 }
 
+function officeSlug(name: string): string {
+  return name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+}
+
 const RARITY_RING: Record<Rarity, string> = {
   common:    "rgba(255,255,255,0.55)",
   uncommon:  "#4ade80",
@@ -193,6 +197,7 @@ function CollectionCard({
   const fullName = `${consultant.first_name} ${consultant.last_name}`;
   const catchLevel = consultant.catch_level as 1 | 2 | 3 | null;
   const ringColor = RARITY_RING[rarity];
+  const bgImageUrl = consultant.office ? `/brand/offices/${officeSlug(consultant.office)}.jpg` : null;
 
   return (
     <div
@@ -213,8 +218,18 @@ function CollectionCard({
         (e.currentTarget as HTMLElement).style.zIndex = "auto";
       }}
     >
-      {/* Navy background */}
-      <div className="absolute inset-0" style={{ background: "linear-gradient(160deg, #1a0e36 0%, #2D1B4E 100%)" }} />
+      {/* Office background — CSS bg-image gives silent 404 fallback to the gradient */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: "linear-gradient(160deg, #1a0e36 0%, #2D1B4E 100%)",
+          ...(bgImageUrl ? {
+            backgroundImage: `url(${bgImageUrl})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          } : {}),
+        }}
+      />
 
       {/* Subtle SEI circle decoration */}
       <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.07]" aria-hidden>

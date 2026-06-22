@@ -139,12 +139,18 @@ export default function ConsultantGrid({
                   (e.currentTarget as HTMLElement).style.zIndex = "";
                 }}
               >
-                {/* Office background */}
-                <div className="absolute inset-0" style={{ background: "linear-gradient(160deg, #1a0e36 0%, #2D1B4E 100%)" }}>
-                  {officeImageUrl && (
-                    <Image src={officeImageUrl} alt={officeName} fill sizes="200px" className="object-cover" />
-                  )}
-                </div>
+                {/* Office background — CSS bg-image gives silent 404 fallback to the gradient */}
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background: "linear-gradient(160deg, #1a0e36 0%, #2D1B4E 100%)",
+                    ...(officeImageUrl ? {
+                      backgroundImage: `url(${officeImageUrl})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    } : {}),
+                  }}
+                />
 
                 {/* Subtle SEI circle decoration */}
                 <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.07]" aria-hidden>
