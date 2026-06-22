@@ -22,7 +22,7 @@ export default async function HomePage() {
   if (!session?.user?.email) {
     return (
       <AnimatedAuthBackground>
-        <img src="/brand/sei-logoblack-002.svg" alt="SEI" style={{ height: 48, filter: "brightness(0) invert(1)" }} className="mb-6" />
+        <img src="/brand/sei-logo-white.svg" alt="SEI" style={{ height: 48 }} className="mb-6" />
         <h1 className="text-white font-black text-5xl tracking-tight mb-3">Gotta Meet Em All</h1>
         <p className="text-white/40 text-sm mb-10">Gamified colleague networking for the firm.</p>
         <a
@@ -92,7 +92,7 @@ export default async function HomePage() {
         <div className="relative max-w-5xl mx-auto px-4 md:px-8 py-5 flex items-center justify-between gap-4 md:gap-6">
           {/* Brand */}
           <div className="flex items-center gap-3 md:gap-4 shrink-0">
-            <img src="/brand/sei-logoblack-002.svg" alt="SEI" style={{ height: 28, filter: "brightness(0) invert(1)" }} />
+            <img src="/brand/sei-logo-white.svg" alt="SEI" style={{ height: 28 }} />
             <div className="hidden md:block w-px h-5 bg-white/20" />
             <h1 className="hidden md:block text-white font-black text-lg leading-none tracking-tight whitespace-nowrap">
               Gotta Meet Em All
