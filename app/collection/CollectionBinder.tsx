@@ -171,6 +171,14 @@ export default function CollectionGallery({ consultants, totalRoster, totalsByOf
   );
 }
 
+const RARITY_RING: Record<Rarity, string> = {
+  common:    "rgba(255,255,255,0.55)",
+  uncommon:  "#4ade80",
+  rare:      "#60a5fa",
+  epic:      "#c084fc",
+  legendary: "#fbbf24",
+};
+
 function CollectionCard({
   consultant,
   rosterSize,
@@ -184,12 +192,13 @@ function CollectionCard({
   const photo = pickPhoto(consultant);
   const fullName = `${consultant.first_name} ${consultant.last_name}`;
   const catchLevel = consultant.catch_level as 1 | 2 | 3 | null;
+  const ringColor = RARITY_RING[rarity];
 
   return (
     <div
       className="relative cursor-pointer rounded-xl overflow-hidden group select-none"
       style={{
-        aspectRatio: "5 / 7",
+        aspectRatio: "3 / 4",
         border: CARD_BORDER[rarity],
         boxShadow: CARD_GLOW[rarity],
         transition: "transform 0.15s ease, box-shadow 0.15s ease",
@@ -204,17 +213,55 @@ function CollectionCard({
         (e.currentTarget as HTMLElement).style.zIndex = "auto";
       }}
     >
-      {/* Photo */}
-      <div className="absolute inset-0 bg-[#2D1B4E]">
-        {photo ? (
-          <Image src={photo} alt={fullName} fill sizes="180px" className="object-cover object-top" />
-        ) : (
-          <CardAvatar name={fullName} />
-        )}
+      {/* Navy background */}
+      <div className="absolute inset-0" style={{ background: "linear-gradient(160deg, #1a0e36 0%, #2D1B4E 100%)" }} />
+
+      {/* Subtle SEI circle decoration */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.07]" aria-hidden>
+        {[28, 52, 76].map((r) => (
+          <circle key={r} cx="110%" cy="50%" r={r} fill="none" stroke="#C8102E" strokeWidth="1" />
+        ))}
+      </svg>
+
+      {/* Circular profile photo — centered, shifted up */}
+      <div className="absolute inset-0 flex items-center justify-center" style={{ paddingBottom: "28%" }}>
+        <div
+          style={{
+            width: 60, height: 60,
+            borderRadius: "50%",
+            overflow: "hidden",
+            flexShrink: 0,
+            border: `3px solid ${ringColor}`,
+            boxShadow: `0 0 0 3px rgba(255,255,255,0.07), 0 4px 16px rgba(0,0,0,0.55)`,
+            position: "relative",
+            background: "#2D1B4E",
+          }}
+        >
+          {photo ? (
+            <Image src={photo} alt={fullName} fill sizes="60px" className="object-cover object-top" />
+          ) : (
+            <CardAvatar name={fullName} />
+          )}
+        </div>
       </div>
 
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/5 to-transparent" />
+      {/* Bottom name strip */}
+      <div
+        className="absolute bottom-0 left-0 right-0"
+        style={{
+          background: "linear-gradient(to top, rgba(0,0,0,0.90) 0%, rgba(0,0,0,0.35) 65%, transparent 100%)",
+          padding: "26px 8px 8px",
+        }}
+      >
+        <p className="text-white font-bold leading-tight truncate" style={{ fontSize: 10 }}>
+          {fullName}
+        </p>
+        {consultant.office && (
+          <p className="leading-tight truncate mt-0.5" style={{ fontSize: 9, color: "rgba(255,255,255,0.45)" }}>
+            {consultant.office}
+          </p>
+        )}
+      </div>
 
       {/* Catch level top accent strip */}
       {catchLevel && catchLevel >= 2 && (
@@ -235,18 +282,6 @@ function CollectionCard({
         </div>
       )}
 
-      {/* Name */}
-      <div className="absolute bottom-0 left-0 right-0 px-2 pb-2">
-        <p className="text-white text-[10px] font-semibold leading-tight truncate drop-shadow">
-          {fullName}
-        </p>
-        {consultant.office && (
-          <p className="text-[9px] leading-tight truncate" style={{ color: "rgba(255,255,255,0.42)" }}>
-            {consultant.office}
-          </p>
-        )}
-      </div>
-
       {/* Level 3 delivered shimmer */}
       {catchLevel === 3 && (
         <div
@@ -258,7 +293,7 @@ function CollectionCard({
         />
       )}
 
-      {/* Legendary rarity shimmer on hover */}
+      {/* Legendary rarity shimmer */}
       {rarity === "legendary" && (
         <div
           className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
