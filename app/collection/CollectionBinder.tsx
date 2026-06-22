@@ -23,6 +23,19 @@ const CARD_GLOW: Record<Rarity, string> = {
   legendary: "0 0 16px 4px rgba(251,191,36,0.45), 0 2px 8px rgba(0,0,0,0.12)",
 };
 
+// Catch level accent — top strip color per level
+const LEVEL_STRIP: Record<1 | 2 | 3, string> = {
+  1: "transparent",
+  2: "linear-gradient(90deg, #0ea5e9 0%, #14b8a6 100%)",
+  3: "linear-gradient(90deg, #f59e0b 0%, #f97316 50%, #f59e0b 100%)",
+};
+
+const LEVEL_BADGE_SIZE: Record<1 | 2 | 3, string> = {
+  1: "w-5 h-5 text-xs",
+  2: "w-6 h-6 text-sm",
+  3: "w-7 h-7 text-base",
+};
+
 const AVATAR_COLORS = [
   "bg-blue-500", "bg-purple-500", "bg-emerald-500", "bg-orange-500",
   "bg-pink-500", "bg-teal-500", "bg-indigo-500", "bg-rose-500",
@@ -203,10 +216,18 @@ function CollectionCard({
       {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/5 to-transparent" />
 
+      {/* Catch level top accent strip */}
+      {catchLevel && catchLevel >= 2 && (
+        <div
+          className="absolute top-0 left-0 right-0 h-1"
+          style={{ background: LEVEL_STRIP[catchLevel as 2 | 3] }}
+        />
+      )}
+
       {/* Catch level badge */}
       {catchLevel && (
         <div
-          className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full flex items-center justify-center text-sm leading-none"
+          className={`absolute top-1.5 right-1.5 rounded-full flex items-center justify-center leading-none ${LEVEL_BADGE_SIZE[catchLevel as 1 | 2 | 3]}`}
           style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
           title={CATCH_LEVEL_LABELS[catchLevel]}
         >
@@ -226,7 +247,18 @@ function CollectionCard({
         )}
       </div>
 
-      {/* Legendary shimmer on hover */}
+      {/* Level 3 delivered shimmer */}
+      {catchLevel === 3 && (
+        <div
+          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+          style={{
+            background: "linear-gradient(135deg, rgba(245,158,11,0.18), rgba(249,115,22,0.12), rgba(245,158,11,0.18))",
+            mixBlendMode: "screen",
+          }}
+        />
+      )}
+
+      {/* Legendary rarity shimmer on hover */}
       {rarity === "legendary" && (
         <div
           className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
