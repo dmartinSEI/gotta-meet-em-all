@@ -85,7 +85,7 @@ export default async function HomePage() {
   const rarityHex        = RARITY_HEX[rarity];
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(180deg, #110a26 0%, #0c0818 100%)" }}>
+    <div style={{ minHeight: "100vh", background: "#f5f4fb" }}>
 
       {/* ── Header ──────────────────────────────────────────────── */}
       <header className="relative bg-[#2D1B4E] overflow-hidden">
@@ -138,51 +138,50 @@ export default async function HomePage() {
       </header>
 
       {/* ── Hero stats strip ─────────────────────────────────────── */}
-      <div className="relative overflow-hidden" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-        {/* Rarity colour bleed */}
+      <div className="relative overflow-hidden bg-white" style={{ borderBottom: "1px solid rgba(45,27,78,0.07)" }}>
+        {/* Rarity colour wash — very subtle tint from the left */}
         <div
           className="absolute inset-0 pointer-events-none"
-          style={{ background: `radial-gradient(ellipse 55% 100% at 0% 50%, ${HERO_GLOW[rarity]}, transparent)` }}
+          style={{ background: `radial-gradient(ellipse 50% 160% at 0% 50%, ${HERO_GLOW[rarity]}, transparent)` }}
         />
 
-        <div className="relative max-w-5xl mx-auto px-4 md:px-8 py-6 flex items-center justify-between gap-6 flex-wrap">
+        <div className="relative max-w-5xl mx-auto px-4 md:px-8 py-5 flex items-center justify-between gap-6 flex-wrap">
 
           {/* Left — tier + XP */}
           <div>
-            <div className="flex items-center gap-3 mb-1">
+            <div className="flex items-center gap-2.5 mb-0.5">
               <span
-                className="font-black text-2xl leading-none tracking-tight"
-                style={{ color: rarityHex, textShadow: `0 0 24px ${rarityHex}66` }}
+                className="font-black text-xl leading-none tracking-tight"
+                style={{ color: rarityHex }}
               >
                 {RARITY_LABELS[rarity]}
               </span>
-              <span style={{ color: "rgba(255,255,255,0.18)", fontSize: 18 }}>·</span>
-              <span className="font-semibold tabular-nums" style={{ color: "rgba(255,255,255,0.50)", fontSize: 15 }}>
+              <span style={{ color: "rgba(45,27,78,0.20)", fontSize: 16 }}>·</span>
+              <span className="font-semibold tabular-nums" style={{ color: "rgba(45,27,78,0.45)", fontSize: 14 }}>
                 {totalXp.toLocaleString()} XP
               </span>
             </div>
-            <p style={{ color: "rgba(255,255,255,0.22)", fontSize: 11 }}>{session.user.email}</p>
+            <p style={{ color: "rgba(45,27,78,0.30)", fontSize: 11 }}>{session.user.email}</p>
           </div>
 
           {/* Right — collection progress */}
           <div className="text-right">
-            <p className="font-black tabular-nums leading-none mb-1" style={{ fontSize: 28, color: "rgba(255,255,255,0.90)" }}>
+            <p className="font-black tabular-nums leading-none mb-0.5" style={{ fontSize: 24, color: "#2D1B4E" }}>
               {totalMet}
-              <span style={{ color: "rgba(255,255,255,0.25)", fontWeight: 400, fontSize: 18 }}> / {globalRosterSize}</span>
+              <span style={{ color: "rgba(45,27,78,0.30)", fontWeight: 400, fontSize: 17 }}> / {globalRosterSize}</span>
             </p>
-            <p style={{ color: "rgba(255,255,255,0.30)", fontSize: 11 }}>colleagues met</p>
+            <p style={{ color: "rgba(45,27,78,0.35)", fontSize: 11 }}>colleagues met</p>
           </div>
         </div>
 
-        {/* Progress bar — spans full width */}
-        <div style={{ height: 3, background: "rgba(255,255,255,0.05)" }}>
+        {/* Progress bar */}
+        <div style={{ height: 3, background: "rgba(45,27,78,0.06)" }}>
           <div
             style={{
               height: "100%",
               width: `${overallPct}%`,
               background: overallPct === 100 ? "#22c55e" : rarityHex,
               transition: "width 0.6s ease",
-              boxShadow: `0 0 8px ${rarityHex}88`,
             }}
           />
         </div>
@@ -194,14 +193,14 @@ export default async function HomePage() {
         {bounty && <BountyCard bounty={bounty} />}
 
         {officeRows.length === 0 ? (
-          <p style={{ color: "rgba(255,255,255,0.35)" }}>
+          <p style={{ color: "rgba(45,27,78,0.45)" }}>
             No offices set up yet.{" "}
             <a href="/admin" style={{ color: "#C8102E" }} className="underline">Go to admin</a>{" "}
             to get started.
           </p>
         ) : (
           <>
-            <p className="font-black tracking-[0.2em] uppercase mb-6" style={{ fontSize: 9, color: "rgba(255,255,255,0.25)" }}>
+            <p className="font-black tracking-[0.2em] uppercase mb-6" style={{ fontSize: 9, color: "rgba(45,27,78,0.40)" }}>
               Choose an office
             </p>
 
