@@ -19,6 +19,36 @@ const COMM_ICONS: Record<PreferredComm, string> = {
   "Calendar Invite": "📅",
 };
 
+const LABEL_STYLE: React.CSSProperties = {
+  fontSize: 8, textTransform: "uppercase", letterSpacing: "0.1em",
+  color: "#94a3b8", fontWeight: 700, marginBottom: 4,
+};
+
+function BadgeTooltip({ badge }: { badge: { id: string; name: string; icon: string; description: string } }) {
+  const [show, setShow] = useState(false);
+  return (
+    <span
+      style={{ position: "relative", fontSize: 17, lineHeight: 1, cursor: "default", display: "inline-block" }}
+      onMouseEnter={() => setShow(true)}
+      onMouseLeave={() => setShow(false)}
+    >
+      {badge.icon}
+      {show && (
+        <span style={{
+          position: "absolute", bottom: "calc(100% + 5px)", left: "50%",
+          transform: "translateX(-50%)",
+          background: "rgba(15,23,42,0.90)", color: "#fff",
+          fontSize: 9, fontWeight: 600, whiteSpace: "nowrap",
+          padding: "3px 8px", borderRadius: 5,
+          pointerEvents: "none", zIndex: 20,
+        }}>
+          {badge.name}
+        </span>
+      )}
+    </span>
+  );
+}
+
 const CARD_W = 280;
 const CARD_H = 420;
 
@@ -295,48 +325,23 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
               {/* Info content */}
               <div style={{ flex: 1, overflowY: "auto", padding: "8px 12px 0", display: "flex", flexDirection: "column", gap: 7 }}>
 
-                {/* Preferred comm + catch level — same row when both present */}
-                {(consultant.preferred_comm || consultant.catch_level !== null) && (
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4, alignItems: "center" }}>
-                    {consultant.preferred_comm && (
-                      <span style={{
-                        fontSize: 10, padding: "2px 8px", borderRadius: 99,
-                        background: "rgba(45,27,78,0.07)", border: "1px solid rgba(45,27,78,0.14)",
-                        color: "#2D1B4E", fontWeight: 600,
-                      }}>
-                        {COMM_ICONS[consultant.preferred_comm]} {consultant.preferred_comm}
-                      </span>
-                    )}
-                    {consultant.catch_level !== null && (
-                      <span style={{
-                        fontSize: 10, padding: "2px 8px", borderRadius: 99,
-                        background: "#f1f5f9", border: "1px solid #e2e8f0",
-                        color: "#475569", fontWeight: 600,
-                      }}>
-                        {CATCH_LEVEL_ICONS[consultant.catch_level]} {CATCH_LEVEL_LABELS[consultant.catch_level]} · +{XP_PER_LEVEL[consultant.catch_level as 1 | 2 | 3]} XP
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                {/* Bio */}
-                {consultant.bio && (
-                  <div>
-                    <p style={{ fontSize: 8, textTransform: "uppercase", letterSpacing: "0.1em", color: "#94a3b8", fontWeight: 700, marginBottom: 4 }}>
-                      About
-                    </p>
-                    <p style={{ fontSize: 10, color: "#475569", lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                      {consultant.bio}
-                    </p>
+                {/* Catch level */}
+                {consultant.catch_level !== null && (
+                  <div style={{ alignSelf: "flex-start" }}>
+                    <span style={{
+                      fontSize: 10, padding: "2px 8px", borderRadius: 99,
+                      background: "#f1f5f9", border: "1px solid #e2e8f0",
+                      color: "#475569", fontWeight: 600,
+                    }}>
+                      {CATCH_LEVEL_ICONS[consultant.catch_level]} {CATCH_LEVEL_LABELS[consultant.catch_level]} · +{XP_PER_LEVEL[consultant.catch_level as 1 | 2 | 3]} XP
+                    </span>
                   </div>
                 )}
 
                 {/* Current client */}
                 {consultant.current_client && (
                   <div>
-                    <p style={{ fontSize: 8, textTransform: "uppercase", letterSpacing: "0.1em", color: "#94a3b8", fontWeight: 700, marginBottom: 4 }}>
-                      Current Client
-                    </p>
+                    <p style={LABEL_STYLE}>Current Client</p>
                     <span style={{
                       fontSize: 10, padding: "2px 8px", borderRadius: 99,
                       background: "rgba(200,16,46,0.07)", border: "1px solid rgba(200,16,46,0.20)",
@@ -347,12 +352,24 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
                   </div>
                 )}
 
+                {/* Preferred communication */}
+                {consultant.preferred_comm && (
+                  <div>
+                    <p style={LABEL_STYLE}>Preferred Communication</p>
+                    <span style={{
+                      fontSize: 10, padding: "2px 8px", borderRadius: 99,
+                      background: "rgba(45,27,78,0.07)", border: "1px solid rgba(45,27,78,0.14)",
+                      color: "#2D1B4E", fontWeight: 600,
+                    }}>
+                      {COMM_ICONS[consultant.preferred_comm]} {consultant.preferred_comm}
+                    </span>
+                  </div>
+                )}
+
                 {/* Past clients */}
                 {consultant.past_clients && (
                   <div>
-                    <p style={{ fontSize: 8, textTransform: "uppercase", letterSpacing: "0.1em", color: "#94a3b8", fontWeight: 700, marginBottom: 4 }}>
-                      Past Clients
-                    </p>
+                    <p style={LABEL_STYLE}>Past Clients</p>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
                       {consultant.past_clients.split(",").map((c) => c.trim()).filter(Boolean).map((client, i) => (
                         <span key={i} style={{
@@ -367,18 +384,13 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
                   </div>
                 )}
 
-                {/* Earned badges */}
+                {/* Achievements */}
                 {earnedBadges.length > 0 && (
                   <div>
-                    <p style={{ fontSize: 8, textTransform: "uppercase", letterSpacing: "0.1em", color: "#94a3b8", fontWeight: 700, marginBottom: 4 }}>
-                      Achievements
-                    </p>
+                    <p style={LABEL_STYLE}>Achievements</p>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
                       {earnedBadges.map((b) => (
-                        <span key={b.id} title={`${b.name}: ${b.description}`}
-                              style={{ fontSize: 17, lineHeight: 1, cursor: "default" }}>
-                          {b.icon}
-                        </span>
+                        <BadgeTooltip key={b.id} badge={b} />
                       ))}
                     </div>
                   </div>
@@ -387,11 +399,9 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
                 {/* Skills */}
                 {skillList.length > 0 && (
                   <div>
-                    <p style={{ fontSize: 8, textTransform: "uppercase", letterSpacing: "0.1em", color: "#94a3b8", fontWeight: 700, marginBottom: 4 }}>
-                      Skills
-                    </p>
+                    <p style={LABEL_STYLE}>Skills</p>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
-                      {skillList.slice(0, 6).map((skill, i) => (
+                      {skillList.map((skill, i) => (
                         <span key={i} style={{
                           padding: "2px 7px", borderRadius: 99,
                           background: "#eff6ff", color: "#1d4ed8",
@@ -400,11 +410,6 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
                           {skill}
                         </span>
                       ))}
-                      {skillList.length > 6 && (
-                        <span style={{ fontSize: 9, color: "#94a3b8", alignSelf: "center" }}>
-                          +{skillList.length - 6}
-                        </span>
-                      )}
                     </div>
                   </div>
                 )}

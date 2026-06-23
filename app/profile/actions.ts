@@ -5,7 +5,6 @@ import { sql } from "@/lib/db";
 import type { PreferredComm } from "@/lib/types";
 
 const BIO_MAX = 500;
-const SKILLS_MAX = 300;
 const CLIENT_MAX = 100;
 const PAST_CLIENTS_MAX = 500;
 const COMM_OPTIONS: PreferredComm[] = ["Email", "Teams", "Calendar Invite"];
@@ -21,7 +20,9 @@ export async function updateProfile(data: {
   if (!session?.user?.email) throw new Error("Unauthorized");
 
   const bio            = data.bio.trim().slice(0, BIO_MAX);
-  const skills         = data.skills.trim().slice(0, SKILLS_MAX);
+  const skills         = data.skills
+    .split(",").map((s) => s.trim()).filter(Boolean)
+    .slice(0, 5).join(", ");
   const current_client = data.current_client.trim().slice(0, CLIENT_MAX);
   const past_clients   = data.past_clients.trim().slice(0, PAST_CLIENTS_MAX);
   const preferred_comm = (COMM_OPTIONS as string[]).includes(data.preferred_comm)

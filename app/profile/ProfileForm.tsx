@@ -75,7 +75,7 @@ export default function ProfileForm({
       <div>
         <label className="block text-sm font-medium text-[#2D1B4E] mb-1">Skills</label>
         <p className="text-xs mb-2" style={{ color: "rgba(45,27,78,0.45)" }}>
-          Separate with commas — e.g. Data Analysis, Python, Project Management
+          Separate with commas — up to 5 skills
         </p>
         <input
           type="text"
@@ -86,17 +86,30 @@ export default function ProfileForm({
           className="w-full px-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#2D1B4E]/30"
           style={{ borderColor: "rgba(45,27,78,0.18)" }}
         />
-        <p className="text-xs text-right mt-1" style={{ color: "rgba(45,27,78,0.35)" }}>{skills.length}/300</p>
-        {skills && (
-          <div className="flex flex-wrap gap-1.5 mt-2">
-            {skills.split(",").map((s) => s.trim()).filter(Boolean).map((skill, i) => (
-              <span key={i} className="px-2 py-0.5 text-xs rounded-full border"
-                    style={{ background: "#eff6ff", color: "#1d4ed8", borderColor: "#bfdbfe" }}>
-                {skill}
-              </span>
-            ))}
-          </div>
-        )}
+        {(() => {
+          const parsed = skills.split(",").map((s) => s.trim()).filter(Boolean);
+          const over = parsed.length > 5;
+          return (
+            <>
+              <p className="text-xs text-right mt-1" style={{ color: over ? "#C8102E" : "rgba(45,27,78,0.35)" }}>
+                {parsed.length}/5 skills{over ? " — only the first 5 will be saved" : ""}
+              </p>
+              {parsed.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {parsed.map((skill, i) => (
+                    <span key={i} className="px-2 py-0.5 text-xs rounded-full border"
+                          style={i < 5
+                            ? { background: "#eff6ff", color: "#1d4ed8", borderColor: "#bfdbfe" }
+                            : { background: "rgba(200,16,46,0.07)", color: "#C8102E", borderColor: "rgba(200,16,46,0.25)" }
+                          }>
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </>
+          );
+        })()}
       </div>
 
       {/* Current client */}
