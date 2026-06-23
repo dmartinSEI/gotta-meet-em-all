@@ -11,6 +11,7 @@ import CaughtBySection from "./CaughtBySection";
 import type { CatcherRow } from "./CaughtBySection";
 import StandingSection from "./StandingSection";
 import CardBgUpload from "./CardBgUpload";
+import BadgeGrid from "./BadgeGrid";
 import type { ConsultantRow, PreferredComm } from "@/lib/types";
 
 const HEADER_RARITY: Record<Rarity, string> = {
@@ -245,48 +246,12 @@ export default async function ProfilePage() {
         </div>
 
         {/* Badges */}
-        <div className="pt-8 border-t" style={{ borderColor: "rgba(45,27,78,0.08)" }}>
-          <div className="flex items-center justify-between mb-5">
-            <p className="text-[9px] font-black tracking-[0.2em] uppercase text-[#2D1B4E]/40">
-              Achievements
-            </p>
-            <span className="text-xs tabular-nums" style={{ color: "rgba(45,27,78,0.40)" }}>
-              {earnedMap.size} / {ALL_BADGES.length}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            {ALL_BADGES.map((badge) => {
-              const earnedAt = earnedMap.get(badge.id);
-              const earned = earnedAt !== undefined;
-              return (
-                <div
-                  key={badge.id}
-                  className="flex items-start gap-3 p-4 rounded-xl border transition-colors"
-                  style={earned
-                    ? { background: "rgba(251,191,36,0.06)", borderColor: "rgba(251,191,36,0.25)" }
-                    : { background: "rgba(45,27,78,0.03)", borderColor: "rgba(45,27,78,0.07)", opacity: 0.5 }
-                  }
-                >
-                  <span className={`text-2xl leading-none mt-0.5 ${earned ? "" : "grayscale"}`}>
-                    {badge.icon}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="font-semibold text-sm leading-tight text-[#2D1B4E]">{badge.name}</p>
-                    <p className="text-xs mt-0.5 leading-snug" style={{ color: "rgba(45,27,78,0.50)" }}>
-                      {badge.description}
-                    </p>
-                    {earned && earnedAt && (
-                      <p className="text-[10px] mt-1" style={{ color: "#C8102E" }}>
-                        Earned {new Date(earnedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <BadgeGrid
+          badgeList={ALL_BADGES.map((b) => ({
+            ...b,
+            earnedAt: earnedMap.get(b.id) ?? null,
+          }))}
+        />
       </main>
     </div>
   );

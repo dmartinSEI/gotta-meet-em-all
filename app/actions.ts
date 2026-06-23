@@ -40,7 +40,18 @@ export async function catchConsultant(consultantId: number, level: 1 | 2 | 3 = 1
         AND completed_at IS NULL
     `;
 
+    // Check badges for the catcher
     const newBadges = await checkAndAwardBadges(session.user.email).catch(() => []);
+
+    // Fire-and-forget: check recognized badges for the person being caught
+    const { rows: caughtRows } = await sql<{ email: string }>`
+      SELECT email FROM consultants WHERE id = ${consultantId}
+    `;
+    const caughtEmail = caughtRows[0]?.email;
+    if (caughtEmail && caughtEmail !== session.user.email) {
+      checkAndAwardBadges(caughtEmail).catch(() => {});
+    }
+
     revalidatePath("/", "layout");
     return { success: true, newBadges };
   } catch (error) {

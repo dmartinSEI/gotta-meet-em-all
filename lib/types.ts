@@ -3,6 +3,7 @@ export interface BadgeInfo {
   name: string;
   icon: string;
   description: string;
+  category: string;
 }
 
 export interface Consultant {
