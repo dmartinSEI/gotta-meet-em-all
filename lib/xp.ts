@@ -50,6 +50,14 @@ export function getRarity(xp: number, rosterSize: number): Rarity {
   return "common";
 }
 
+export const RARITY_HEADER: Record<Rarity, string> = {
+  common:    "linear-gradient(135deg, #374151 0%, #1f2937 100%)",
+  uncommon:  "linear-gradient(135deg, #166534 0%, #14532d 100%)",
+  rare:      "linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%)",
+  epic:      "linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%)",
+  legendary: "linear-gradient(135deg, #d97706 0%, #92400e 100%)",
+};
+
 export const CATCH_LEVEL_LABELS: Record<number, string> = {
   1: "Connected",
   2: "Collaborated",

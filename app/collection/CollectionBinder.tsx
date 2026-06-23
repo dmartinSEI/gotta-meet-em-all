@@ -5,7 +5,7 @@ import Image from "next/image";
 import CardModal from "../CardModal";
 import type { ConsultantRow } from "@/lib/types";
 import { getRarity, CATCH_LEVEL_ICONS, CATCH_LEVEL_LABELS, type Rarity } from "@/lib/xp";
-import { pickPhoto } from "@/lib/cards";
+import { pickPhoto, officeImageSrc } from "@/lib/cards";
 
 const CARD_BORDER: Record<Rarity, string> = {
   common:    "1px solid rgba(45,27,78,0.12)",
@@ -171,10 +171,6 @@ export default function CollectionGallery({ consultants, totalRoster, totalsByOf
   );
 }
 
-function officeSlug(name: string): string {
-  return name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-}
-
 const RARITY_RING: Record<Rarity, string> = {
   common:    "rgba(255,255,255,0.55)",
   uncommon:  "#4ade80",
@@ -197,7 +193,7 @@ function CollectionCard({
   const fullName = `${consultant.first_name} ${consultant.last_name}`;
   const catchLevel = consultant.catch_level as 1 | 2 | 3 | null;
   const ringColor = RARITY_RING[rarity];
-  const bgImageUrl = consultant.office ? `/brand/offices/${officeSlug(consultant.office)}.jpg` : null;
+  const bgImageUrl = officeImageSrc(consultant.office);
 
   return (
     <div

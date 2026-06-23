@@ -5,9 +5,9 @@ import Image from "next/image";
 import Link from "next/link";
 import CatchButton from "./CatchButton";
 import type { ConsultantRow, PreferredComm } from "@/lib/types";
-import { getRarity, RARITY_HEX, RARITY_LABELS, CATCH_LEVEL_LABELS, CATCH_LEVEL_ICONS, XP_PER_LEVEL } from "@/lib/xp";
+import { getRarity, RARITY_HEX, RARITY_HEADER, RARITY_LABELS, CATCH_LEVEL_LABELS, CATCH_LEVEL_ICONS, XP_PER_LEVEL } from "@/lib/xp";
 import type { Rarity } from "@/lib/xp";
-import { pickPhoto, photoRingStyle } from "@/lib/cards";
+import { pickPhoto, photoRingStyle, officeImageSrc } from "@/lib/cards";
 import { BADGE_MAP } from "@/lib/badge-data";
 
 type Level = 1 | 2 | 3;
@@ -51,22 +51,6 @@ function BadgeTooltip({ badge }: { badge: { id: string; name: string; icon: stri
 
 const CARD_W = 280;
 const CARD_H = 420;
-
-const RARITY_COLOR: Record<Rarity, string> = {
-  common:    "#d1d5db",
-  uncommon:  "#4ade80",
-  rare:      "#60a5fa",
-  epic:      "#c084fc",
-  legendary: "#fbbf24",
-};
-
-const RARITY_HEADER: Record<Rarity, string> = {
-  common:    "linear-gradient(135deg, #374151 0%, #1f2937 100%)",
-  uncommon:  "linear-gradient(135deg, #166534 0%, #14532d 100%)",
-  rare:      "linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%)",
-  epic:      "linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%)",
-  legendary: "linear-gradient(135deg, #d97706 0%, #92400e 100%)",
-};
 
 const RARITY_GLOW: Record<Rarity, string> = {
   common:    "0 25px 50px rgba(0,0,0,0.4)",
@@ -115,11 +99,9 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
     .map((id) => BADGE_MAP.get(id))
     .filter((b): b is NonNullable<typeof b> => b !== undefined);
 
-  const rarityColor  = RARITY_COLOR[rarity];
+  const rarityColor  = RARITY_HEX[rarity];
   const cardBorder   = `4px solid ${rarityColor}`;
-  const officeImageUrl = consultant.office
-    ? `/brand/offices/${consultant.office.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")}.jpg`
-    : null;
+  const officeImageUrl = officeImageSrc(consultant.office);
 
   const initOffset = useMemo(() => {
     const destCX = window.innerWidth  / 2;

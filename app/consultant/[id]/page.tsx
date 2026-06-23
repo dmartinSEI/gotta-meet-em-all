@@ -3,8 +3,8 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { auth, signOut } from "../../../auth";
 import { sql } from "@/lib/db";
-import { getRarity, RARITY_LABELS, type Rarity } from "@/lib/xp";
-import { pickPhoto } from "@/lib/cards";
+import { getRarity, RARITY_LABELS, RARITY_HEADER, type Rarity } from "@/lib/xp";
+import { pickPhoto, officeImageSrc } from "@/lib/cards";
 import { DOSSIER_SECTIONS, type SurveyData } from "@/lib/survey-fields";
 import CatchButton from "../../CatchButton";
 import BackLink from "./BackLink";
@@ -24,14 +24,6 @@ const RARITY_RING: Record<Rarity, string> = {
   rare:      "#60a5fa",
   epic:      "#c084fc",
   legendary: "#fbbf24",
-};
-
-const RARITY_HEADER: Record<Rarity, string> = {
-  common:    "linear-gradient(135deg, #374151 0%, #1f2937 100%)",
-  uncommon:  "linear-gradient(135deg, #166534 0%, #14532d 100%)",
-  rare:      "linear-gradient(135deg, #1d4ed8 0%, #1e3a8a 100%)",
-  epic:      "linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%)",
-  legendary: "linear-gradient(135deg, #d97706 0%, #92400e 100%)",
 };
 
 interface ConsultantRecord extends ConsultantRow {
@@ -110,9 +102,7 @@ export default async function ConsultantDossierPage({
   const ringColor     = RARITY_RING[subjectRarity];
   const surveyData    = consultant.survey_data as SurveyData | null;
 
-  const officeImageUrl = consultant.office
-    ? `/brand/offices/${consultant.office.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")}.jpg`
-    : null;
+  const officeImageUrl = officeImageSrc(consultant.office);
 
   const populatedSections = DOSSIER_SECTIONS
     .map(section => ({

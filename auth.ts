@@ -28,7 +28,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       from: "Gotta Meet Em All <noreply@gottameetemall.com>",
       sendVerificationRequest: async ({ identifier, url, request }) => {
         if (!isAllowedEmail(identifier)) {
-          throw new Error("Sign-in is restricted to @sei.com email addresses.");
+          throw new Error("Sign-in is restricted to @sei.com or @gottameetemall.com email addresses.");
         }
 
         const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";

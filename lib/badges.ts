@@ -31,8 +31,8 @@ function newlyEarned(stats: UserStats, alreadyEarned: Set<string>): Badge[] {
   ];
   return checks
     .filter(([id, check]) => !alreadyEarned.has(id) && check())
-    .map(([id]) => BADGE_MAP.get(id)!)
-    .filter(Boolean);
+    .map(([id]) => BADGE_MAP.get(id))
+    .filter((b): b is NonNullable<typeof b> => b !== undefined);
 }
 
 export async function checkAndAwardBadges(email: string): Promise<Badge[]> {

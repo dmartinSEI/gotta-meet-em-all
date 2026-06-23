@@ -1,5 +1,10 @@
 import type { ConsultantRow } from "./types";
 
+export function officeImageSrc(office: string | null | undefined): string | null {
+  if (!office) return null;
+  return `/brand/offices/${office.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")}.jpg`;
+}
+
 type Level = 1 | 2 | 3;
 
 export function pickPhoto(c: ConsultantRow): string {

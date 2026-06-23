@@ -54,8 +54,6 @@ export default function PhotoUpload({ currentUrl }: { currentUrl: string | null 
     if (file) upload(file);
   }
 
-  const initials = "";
-
   return (
     <div className="flex items-center gap-5">
       {/* Avatar preview */}

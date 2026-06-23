@@ -2,8 +2,7 @@
 
 import * as XLSX from "xlsx";
 import { put } from "@vercel/blob";
-import { pool } from "@/lib/db";
-import { sql } from "@/lib/db";
+import { pool, sql } from "@/lib/db";
 import { auth } from "../../auth";
 import type { Consultant } from "@/lib/types";
 import { SURVEY_FIELD_MAP, SKIP_KEYS, SYSTEM_COLUMNS } from "@/lib/survey-fields";
@@ -198,7 +197,6 @@ export async function importPhotos(formData: FormData) {
         continue;
       }
 
-      const column = levelSuffix ? `photo_url_${levelSuffix}` : "photo_url";
       const blobKey = levelSuffix ? `photos/${email}_${levelSuffix}` : `photos/${email}`;
 
       const { url } = await put(blobKey, file, {
@@ -214,8 +212,6 @@ export async function importPhotos(formData: FormData) {
         : levelSuffix === "l3"
         ? await sql`UPDATE consultants SET photo_url_l3 = ${url} WHERE email = ${email}`
         : await sql`UPDATE consultants SET photo_url = ${url} WHERE email = ${email}`;
-
-      void column; // column name derived above for clarity, SQL uses explicit branches
 
       if (result.rowCount === 0) {
         unmatched.push(file.name);

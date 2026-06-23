@@ -5,7 +5,7 @@ import Image from "next/image";
 import CardModal from "../CardModal";
 import type { ConsultantRow } from "@/lib/types";
 import { getRarity, RARITY_LABELS, type Rarity } from "@/lib/xp";
-import { pickPhoto } from "@/lib/cards";
+import { pickPhoto, officeImageSrc } from "@/lib/cards";
 
 const RARITY_RING: Record<Rarity, string> = {
   common:    "rgba(255,255,255,0.55)",
@@ -58,9 +58,7 @@ export default function TrainerCard({
   const photo         = pickPhoto(consultant);
   const rarity        = getRarity(consultant.consultant_xp, rosterSize);
   const ringColor     = RARITY_RING[rarity];
-  const officeImageUrl = consultant.office
-    ? `/brand/offices/${consultant.office.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")}.jpg`
-    : null;
+  const officeImageUrl = officeImageSrc(consultant.office);
 
   function handleClick() {
     if (!cardRef.current) return;
