@@ -3,11 +3,10 @@ import { auth, signOut } from "../auth";
 import AnimatedAuthBackground from "./AnimatedAuthBackground";
 import { sql } from "@/lib/db";
 import type { OfficeRow } from "@/lib/types";
-import { getRarity, RARITY_LABELS, RARITY_HEX } from "@/lib/xp";
+import { getRarity, RARITY_LABELS, type Rarity } from "@/lib/xp";
 import { officeImageSrc } from "@/lib/cards";
 import { getOrAssignBounty } from "@/lib/bounty";
 import BountyCard from "./BountyCard";
-import type { Rarity } from "@/lib/xp";
 
 const HEADER_RARITY: Record<Rarity, string> = {
   common:    "bg-white/10 text-white/80 border border-white/20",
@@ -15,15 +14,6 @@ const HEADER_RARITY: Record<Rarity, string> = {
   rare:      "bg-blue-400/20 text-blue-300 border border-blue-400/40",
   epic:      "bg-purple-400/20 text-purple-200 border border-purple-400/40",
   legendary: "bg-yellow-400/20 text-yellow-300 border border-yellow-400/40",
-};
-
-// Subtle radial glow tint behind the hero stats, keyed by rarity
-const HERO_GLOW: Record<Rarity, string> = {
-  common:    "rgba(209,213,219,0.07)",
-  uncommon:  "rgba(74,222,128,0.10)",
-  rare:      "rgba(96,165,250,0.10)",
-  epic:      "rgba(192,132,252,0.13)",
-  legendary: "rgba(251,191,36,0.14)",
 };
 
 export default async function HomePage() {
@@ -79,9 +69,7 @@ export default async function HomePage() {
 
   const totalXp: number = (xpRows[0] as { total_xp: number } | undefined)?.total_xp ?? 0;
   const globalRosterSize = officeRows.reduce((sum, o) => sum + o.total_count, 0);
-  const totalMet         = officeRows.reduce((sum, o) => sum + o.met_count,   0);
   const rarity           = getRarity(totalXp, globalRosterSize);
-  const rarityHex        = RARITY_HEX[rarity];
 
   return (
     <div style={{ minHeight: "100vh", background: "#f5f4fb" }}>
@@ -135,45 +123,6 @@ export default async function HomePage() {
           </div>
         </div>
       </header>
-
-      {/* ── Hero stats strip ─────────────────────────────────────── */}
-      <div className="relative overflow-hidden bg-white" style={{ borderBottom: "1px solid rgba(45,27,78,0.07)" }}>
-        {/* Rarity colour wash — very subtle tint from the left */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{ background: `radial-gradient(ellipse 50% 160% at 0% 50%, ${HERO_GLOW[rarity]}, transparent)` }}
-        />
-
-        <div className="relative max-w-5xl mx-auto px-4 md:px-8 py-5 flex items-center justify-between gap-6 flex-wrap">
-
-          {/* Left — tier + XP */}
-          <div>
-            <div className="flex items-center gap-2.5 mb-0.5">
-              <span
-                className="font-black text-xl leading-none tracking-tight"
-                style={{ color: rarityHex }}
-              >
-                {RARITY_LABELS[rarity]}
-              </span>
-              <span style={{ color: "rgba(45,27,78,0.20)", fontSize: 16 }}>·</span>
-              <span className="font-semibold tabular-nums" style={{ color: "rgba(45,27,78,0.45)", fontSize: 14 }}>
-                {totalXp.toLocaleString()} Meet Points
-              </span>
-            </div>
-            <p style={{ color: "rgba(45,27,78,0.30)", fontSize: 11 }}>{session.user.email}</p>
-          </div>
-
-          {/* Right — collection progress */}
-          <div className="text-right">
-            <p className="font-black tabular-nums leading-none mb-0.5" style={{ fontSize: 24, color: "#2D1B4E" }}>
-              {totalMet}
-              <span style={{ color: "rgba(45,27,78,0.30)", fontWeight: 400, fontSize: 17 }}> / {globalRosterSize}</span>
-            </p>
-            <p style={{ color: "rgba(45,27,78,0.35)", fontSize: 11 }}>colleagues met</p>
-          </div>
-        </div>
-
-      </div>
 
       {/* ── Content ─────────────────────────────────────────────── */}
       <main className="max-w-5xl mx-auto px-4 md:px-8 py-8">

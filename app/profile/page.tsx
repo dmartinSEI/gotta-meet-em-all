@@ -9,6 +9,7 @@ import PhotoUpload from "./PhotoUpload";
 import TrainerCard from "./TrainerCard";
 import CaughtBySection from "./CaughtBySection";
 import type { CatcherRow } from "./CaughtBySection";
+import StandingSection from "./StandingSection";
 import type { ConsultantRow, PreferredComm } from "@/lib/types";
 
 const HEADER_RARITY: Record<Rarity, string> = {
@@ -23,7 +24,7 @@ export default async function ProfilePage() {
   const session = await auth();
   if (!session?.user?.email) redirect("/api/auth/signin?callbackUrl=/profile");
 
-  const [{ rows: consultantRows }, { rows: badgeRows }, { rows: xpRows }, { rows: rosterRows }, { rows: catcherRows }] =
+  const [{ rows: consultantRows }, { rows: badgeRows }, { rows: xpRows }, { rows: rosterRows }, { rows: catcherRows }, { rows: caughtRows }] =
     await Promise.all([
       sql<{
         id: number; email: string;
@@ -68,10 +69,17 @@ export default async function ProfilePage() {
           AND u.email != ${session.user.email}
         ORDER BY ca.level DESC, ca.caught_at DESC
       `,
+      sql`
+        SELECT COUNT(DISTINCT ca.consultant_id)::int AS caught_count
+        FROM catches ca
+        JOIN users u ON u.id = ca.user_id
+        WHERE u.email = ${session.user.email}
+      `,
     ]);
 
   const totalXp: number = (xpRows[0] as { total_xp: number } | undefined)?.total_xp ?? 0;
   const totalRoster: number = (rosterRows[0] as { n: number } | undefined)?.n ?? 0;
+  const caughtCount: number = (caughtRows[0] as { caught_count: number } | undefined)?.caught_count ?? 0;
   const rarity = getRarity(totalXp, totalRoster);
   const earnedMap = new Map(badgeRows.map((r) => [r.badge_id, r.earned_at]));
   const consultant = consultantRows[0] ?? null;
@@ -175,6 +183,15 @@ export default async function ProfilePage() {
               {consultant.title && <p className="text-[#2D1B4E]/55 mt-0.5 text-sm">{consultant.title}</p>}
               {consultant.office && <p className="text-xs mt-0.5" style={{ color: "rgba(45,27,78,0.38)" }}>{consultant.office}</p>}
             </div>
+
+            {/* Standing */}
+            <StandingSection
+              totalXp={totalXp}
+              totalRoster={totalRoster}
+              caughtCount={caughtCount}
+              recognizedByCount={catcherRows.length}
+              rarity={rarity}
+            />
 
             {/* Photo upload */}
             <div className="mb-8 pb-8 border-b" style={{ borderColor: "rgba(45,27,78,0.08)" }}>
