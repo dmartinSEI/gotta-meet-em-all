@@ -4,10 +4,10 @@ const TIER_ORDER: Rarity[] = ["common", "uncommon", "rare", "epic", "legendary"]
 
 const TIER_DESC: Record<Rarity, string> = {
   common:    "Your starting rank — you're on your way.",
-  uncommon:  "You've started making connections across the firm.",
-  rare:      "A well-connected professional with a solid network.",
+  uncommon:  "You've started making connections across SEI.",
+  rare:      "A well-connected professional with a solid network across SEI.",
   epic:      "Widely recognized — a go-to collaborator at SEI.",
-  legendary: "Top of the network — you've collaborated with everyone.",
+  legendary: "Top of the network — you've met everyone at SEI.",
 };
 
 const HOW_TO_EARN: { level: 1 | 2 | 3 }[] = [{ level: 1 }, { level: 2 }, { level: 3 }];
