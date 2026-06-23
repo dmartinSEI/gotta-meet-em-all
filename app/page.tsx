@@ -3,7 +3,8 @@ import { auth, signOut } from "../auth";
 import AnimatedAuthBackground from "./AnimatedAuthBackground";
 import { sql } from "@/lib/db";
 import type { OfficeRow } from "@/lib/types";
-import { getRarity, RARITY_LABELS } from "@/lib/xp";
+import { getRarity, RARITY_LABELS, RARITY_HEX } from "@/lib/xp";
+import { officeImageSrc } from "@/lib/cards";
 import { getOrAssignBounty } from "@/lib/bounty";
 import BountyCard from "./BountyCard";
 import type { Rarity } from "@/lib/xp";
@@ -14,6 +15,15 @@ const HEADER_RARITY: Record<Rarity, string> = {
   rare:      "bg-blue-400/20 text-blue-300 border border-blue-400/40",
   epic:      "bg-purple-400/20 text-purple-200 border border-purple-400/40",
   legendary: "bg-yellow-400/20 text-yellow-300 border border-yellow-400/40",
+};
+
+// Subtle radial glow tint behind the hero stats, keyed by rarity
+const HERO_GLOW: Record<Rarity, string> = {
+  common:    "rgba(209,213,219,0.07)",
+  uncommon:  "rgba(74,222,128,0.10)",
+  rare:      "rgba(96,165,250,0.10)",
+  epic:      "rgba(192,132,252,0.13)",
+  legendary: "rgba(251,191,36,0.14)",
 };
 
 export default async function HomePage() {
@@ -69,14 +79,16 @@ export default async function HomePage() {
 
   const totalXp: number = (xpRows[0] as { total_xp: number } | undefined)?.total_xp ?? 0;
   const globalRosterSize = officeRows.reduce((sum, o) => sum + o.total_count, 0);
-  const rarity = getRarity(totalXp, globalRosterSize);
+  const totalMet         = officeRows.reduce((sum, o) => sum + o.met_count,   0);
+  const overallPct       = globalRosterSize > 0 ? Math.round((totalMet / globalRosterSize) * 100) : 0;
+  const rarity           = getRarity(totalXp, globalRosterSize);
+  const rarityHex        = RARITY_HEX[rarity];
 
   return (
-    <div className="min-h-screen">
+    <div style={{ minHeight: "100vh", background: "linear-gradient(180deg, #110a26 0%, #0c0818 100%)" }}>
 
       {/* ── Header ──────────────────────────────────────────────── */}
       <header className="relative bg-[#2D1B4E] overflow-hidden">
-        {/* Concentric circle decoration */}
         <svg
           className="absolute right-0 top-0 h-full w-80 opacity-[0.12]"
           viewBox="0 0 320 80"
@@ -89,14 +101,12 @@ export default async function HomePage() {
         </svg>
 
         <div className="relative max-w-5xl mx-auto px-4 md:px-8 py-5 flex items-center justify-between gap-4 md:gap-6">
-          {/* Brand */}
           <div className="flex items-center gap-3 md:gap-4 shrink-0">
             <h1 className="text-white font-black text-lg leading-none tracking-tight whitespace-nowrap">
               SEI Gotta Meet Em&apos; All
             </h1>
           </div>
 
-          {/* Nav + XP */}
           <div className="flex items-center gap-3 md:gap-4 min-w-0">
             <div className="flex items-center gap-2 shrink-0">
               <span className="text-white/50 text-sm tabular-nums">{totalXp} XP</span>
@@ -107,16 +117,13 @@ export default async function HomePage() {
             <div className="hidden md:flex items-center gap-4">
               <div className="w-px h-4 bg-white/20" />
               <nav className="flex items-center gap-4 flex-wrap">
-                <Link href="/leaderboard"
-                  className="text-white/65 hover:text-white text-sm font-medium transition-colors whitespace-nowrap">
+                <Link href="/leaderboard" className="text-white/65 hover:text-white text-sm font-medium transition-colors whitespace-nowrap">
                   Leaderboard
                 </Link>
-                <Link href="/collection"
-                  className="text-white/65 hover:text-white text-sm font-medium transition-colors whitespace-nowrap">
+                <Link href="/collection" className="text-white/65 hover:text-white text-sm font-medium transition-colors whitespace-nowrap">
                   My Collection
                 </Link>
-                <Link href="/profile"
-                  className="text-white/65 hover:text-white text-sm font-medium transition-colors whitespace-nowrap">
+                <Link href="/profile" className="text-white/65 hover:text-white text-sm font-medium transition-colors whitespace-nowrap">
                   My Profile
                 </Link>
                 <form action={async () => { "use server"; await signOut(); }}>
@@ -130,64 +137,171 @@ export default async function HomePage() {
         </div>
       </header>
 
+      {/* ── Hero stats strip ─────────────────────────────────────── */}
+      <div className="relative overflow-hidden" style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+        {/* Rarity colour bleed */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: `radial-gradient(ellipse 55% 100% at 0% 50%, ${HERO_GLOW[rarity]}, transparent)` }}
+        />
+
+        <div className="relative max-w-5xl mx-auto px-4 md:px-8 py-6 flex items-center justify-between gap-6 flex-wrap">
+
+          {/* Left — tier + XP */}
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <span
+                className="font-black text-2xl leading-none tracking-tight"
+                style={{ color: rarityHex, textShadow: `0 0 24px ${rarityHex}66` }}
+              >
+                {RARITY_LABELS[rarity]}
+              </span>
+              <span style={{ color: "rgba(255,255,255,0.18)", fontSize: 18 }}>·</span>
+              <span className="font-semibold tabular-nums" style={{ color: "rgba(255,255,255,0.50)", fontSize: 15 }}>
+                {totalXp.toLocaleString()} XP
+              </span>
+            </div>
+            <p style={{ color: "rgba(255,255,255,0.22)", fontSize: 11 }}>{session.user.email}</p>
+          </div>
+
+          {/* Right — collection progress */}
+          <div className="text-right">
+            <p className="font-black tabular-nums leading-none mb-1" style={{ fontSize: 28, color: "rgba(255,255,255,0.90)" }}>
+              {totalMet}
+              <span style={{ color: "rgba(255,255,255,0.25)", fontWeight: 400, fontSize: 18 }}> / {globalRosterSize}</span>
+            </p>
+            <p style={{ color: "rgba(255,255,255,0.30)", fontSize: 11 }}>colleagues met</p>
+          </div>
+        </div>
+
+        {/* Progress bar — spans full width */}
+        <div style={{ height: 3, background: "rgba(255,255,255,0.05)" }}>
+          <div
+            style={{
+              height: "100%",
+              width: `${overallPct}%`,
+              background: overallPct === 100 ? "#22c55e" : rarityHex,
+              transition: "width 0.6s ease",
+              boxShadow: `0 0 8px ${rarityHex}88`,
+            }}
+          />
+        </div>
+      </div>
+
       {/* ── Content ─────────────────────────────────────────────── */}
-      <main className="max-w-5xl mx-auto px-4 md:px-8 py-6 md:py-8">
+      <main className="max-w-5xl mx-auto px-4 md:px-8 py-8">
 
         {bounty && <BountyCard bounty={bounty} />}
 
         {officeRows.length === 0 ? (
-          <p className="text-[#2D1B4E]/50">
+          <p style={{ color: "rgba(255,255,255,0.35)" }}>
             No offices set up yet.{" "}
-            <a href="/admin" className="text-[#C8102E] underline">Go to admin</a>{" "}
+            <a href="/admin" style={{ color: "#C8102E" }} className="underline">Go to admin</a>{" "}
             to get started.
           </p>
         ) : (
           <>
-            <p className="text-[9px] font-black tracking-[0.2em] uppercase text-[#2D1B4E]/40 mb-5">
+            <p className="font-black tracking-[0.2em] uppercase mb-6" style={{ fontSize: 9, color: "rgba(255,255,255,0.25)" }}>
               Choose an office
             </p>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {officeRows.map((office) => {
-                const pct =
-                  office.total_count > 0
-                    ? Math.round((office.met_count / office.total_count) * 100)
-                    : 0;
+                const pct  = office.total_count > 0 ? Math.round((office.met_count / office.total_count) * 100) : 0;
                 const done = pct === 100 && office.total_count > 0;
+                const imgSrc = officeImageSrc(office.name);
+
                 return (
                   <Link
                     key={office.name}
                     href={`/office/${office.slug}`}
-                    className="group flex flex-col gap-3 p-5 bg-white rounded-2xl border border-[#2D1B4E]/10 shadow-sm hover:shadow-lg hover:border-[#C8102E]/30 transition-all duration-200"
+                    className="group relative block overflow-hidden rounded-2xl select-none"
+                    style={{
+                      aspectRatio: "3 / 2",
+                      border: done
+                        ? "1.5px solid rgba(34,197,94,0.35)"
+                        : "1.5px solid rgba(255,255,255,0.07)",
+                      transition: "transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLElement).style.transform = "scale(1.03) translateY(-3px)";
+                      (e.currentTarget as HTMLElement).style.boxShadow = done
+                        ? "0 16px 40px rgba(34,197,94,0.18)"
+                        : "0 16px 40px rgba(0,0,0,0.50)";
+                      (e.currentTarget as HTMLElement).style.borderColor = done
+                        ? "rgba(34,197,94,0.60)"
+                        : "rgba(255,255,255,0.18)";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLElement).style.transform = "";
+                      (e.currentTarget as HTMLElement).style.boxShadow = "";
+                      (e.currentTarget as HTMLElement).style.borderColor = done
+                        ? "rgba(34,197,94,0.35)"
+                        : "rgba(255,255,255,0.07)";
+                    }}
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="font-bold text-[#2D1B4E] text-lg leading-tight group-hover:text-[#C8102E] transition-colors truncate">
-                          {office.name}
-                        </p>
-                        {office.description && (
-                          <p className="text-xs text-[#2D1B4E]/40 mt-0.5 truncate">{office.description}</p>
-                        )}
-                      </div>
+                    {/* Office photo / gradient background */}
+                    <div
+                      className="absolute inset-0 transition-transform duration-500 group-hover:scale-[1.06]"
+                      style={{
+                        background: "linear-gradient(160deg, #1a0e36 0%, #2D1B4E 100%)",
+                        ...(imgSrc ? {
+                          backgroundImage: `url(${imgSrc})`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                        } : {}),
+                      }}
+                    />
+
+                    {/* Gradient scrim — heavier at bottom for text legibility */}
+                    <div
+                      className="absolute inset-0"
+                      style={{ background: "linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.30) 50%, rgba(0,0,0,0.10) 100%)" }}
+                    />
+
+                    {/* Top-right — percentage */}
+                    <div className="absolute top-3 right-3">
                       <span
-                        className="text-lg font-black tabular-nums shrink-0"
-                        style={{ color: done ? "#16a34a" : "#C8102E" }}
+                        className="font-black tabular-nums leading-none"
+                        style={{ fontSize: 20, color: done ? "#4ade80" : "rgba(255,255,255,0.90)", textShadow: "0 1px 6px rgba(0,0,0,0.6)" }}
                       >
                         {pct}%
                       </span>
                     </div>
-                    <div>
-                      <p className="text-xs text-[#2D1B4E]/40 mb-2">
-                        {office.met_count} of {office.total_count} connected
-                      </p>
-                      <div className="w-full rounded-full h-1.5 overflow-hidden bg-[#2D1B4E]/8">
-                        <div
-                          className="h-1.5 rounded-full transition-all duration-500"
-                          style={{
-                            width: `${pct}%`,
-                            background: done ? "#16a34a" : "#C8102E",
-                          }}
-                        />
+
+                    {/* Completion badge */}
+                    {done && (
+                      <div
+                        className="absolute top-3 left-3 flex items-center gap-1 rounded-full px-2.5 py-1"
+                        style={{ background: "rgba(34,197,94,0.20)", border: "1px solid rgba(34,197,94,0.40)" }}
+                      >
+                        <span style={{ color: "#4ade80", fontSize: 9, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                          ✓ Complete
+                        </span>
                       </div>
+                    )}
+
+                    {/* Bottom — office name + met count */}
+                    <div className="absolute bottom-0 left-0 right-0 px-4 pb-3 pt-6">
+                      <p className="text-white font-black leading-tight truncate" style={{ fontSize: 17 }}>
+                        {office.name}
+                      </p>
+                      <p style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", marginTop: 2 }}>
+                        {office.met_count} of {office.total_count} met
+                        {office.description ? ` · ${office.description}` : ""}
+                      </p>
+                    </div>
+
+                    {/* Progress bar pinned to bottom edge */}
+                    <div className="absolute bottom-0 left-0 right-0" style={{ height: 3, background: "rgba(255,255,255,0.08)" }}>
+                      <div
+                        style={{
+                          height: "100%",
+                          width: `${pct}%`,
+                          background: done ? "#22c55e" : "#C8102E",
+                          transition: "width 0.5s ease",
+                        }}
+                      />
                     </div>
                   </Link>
                 );
