@@ -11,11 +11,11 @@ export const RARITY_HEX: Record<string, string> = {
 export type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary";
 
 export const RARITY_LABELS: Record<Rarity, string> = {
-  common: "Common",
-  uncommon: "Uncommon",
-  rare: "Rare",
-  epic: "Epic",
-  legendary: "Legendary",
+  common:    "Rising",
+  uncommon:  "Connected",
+  rare:      "Established",
+  epic:      "Influential",
+  legendary: "Distinguished",
 };
 
 // Border/glow styles for each rarity tier

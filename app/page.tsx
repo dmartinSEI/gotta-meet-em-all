@@ -80,7 +80,6 @@ export default async function HomePage() {
   const totalXp: number = (xpRows[0] as { total_xp: number } | undefined)?.total_xp ?? 0;
   const globalRosterSize = officeRows.reduce((sum, o) => sum + o.total_count, 0);
   const totalMet         = officeRows.reduce((sum, o) => sum + o.met_count,   0);
-  const overallPct       = globalRosterSize > 0 ? Math.round((totalMet / globalRosterSize) * 100) : 0;
   const rarity           = getRarity(totalXp, globalRosterSize);
   const rarityHex        = RARITY_HEX[rarity];
 
@@ -109,7 +108,7 @@ export default async function HomePage() {
 
           <div className="flex items-center gap-3 md:gap-4 min-w-0">
             <div className="flex items-center gap-2 shrink-0">
-              <span className="text-white/50 text-sm tabular-nums">{totalXp} XP</span>
+              <span className="text-white/50 text-sm tabular-nums">{totalXp} pts</span>
               <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${HEADER_RARITY[rarity]}`}>
                 {RARITY_LABELS[rarity]}
               </span>
@@ -158,7 +157,7 @@ export default async function HomePage() {
               </span>
               <span style={{ color: "rgba(45,27,78,0.20)", fontSize: 16 }}>·</span>
               <span className="font-semibold tabular-nums" style={{ color: "rgba(45,27,78,0.45)", fontSize: 14 }}>
-                {totalXp.toLocaleString()} XP
+                {totalXp.toLocaleString()} Meet Points
               </span>
             </div>
             <p style={{ color: "rgba(45,27,78,0.30)", fontSize: 11 }}>{session.user.email}</p>
@@ -174,17 +173,6 @@ export default async function HomePage() {
           </div>
         </div>
 
-        {/* Progress bar */}
-        <div style={{ height: 3, background: "rgba(45,27,78,0.06)" }}>
-          <div
-            style={{
-              height: "100%",
-              width: `${overallPct}%`,
-              background: overallPct === 100 ? "#22c55e" : rarityHex,
-              transition: "width 0.6s ease",
-            }}
-          />
-        </div>
       </div>
 
       {/* ── Content ─────────────────────────────────────────────── */}

@@ -130,7 +130,7 @@ export default async function ConsultantDossierPage({
           </div>
           <div className="flex items-center gap-3 md:gap-4 min-w-0">
             <div className="flex items-center gap-2 shrink-0">
-              <span className="text-white/50 text-sm tabular-nums">{viewerXp} XP</span>
+              <span className="text-white/50 text-sm tabular-nums">{viewerXp} pts</span>
               <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${HEADER_RARITY[viewerRarity]}`}>
                 {RARITY_LABELS[viewerRarity]}
               </span>
@@ -190,7 +190,7 @@ export default async function ConsultantDossierPage({
             {consultant.title  && <p className="text-white/65 mt-1 text-sm">{consultant.title}</p>}
             {consultant.office && <p className="text-white/40 mt-0.5 text-xs">{consultant.office}</p>}
             <div className="flex items-center gap-2 mt-3 justify-center sm:justify-start flex-wrap">
-              <span className="text-white/50 text-xs tabular-nums">{consultant.consultant_xp} XP</span>
+              <span className="text-white/50 text-xs tabular-nums">{consultant.consultant_xp} pts</span>
               <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${HEADER_RARITY[subjectRarity]}`}>
                 {RARITY_LABELS[subjectRarity]}
               </span>

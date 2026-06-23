@@ -96,7 +96,7 @@ export default async function CollectionPage() {
 
           <div className="flex items-center gap-3 md:gap-4 min-w-0">
             <div className="flex items-center gap-2 shrink-0">
-              <span className="text-white/50 text-sm tabular-nums">{totalXp} XP</span>
+              <span className="text-white/50 text-sm tabular-nums">{totalXp} pts</span>
               <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${HEADER_RARITY[viewerRarity]}`}>
                 {RARITY_LABELS[viewerRarity]}
               </span>

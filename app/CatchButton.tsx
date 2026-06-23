@@ -87,7 +87,7 @@ export default function CatchButton({
                 {loadingLevel === lvl ? "…" : CATCH_LEVEL_ICONS[lvl]}
               </span>
               <span className="font-semibold leading-none">{CATCH_LEVEL_LABELS[lvl]}</span>
-              <span style={{ color: "inherit", opacity: 0.6 }}>+{XP_PER_LEVEL[lvl]} XP</span>
+              <span style={{ color: "inherit", opacity: 0.6 }}>+{XP_PER_LEVEL[lvl]} pts</span>
             </button>
           );
         })}
@@ -148,7 +148,7 @@ export default function CatchButton({
               {loadingLevel === lvl ? "…" : CATCH_LEVEL_ICONS[lvl]}
             </span>
             <span>{CATCH_LEVEL_LABELS[lvl]}</span>
-            <span style={{ marginLeft: "auto", opacity: 0.6 }}>+{XP_PER_LEVEL[lvl] - XP_PER_LEVEL[level]} XP</span>
+            <span style={{ marginLeft: "auto", opacity: 0.6 }}>+{XP_PER_LEVEL[lvl] - XP_PER_LEVEL[level]} pts</span>
           </button>
         );
       })}

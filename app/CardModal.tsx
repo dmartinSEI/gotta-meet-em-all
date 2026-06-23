@@ -315,7 +315,7 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
                       background: "#f1f5f9", border: "1px solid #e2e8f0",
                       color: "#475569", fontWeight: 600,
                     }}>
-                      {CATCH_LEVEL_ICONS[consultant.catch_level]} {CATCH_LEVEL_LABELS[consultant.catch_level]} · +{XP_PER_LEVEL[consultant.catch_level as 1 | 2 | 3]} XP
+                      {CATCH_LEVEL_ICONS[consultant.catch_level]} {CATCH_LEVEL_LABELS[consultant.catch_level]} · +{XP_PER_LEVEL[consultant.catch_level as 1 | 2 | 3]} pts
                     </span>
                   </div>
                 )}

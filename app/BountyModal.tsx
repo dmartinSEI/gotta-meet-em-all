@@ -72,7 +72,7 @@ export default function BountyModal({ bounty, onClose }: Props) {
                 Monthly Bounty
               </span>
               <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-white/10 text-white/55">
-                +{bounty.bonus_xp} XP
+                +{bounty.bonus_xp} pts
               </span>
             </div>
 
@@ -133,7 +133,7 @@ export default function BountyModal({ bounty, onClose }: Props) {
             <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-xl bg-green-50 border border-green-100">
               <span className="text-green-500 text-sm leading-none">✓</span>
               <p className="text-green-700 text-xs font-semibold">
-                Bounty complete — +{bounty.bonus_xp} XP earned
+                Bounty complete — +{bounty.bonus_xp} pts earned
               </p>
             </div>
           ) : (
@@ -151,7 +151,7 @@ export default function BountyModal({ bounty, onClose }: Props) {
                   ? "Last day — don't miss out!"
                   : "Bounty expires today!"}
               </p>
-              <span className="text-[#C8102E] font-black text-sm">+{bounty.bonus_xp} XP</span>
+              <span className="text-[#C8102E] font-black text-sm">+{bounty.bonus_xp} pts</span>
             </div>
           )}
 

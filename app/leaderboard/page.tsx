@@ -99,8 +99,8 @@ export default async function LeaderboardPage({
     ? (queryParams.push(officeFilter), `WHERE c.office = $1`)
     : "";
 
-  // All-time: sum XP from catches (current level). Monthly: sum from catch_events
-  // this month (captures upgrade deltas recorded at upgrade time) + bounty XP.
+  // All-time: sum pts from catches (current level). Monthly: sum from catch_events
+  // this month (captures upgrade deltas recorded at upgrade time) + bounty pts.
   const xpExpr = isMonthly
     ? `COALESCE((
          SELECT SUM(ce.xp_gained) FROM catch_events ce
@@ -203,7 +203,7 @@ export default async function LeaderboardPage({
 
           <div className="flex items-center gap-3 md:gap-4 min-w-0">
             <div className="flex items-center gap-2 shrink-0">
-              <span className="text-white/50 text-sm tabular-nums">{viewerXp} XP</span>
+              <span className="text-white/50 text-sm tabular-nums">{viewerXp} pts</span>
               <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full ${HEADER_RARITY[viewerRarity]}`}>
                 {RARITY_LABELS[viewerRarity]}
               </span>
@@ -296,7 +296,7 @@ export default async function LeaderboardPage({
 
                       <div className="w-full rounded-t-xl flex flex-col items-center justify-start pt-3 gap-0.5"
                            style={{ height: style.height, background: style.bg }}>
-                        <p className="text-white font-black text-sm tabular-nums">{entry.total_xp} XP</p>
+                        <p className="text-white font-black text-sm tabular-nums">{entry.total_xp} pts</p>
                         <p className="text-white/65 text-[10px] tabular-nums">
                           {isMonthly ? `${entry.total_met} new` : `${entry.total_met} met · ${pct}%`}
                         </p>
@@ -314,7 +314,7 @@ export default async function LeaderboardPage({
                 <span className="text-sm font-black text-[#C8102E] tabular-nums">#{viewerRank}</span>
                 <p className="text-sm font-semibold text-[#2D1B4E]">Your current rank</p>
                 <span className="ml-auto text-xs tabular-nums" style={{ color: "rgba(45,27,78,0.45)" }}>
-                  {viewerRow?.total_xp ?? 0} XP
+                  {viewerRow?.total_xp ?? 0} pts
                 </span>
               </div>
             )}
@@ -384,7 +384,7 @@ export default async function LeaderboardPage({
                       </span>
                       <p className="text-sm font-black tabular-nums"
                          style={{ color: isSelf ? "#fff" : "#2D1B4E" }}>
-                        {entry.total_xp} XP
+                        {entry.total_xp} pts
                       </p>
                       <p className="text-[11px] tabular-nums"
                          style={{ color: isSelf ? "rgba(255,255,255,0.40)" : "rgba(45,27,78,0.35)" }}>

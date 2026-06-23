@@ -86,7 +86,7 @@ export default function BountyCard({ bounty }: Props) {
               Monthly Bounty
             </span>
             <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-white/10 text-white/60">
-              +{bounty.bonus_xp} XP
+              +{bounty.bonus_xp} pts
             </span>
           </div>
 
@@ -95,7 +95,7 @@ export default function BountyCard({ bounty }: Props) {
               <p className="font-bold text-white leading-tight">{fullName}</p>
               {bounty.office && <p className="text-xs text-white/50 mt-0.5">{bounty.office}</p>}
               <p className="text-xs text-green-400 font-semibold mt-1">
-                ✓ Bounty complete — +{bounty.bonus_xp} XP earned
+                ✓ Bounty complete — +{bounty.bonus_xp} pts earned
               </p>
             </>
           ) : (
