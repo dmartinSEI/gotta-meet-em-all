@@ -22,6 +22,8 @@ export interface OfficeRow {
   met_count: number;
 }
 
+export type PreferredComm = "Email" | "Teams" | "Calendar Invite";
+
 export interface ConsultantRow {
   id: number;
   email: string;
@@ -35,6 +37,9 @@ export interface ConsultantRow {
   photo_url_l1: string;
   photo_url_l2: string;
   photo_url_l3: string;
+  current_client?: string | null;
+  past_clients?: string | null;
+  preferred_comm?: PreferredComm | null;
   catch_level: number | null;
   is_own_card: boolean;
   badge_ids: string[];

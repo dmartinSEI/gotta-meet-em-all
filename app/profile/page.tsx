@@ -7,7 +7,7 @@ import { ALL_BADGES } from "@/lib/badge-data";
 import ProfileForm from "./ProfileForm";
 import PhotoUpload from "./PhotoUpload";
 import TrainerCard from "./TrainerCard";
-import type { ConsultantRow } from "@/lib/types";
+import type { ConsultantRow, PreferredComm } from "@/lib/types";
 
 const HEADER_RARITY: Record<Rarity, string> = {
   common:    "bg-white/10 text-white/80 border border-white/20",
@@ -28,9 +28,11 @@ export default async function ProfilePage() {
         first_name: string; last_name: string; title: string;
         office: string; bio: string; skills: string;
         photo_url: string; photo_url_l1: string; photo_url_l2: string; photo_url_l3: string;
+        current_client: string | null; past_clients: string | null; preferred_comm: string | null;
       }>`
         SELECT id, email, first_name, last_name, title, office, bio, skills,
-               photo_url, photo_url_l1, photo_url_l2, photo_url_l3
+               photo_url, photo_url_l1, photo_url_l2, photo_url_l3,
+               current_client, past_clients, preferred_comm
         FROM consultants
         WHERE email = ${session.user.email}
       `,
@@ -175,7 +177,13 @@ export default async function ProfilePage() {
               <p className="text-[9px] font-black tracking-[0.2em] uppercase text-[#2D1B4E]/40 mb-4">
                 About you
               </p>
-              <ProfileForm initialBio={consultant.bio ?? ""} initialSkills={consultant.skills ?? ""} />
+              <ProfileForm
+                initialBio={consultant.bio ?? ""}
+                initialSkills={consultant.skills ?? ""}
+                initialCurrentClient={consultant.current_client ?? ""}
+                initialPastClients={consultant.past_clients ?? ""}
+                initialPreferredComm={(consultant.preferred_comm as PreferredComm) ?? ""}
+              />
             </div>
           </>
         )}
