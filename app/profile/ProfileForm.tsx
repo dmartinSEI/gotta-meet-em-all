@@ -110,7 +110,7 @@ export default function ProfileForm({
           value={currentClient}
           onChange={(e) => { setCurrentClient(e.target.value); markDirty(); }}
           maxLength={100}
-          placeholder="e.g. Dept. of Defense, Accenture Federal…"
+          placeholder="e.g. Dunder Mifflin, Vandelay Industries…"
           className="w-full px-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#2D1B4E]/30"
           style={{ borderColor: "rgba(45,27,78,0.18)" }}
         />
@@ -127,7 +127,7 @@ export default function ProfileForm({
           value={pastClients}
           onChange={(e) => { setPastClients(e.target.value); markDirty(); }}
           maxLength={500}
-          placeholder="e.g. DHS, Navy, HHS…"
+          placeholder="e.g. Initech, Los Pollos Hermanos, Umbrella Corp…"
           className="w-full px-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#2D1B4E]/30"
           style={{ borderColor: "rgba(45,27,78,0.18)" }}
         />
