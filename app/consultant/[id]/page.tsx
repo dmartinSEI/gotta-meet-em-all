@@ -47,7 +47,7 @@ export default async function ConsultantDossierPage({
       SELECT
         c.id, c.email, c.first_name, c.last_name, c.title, c.office, c.bio, c.skills,
         c.photo_url, c.photo_url_l1, c.photo_url_l2, c.photo_url_l3,
-        c.current_client, c.past_clients, c.preferred_comm,
+        c.current_client, c.past_clients, c.preferred_comm, c.card_bg_url,
         c.survey_data,
         (c.email = ${session.user.email}) AS is_own_card,
         (
@@ -102,7 +102,7 @@ export default async function ConsultantDossierPage({
   const ringColor     = RARITY_RING[subjectRarity];
   const surveyData    = consultant.survey_data as SurveyData | null;
 
-  const officeImageUrl = officeImageSrc(consultant.office);
+  const officeImageUrl = consultant.card_bg_url || officeImageSrc(consultant.office);
 
   const populatedSections = DOSSIER_SECTIONS
     .map(section => ({

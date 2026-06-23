@@ -193,7 +193,7 @@ function CollectionCard({
   const fullName = `${consultant.first_name} ${consultant.last_name}`;
   const catchLevel = consultant.catch_level as 1 | 2 | 3 | null;
   const ringColor = RARITY_RING[rarity];
-  const bgImageUrl = officeImageSrc(consultant.office);
+  const bgImageUrl = consultant.card_bg_url || officeImageSrc(consultant.office);
 
   return (
     <div

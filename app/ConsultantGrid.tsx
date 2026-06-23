@@ -107,6 +107,7 @@ export default function ConsultantGrid({
             const caught = c.catch_level !== null;
             const rarity = getRarity(c.consultant_xp, rosterSize);
             const ring = photoRingStyle(rarity, RARITY_HEX[rarity]);
+            const cardBg = c.card_bg_url || officeImageUrl;
 
             return (
               <div
@@ -137,8 +138,8 @@ export default function ConsultantGrid({
                   className="absolute inset-0"
                   style={{
                     background: "linear-gradient(160deg, #1a0e36 0%, #2D1B4E 100%)",
-                    ...(officeImageUrl ? {
-                      backgroundImage: `url(${officeImageUrl})`,
+                    ...(cardBg ? {
+                      backgroundImage: `url(${cardBg})`,
                       backgroundSize: "cover",
                       backgroundPosition: "center",
                     } : {}),

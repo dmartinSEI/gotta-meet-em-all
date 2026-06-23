@@ -10,6 +10,7 @@ import TrainerCard from "./TrainerCard";
 import CaughtBySection from "./CaughtBySection";
 import type { CatcherRow } from "./CaughtBySection";
 import StandingSection from "./StandingSection";
+import CardBgUpload from "./CardBgUpload";
 import type { ConsultantRow, PreferredComm } from "@/lib/types";
 
 const HEADER_RARITY: Record<Rarity, string> = {
@@ -32,10 +33,11 @@ export default async function ProfilePage() {
         office: string; bio: string; skills: string;
         photo_url: string; photo_url_l1: string; photo_url_l2: string; photo_url_l3: string;
         current_client: string | null; past_clients: string | null; preferred_comm: string | null;
+        card_bg_url: string | null;
       }>`
         SELECT id, email, first_name, last_name, title, office, bio, skills,
                photo_url, photo_url_l1, photo_url_l2, photo_url_l3,
-               current_client, past_clients, preferred_comm
+               current_client, past_clients, preferred_comm, card_bg_url
         FROM consultants
         WHERE email = ${session.user.email}
       `,
@@ -199,6 +201,17 @@ export default async function ProfilePage() {
                 Profile photo
               </p>
               <PhotoUpload currentUrl={consultant.photo_url ?? null} />
+            </div>
+
+            {/* Card background */}
+            <div className="mb-8 pb-8 border-b" style={{ borderColor: "rgba(45,27,78,0.08)" }}>
+              <p className="text-[9px] font-black tracking-[0.2em] uppercase text-[#2D1B4E]/40 mb-4">
+                Card background
+              </p>
+              <CardBgUpload
+                currentUrl={consultant.card_bg_url ?? null}
+                office={consultant.office ?? null}
+              />
             </div>
 
             {/* Profile fields */}

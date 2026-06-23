@@ -58,7 +58,7 @@ export default function TrainerCard({
   const photo         = pickPhoto(consultant);
   const rarity        = getRarity(consultant.consultant_xp, rosterSize);
   const ringColor     = RARITY_RING[rarity];
-  const officeImageUrl = officeImageSrc(consultant.office);
+  const officeImageUrl = consultant.card_bg_url || officeImageSrc(consultant.office);
 
   function handleClick() {
     if (!cardRef.current) return;

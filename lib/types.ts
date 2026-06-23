@@ -40,6 +40,7 @@ export interface ConsultantRow {
   current_client?: string | null;
   past_clients?: string | null;
   preferred_comm?: PreferredComm | null;
+  card_bg_url?: string | null;
   catch_level: number | null;
   is_own_card: boolean;
   badge_ids: string[];

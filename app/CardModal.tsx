@@ -101,7 +101,7 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
 
   const rarityColor  = RARITY_HEX[rarity];
   const cardBorder   = `4px solid ${rarityColor}`;
-  const officeImageUrl = officeImageSrc(consultant.office);
+  const officeImageUrl = consultant.card_bg_url || officeImageSrc(consultant.office);
 
   const initOffset = useMemo(() => {
     const destCX = window.innerWidth  / 2;
