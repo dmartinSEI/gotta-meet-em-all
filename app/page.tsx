@@ -142,7 +142,7 @@ export default async function HomePage() {
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {officeRows.map((office) => {
+              {officeRows.filter((o) => o.total_count > 0).map((office) => {
                 const pct  = office.total_count > 0 ? Math.round((office.met_count / office.total_count) * 100) : 0;
                 const done = pct === 100 && office.total_count > 0;
                 const imgSrc = officeImageSrc(office.name);
