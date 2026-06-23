@@ -7,6 +7,7 @@ type BadgeItem = BadgeInfo & { earnedAt: string | null };
 
 export default function BadgeGrid({ badgeList }: { badgeList: BadgeItem[] }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [hoveredId,  setHoveredId]  = useState<string | null>(null);
 
   const earnedCount = badgeList.filter((b) => b.earnedAt !== null).length;
   const selected    = badgeList.find((b) => b.id === selectedId) ?? null;
@@ -53,35 +54,83 @@ export default function BadgeGrid({ badgeList }: { badgeList: BadgeItem[] }) {
               {byCategory[category].map((badge) => {
                 const isEarned   = badge.earnedAt !== null;
                 const isSelected = selectedId === badge.id;
+                const isHovered  = hoveredId === badge.id;
                 return (
-                  <button
+                  /* Wrapper holds both button and tooltip so tooltip escapes
+                     the button's filter/opacity stacking context */
+                  <div
                     key={badge.id}
-                    type="button"
-                    onClick={() => toggle(badge.id)}
-                    aria-pressed={isSelected}
-                    aria-label={`${badge.name}: ${badge.description}. ${isEarned ? "Earned" : "Not yet earned"}`}
-                    className="relative flex items-center justify-center rounded-xl transition-all duration-100 focus-visible:ring-2 focus-visible:ring-[#2D1B4E]/40 focus-visible:outline-none"
-                    style={{
-                      width: 52, height: 52,
-                      fontSize: 24,
-                      background: isSelected
-                        ? "rgba(45,27,78,0.09)"
-                        : isEarned ? "rgba(45,27,78,0.04)" : "rgba(45,27,78,0.02)",
-                      border: isSelected
-                        ? "2px solid rgba(45,27,78,0.22)"
-                        : "1.5px solid rgba(45,27,78,0.08)",
-                      filter:  isEarned ? "none" : "grayscale(1)",
-                      opacity: isEarned ? 1 : 0.32,
-                    }}
+                    style={{ position: "relative", display: "inline-block" }}
+                    onMouseEnter={() => setHoveredId(badge.id)}
+                    onMouseLeave={() => setHoveredId(null)}
                   >
-                    <span aria-hidden="true">{badge.icon}</span>
-                    {isEarned && (
-                      <span
-                        className="absolute bottom-1 right-1 w-1.5 h-1.5 rounded-full bg-green-500"
+                    <button
+                      type="button"
+                      onClick={() => toggle(badge.id)}
+                      aria-pressed={isSelected}
+                      aria-label={`${badge.name}: ${badge.description}. ${isEarned ? "Earned" : "Not yet earned"}`}
+                      className="relative flex items-center justify-center rounded-xl transition-all duration-100 focus-visible:ring-2 focus-visible:ring-[#2D1B4E]/40 focus-visible:outline-none"
+                      style={{
+                        width: 52, height: 52,
+                        fontSize: 24,
+                        background: isSelected
+                          ? "rgba(45,27,78,0.09)"
+                          : isEarned ? "rgba(45,27,78,0.04)" : "rgba(45,27,78,0.02)",
+                        border: isSelected
+                          ? "2px solid rgba(45,27,78,0.22)"
+                          : "1.5px solid rgba(45,27,78,0.08)",
+                        filter:  isEarned ? "none" : "grayscale(1)",
+                        opacity: isEarned ? 1 : 0.32,
+                      }}
+                    >
+                      <span aria-hidden="true">{badge.icon}</span>
+                      {isEarned && (
+                        <span
+                          className="absolute bottom-1 right-1 w-1.5 h-1.5 rounded-full bg-green-500"
+                          aria-hidden="true"
+                        />
+                      )}
+                    </button>
+
+                    {/* Tooltip — sibling of button, not child, so it's not
+                        affected by the button's filter/opacity */}
+                    {isHovered && (
+                      <div
                         aria-hidden="true"
-                      />
+                        className="pointer-events-none"
+                        style={{
+                          position: "absolute",
+                          bottom: "calc(100% + 8px)",
+                          left: "50%",
+                          transform: "translateX(-50%)",
+                          zIndex: 50,
+                          background: "rgba(15,12,30,0.93)",
+                          borderRadius: 8,
+                          padding: "6px 10px",
+                          minWidth: 140,
+                          maxWidth: 210,
+                          textAlign: "center",
+                        }}
+                      >
+                        <p style={{ fontSize: 11, fontWeight: 700, color: "#fff", marginBottom: 2, whiteSpace: "nowrap" }}>
+                          {badge.name}
+                        </p>
+                        <p style={{ fontSize: 10, color: "rgba(255,255,255,0.70)", lineHeight: 1.4 }}>
+                          {badge.description}
+                        </p>
+                        <div style={{
+                          position: "absolute",
+                          top: "100%",
+                          left: "50%",
+                          transform: "translateX(-50%)",
+                          width: 0, height: 0,
+                          borderLeft: "5px solid transparent",
+                          borderRight: "5px solid transparent",
+                          borderTop: "5px solid rgba(15,12,30,0.93)",
+                        }} />
+                      </div>
                     )}
-                  </button>
+                  </div>
                 );
               })}
             </div>

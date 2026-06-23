@@ -233,18 +233,6 @@ export default async function ProfilePage() {
           </>
         )}
 
-        {/* Sign out — always accessible (nav is hidden on mobile) */}
-        <div className="pt-6 pb-2 flex justify-end">
-          <form action={async () => { "use server"; await signOut(); }}>
-            <button
-              className="text-sm transition-colors"
-              style={{ color: "rgba(45,27,78,0.35)" }}
-            >
-              Sign out
-            </button>
-          </form>
-        </div>
-
         {/* Badges */}
         <BadgeGrid
           badgeList={ALL_BADGES.map((b) => ({
