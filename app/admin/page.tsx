@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "../../auth";
 import UploadForm from "./UploadForm";
 import PhotoUploadForm from "./PhotoUploadForm";
+import SurveyUploadForm from "./SurveyUploadForm";
 
 export default async function AdminPage() {
   const session = await auth();
@@ -37,6 +38,16 @@ export default async function AdminPage() {
           them all at once — photos are matched to consultants automatically.
         </p>
         <PhotoUploadForm />
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold mb-1">Survey import</h2>
+        <p className="text-gray-500 mb-4 text-sm">
+          Export responses from the Microsoft Forms survey to Excel (Forms → ⋯ → Export to Excel),
+          then upload the file here. Data is merged into each consultant&apos;s profile by email —
+          existing fields are updated, missing ones are left untouched.
+        </p>
+        <SurveyUploadForm />
       </div>
     </main>
   );

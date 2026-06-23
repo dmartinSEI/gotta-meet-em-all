@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import CatchButton from "./CatchButton";
 import type { ConsultantRow } from "@/lib/types";
 import { getRarity, RARITY_LABELS, CATCH_LEVEL_LABELS, CATCH_LEVEL_ICONS, XP_PER_LEVEL } from "@/lib/xp";
@@ -362,8 +363,19 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
 
               </div>
 
+              {/* Full profile link */}
+              <div style={{ padding: "6px 12px 0", flexShrink: 0, textAlign: "right" }}>
+                <Link
+                  href={`/consultant/${consultant.id}`}
+                  onClick={(e) => e.stopPropagation()}
+                  style={{ fontSize: 10, color: "#C8102E", fontWeight: 600, textDecoration: "none" }}
+                >
+                  Full profile →
+                </Link>
+              </div>
+
               {/* CatchButton or own-card note */}
-              <div style={{ padding: "8px 12px 12px", borderTop: "1px solid #f1f5f9", flexShrink: 0 }}>
+              <div style={{ padding: "6px 12px 12px", borderTop: "1px solid #f1f5f9", flexShrink: 0 }}>
                 {consultant.is_own_card ? (
                   <p style={{ textAlign: "center", fontSize: 11, color: "rgba(45,27,78,0.38)", fontStyle: "italic", padding: "5px 0" }}>
                     This is your card ✨

@@ -39,4 +39,5 @@ export interface ConsultantRow {
   is_own_card: boolean;
   badge_ids: string[];
   consultant_xp: number;
+  survey_data?: Record<string, string> | null;
 }

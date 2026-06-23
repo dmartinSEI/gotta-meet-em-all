@@ -6,6 +6,7 @@ import { pool } from "@/lib/db";
 import { sql } from "@/lib/db";
 import { auth } from "../../auth";
 import type { Consultant } from "@/lib/types";
+import { SURVEY_FIELD_MAP, SKIP_KEYS, SYSTEM_COLUMNS } from "@/lib/survey-fields";
 
 async function requireAdmin() {
   const session = await auth();
@@ -87,6 +88,72 @@ export async function importConsultants(formData: FormData) {
   } catch (error) {
     console.error("importConsultants error:", error);
     return { success: false as const, error: "Import failed. Check the file format and try again." };
+  }
+}
+
+export async function importSurveyData(formData: FormData) {
+  try {
+    await requireAdmin();
+
+    const file = formData.get("file") as File;
+    if (!file || file.size === 0) return { success: false as const, error: "No file selected." };
+    if (file.size > MAX_FILE_BYTES) return { success: false as const, error: "File is too large. Max size is 5MB." };
+
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const workbook = XLSX.read(buffer, { type: "buffer" });
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rawRows = XLSX.utils.sheet_to_json<Record<string, string>>(sheet, { defval: "" });
+
+    if (rawRows.length === 0) return { success: false as const, error: "File appears empty." };
+
+    let matched = 0;
+    let unmatched = 0;
+    const unrecognizedColumns = new Set<string>();
+
+    for (const rawRow of rawRows) {
+      // Normalize column headers: lowercase + trim
+      const row: Record<string, string> = {};
+      for (const [k, v] of Object.entries(rawRow)) {
+        row[k.toLowerCase().trim()] = String(v ?? "").trim();
+      }
+
+      // Find SEI email — try the explicit Q2 column first, then Forms' system "email" column
+      const emailColKey = Object.keys(row).find(k => SURVEY_FIELD_MAP[k] === "email");
+      const email = (emailColKey ? row[emailColKey] : row["email"] ?? "").toLowerCase().trim();
+
+      if (!email || !EMAIL_RE.test(email)) { unmatched++; continue; }
+
+      // Build the JSONB payload, skipping system columns and join-key fields
+      const surveyData: Record<string, string> = {};
+      for (const [col, value] of Object.entries(row)) {
+        if (SYSTEM_COLUMNS.has(col)) continue;
+        const key = SURVEY_FIELD_MAP[col];
+        if (!key) { unrecognizedColumns.add(col); continue; }
+        if (SKIP_KEYS.has(key)) continue;
+        if (value) surveyData[key] = value;
+      }
+
+      // Merge into existing survey_data rather than replacing it wholesale
+      const result = await pool.query(
+        `UPDATE consultants
+         SET survey_data = COALESCE(survey_data, '{}'::jsonb) || $1::jsonb
+         WHERE LOWER(email) = $2`,
+        [JSON.stringify(surveyData), email]
+      );
+
+      if ((result.rowCount ?? 0) === 0) unmatched++;
+      else matched++;
+    }
+
+    return {
+      success: true as const,
+      matched,
+      unmatched,
+      unrecognizedColumns: [...unrecognizedColumns],
+    };
+  } catch (error) {
+    console.error("importSurveyData error:", error);
+    return { success: false as const, error: "Survey import failed. Check the file format and try again." };
   }
 }
 
