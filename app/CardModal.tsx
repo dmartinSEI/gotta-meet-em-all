@@ -350,12 +350,18 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
 
               </div>
 
-              {/* CatchButton */}
+              {/* CatchButton or own-card note */}
               <div style={{ padding: "8px 12px 12px", borderTop: "1px solid #f1f5f9", flexShrink: 0 }}>
-                <CatchButton
-                  consultantId={consultant.id}
-                  initialLevel={consultant.catch_level as Level | null}
-                />
+                {consultant.is_own_card ? (
+                  <p style={{ textAlign: "center", fontSize: 11, color: "rgba(45,27,78,0.38)", fontStyle: "italic", padding: "5px 0" }}>
+                    This is your card ✨
+                  </p>
+                ) : (
+                  <CatchButton
+                    consultantId={consultant.id}
+                    initialLevel={consultant.catch_level as Level | null}
+                  />
+                )}
               </div>
 
             </div>

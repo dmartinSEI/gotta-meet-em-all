@@ -6,6 +6,8 @@ import { getRarity, RARITY_LABELS, type Rarity } from "@/lib/xp";
 import { ALL_BADGES } from "@/lib/badge-data";
 import ProfileForm from "./ProfileForm";
 import PhotoUpload from "./PhotoUpload";
+import TrainerCard from "./TrainerCard";
+import type { ConsultantRow } from "@/lib/types";
 
 const HEADER_RARITY: Record<Rarity, string> = {
   common:    "bg-white/10 text-white/80 border border-white/20",
@@ -22,10 +24,13 @@ export default async function ProfilePage() {
   const [{ rows: consultantRows }, { rows: badgeRows }, { rows: xpRows }, { rows: rosterRows }] =
     await Promise.all([
       sql<{
+        id: number; email: string;
         first_name: string; last_name: string; title: string;
-        office: string; bio: string; skills: string; photo_url: string;
+        office: string; bio: string; skills: string;
+        photo_url: string; photo_url_l1: string; photo_url_l2: string; photo_url_l3: string;
       }>`
-        SELECT first_name, last_name, title, office, bio, skills, photo_url
+        SELECT id, email, first_name, last_name, title, office, bio, skills,
+               photo_url, photo_url_l1, photo_url_l2, photo_url_l3
         FROM consultants
         WHERE email = ${session.user.email}
       `,
@@ -57,6 +62,14 @@ export default async function ProfilePage() {
   const rarity = getRarity(totalXp, totalRoster);
   const earnedMap = new Map(badgeRows.map((r) => [r.badge_id, r.earned_at]));
   const consultant = consultantRows[0] ?? null;
+
+  const trainerCard: ConsultantRow | null = consultant ? {
+    ...consultant,
+    catch_level: null,
+    is_own_card: true,
+    badge_ids: badgeRows.map((r) => r.badge_id),
+    consultant_xp: totalXp,
+  } : null;
 
   return (
     <div className="min-h-screen">
@@ -130,6 +143,16 @@ export default async function ProfilePage() {
           </div>
         ) : (
           <>
+            {/* Trainer Card */}
+            {trainerCard && (
+              <div className="mb-8 pb-8 border-b flex flex-col items-center" style={{ borderColor: "rgba(45,27,78,0.08)" }}>
+                <p className="text-[9px] font-black tracking-[0.2em] uppercase text-[#2D1B4E]/40 mb-5 self-start">
+                  Your Card
+                </p>
+                <TrainerCard consultant={trainerCard} rosterSize={totalRoster} />
+              </div>
+            )}
+
             {/* Identity block */}
             <div className="mb-8 pb-8 border-b" style={{ borderColor: "rgba(45,27,78,0.08)" }}>
               <p className="text-2xl font-black text-[#2D1B4E] leading-tight">
