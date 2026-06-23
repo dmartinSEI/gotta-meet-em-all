@@ -1,17 +1,6 @@
-import { RARITY_LABELS, RARITY_HEX, XP_PER_LEVEL, CATCH_LEVEL_LABELS, CATCH_LEVEL_ICONS, CATCH_LEVEL_DESC, type Rarity } from "@/lib/xp";
+import { RARITY_LABELS, RARITY_HEX, XP_PER_LEVEL, CATCH_LEVEL_LABELS, CATCH_LEVEL_ICONS, CATCH_LEVEL_DESC, getRarityThresholds, type Rarity } from "@/lib/xp";
 
 const TIER_ORDER: Rarity[] = ["common", "uncommon", "rare", "epic", "legendary"];
-
-function getThresholds(totalRoster: number): Record<Rarity, number> {
-  const floor = totalRoster * XP_PER_LEVEL[2];
-  return {
-    common:    0,
-    uncommon:  Math.round(floor * 0.042),
-    rare:      Math.round(floor * 0.167),
-    epic:      Math.round(floor * 0.417),
-    legendary: floor,
-  };
-}
 
 const TIER_DESC: Record<Rarity, string> = {
   common:    "Your starting rank — you're on your way.",
@@ -32,7 +21,7 @@ interface Props {
 }
 
 export default function StandingSection({ totalXp, totalRoster, caughtCount, recognizedByCount, rarity }: Props) {
-  const thresholds  = getThresholds(totalRoster);
+  const thresholds  = getRarityThresholds(totalRoster);
   const currentIdx  = TIER_ORDER.indexOf(rarity);
   const nextRarity  = TIER_ORDER[currentIdx + 1] ?? null;
   const prevFloor   = thresholds[rarity];

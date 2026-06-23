@@ -39,14 +39,26 @@ export function computeXp(catches: { level: 1 | 2 | 3 }[]): number {
   return catches.reduce((sum, c) => sum + XP_PER_LEVEL[c.level], 0);
 }
 
-// Legendary floor = every consultant Collaborated with (level 2, 25 XP each)
+// Legendary floor = every consultant Delivered with (level 3, 50 pts each)
+// Offices are cleared at ~Established; cross-office catches are needed for Influential+
+export function getRarityThresholds(rosterSize: number): Record<Rarity, number> {
+  const floor = rosterSize * XP_PER_LEVEL[3];
+  return {
+    common:    0,
+    uncommon:  Math.round(floor * 0.042),
+    rare:      Math.round(floor * 0.167),
+    epic:      Math.round(floor * 0.417),
+    legendary: floor,
+  };
+}
+
 export function getRarity(xp: number, rosterSize: number): Rarity {
   if (rosterSize === 0 || xp === 0) return "common";
-  const legendaryFloor = rosterSize * XP_PER_LEVEL[2];
-  if (xp >= legendaryFloor) return "legendary";
-  if (xp >= Math.round(legendaryFloor * 0.417)) return "epic";     // ~1,000 XP at 96
-  if (xp >= Math.round(legendaryFloor * 0.167)) return "rare";     // ~400 XP at 96
-  if (xp >= Math.round(legendaryFloor * 0.042)) return "uncommon"; // ~100 XP at 96
+  const t = getRarityThresholds(rosterSize);
+  if (xp >= t.legendary) return "legendary";
+  if (xp >= t.epic)      return "epic";
+  if (xp >= t.rare)      return "rare";
+  if (xp >= t.uncommon)  return "uncommon";
   return "common";
 }
 
