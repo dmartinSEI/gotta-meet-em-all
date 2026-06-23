@@ -67,6 +67,7 @@ export default async function ProfilePage() {
 
   const trainerCard: ConsultantRow | null = consultant ? {
     ...consultant,
+    preferred_comm: consultant.preferred_comm as PreferredComm | null,
     catch_level: null,
     is_own_card: true,
     badge_ids: badgeRows.map((r) => r.badge_id),
