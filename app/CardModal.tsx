@@ -231,57 +231,60 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
               display: "flex", flexDirection: "column",
             }}>
 
-              {/* Rarity-gradient header */}
-              <div style={{ background: RARITY_HEADER[rarity], padding: "10px 12px 9px", flexShrink: 0 }}>
-                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 6 }}>
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <p style={{ color: "#fff", fontWeight: 900, fontSize: 14, lineHeight: 1.25, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {fullName}
-                    </p>
+              {/* Rarity-gradient header with circle photo */}
+              <div style={{ background: RARITY_HEADER[rarity], padding: "12px", flexShrink: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+
+                  {/* Circle photo */}
+                  <div style={{
+                    width: 80, height: 80, borderRadius: "50%", overflow: "hidden", flexShrink: 0,
+                    ...photoRingStyle(rarity, RARITY_HEX[rarity]),
+                    background: "#2D1B4E", position: "relative",
+                  }}>
+                    {photo ? (
+                      <Image src={photo} alt={fullName} fill sizes="80px" className="object-cover object-center" />
+                    ) : (
+                      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.35)", color: "#fff", fontWeight: 900, fontSize: 24 }}>
+                        {fullName.split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Identity + rarity badge */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 4, marginBottom: 3 }}>
+                      <p style={{ color: "#fff", fontWeight: 900, fontSize: 13, lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
+                        {fullName}
+                      </p>
+                      <div style={{
+                        background: "rgba(255,255,255,0.18)",
+                        border: "1px solid rgba(255,255,255,0.35)",
+                        color: "#fff",
+                        fontSize: 8, fontWeight: 800,
+                        textTransform: "uppercase", letterSpacing: "0.08em",
+                        padding: "3px 7px", borderRadius: 4,
+                        flexShrink: 0, lineHeight: 1.4,
+                      }}>
+                        {RARITY_LABELS[rarity]}
+                      </div>
+                    </div>
                     {consultant.title && (
-                      <p style={{ color: "rgba(255,255,255,0.75)", fontSize: 11, lineHeight: 1.3, marginTop: 1 }}>
+                      <p style={{ color: "rgba(255,255,255,0.75)", fontSize: 10, lineHeight: 1.35, marginBottom: 2 }}>
                         {consultant.title}
                       </p>
                     )}
                     {consultant.office && (
-                      <p style={{ color: "rgba(255,255,255,0.50)", fontSize: 10, lineHeight: 1.3, marginTop: 1 }}>
+                      <p style={{ color: "rgba(255,255,255,0.50)", fontSize: 9, lineHeight: 1.35 }}>
                         {consultant.office}
                       </p>
                     )}
                   </div>
-                  <div style={{
-                    background: "rgba(255,255,255,0.18)",
-                    border: "1px solid rgba(255,255,255,0.35)",
-                    color: "#fff",
-                    fontSize: 8, fontWeight: 800,
-                    textTransform: "uppercase", letterSpacing: "0.08em",
-                    padding: "3px 7px", borderRadius: 4,
-                    flexShrink: 0, marginTop: 2, lineHeight: 1.4,
-                  }}>
-                    {RARITY_LABELS[rarity]}
-                  </div>
+
                 </div>
               </div>
 
-              {/* Bordered image with foil shimmer */}
-              <div style={{
-                margin: "8px 10px 0", height: 138, borderRadius: 8, overflow: "hidden",
-                border: `2.5px solid ${rarityColor}`,
-                flexShrink: 0, position: "relative", background: "#e2e8f0",
-              }}>
-                {photo ? (
-                  <Image src={photo} alt={fullName} fill sizes="260px" className="object-cover object-top" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-white font-black text-4xl"
-                       style={{ background: RARITY_HEADER[rarity] }}>
-                    {fullName.split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase()}
-                  </div>
-                )}
-                <div style={{ position: "absolute", inset: 0, ...foilStyle(rarity, mouse.x, mouse.y) }} />
-              </div>
-
               {/* Rarity rule */}
-              <div style={{ margin: "8px 10px 0", height: 1, background: `${rarityColor}55`, flexShrink: 0 }} />
+              <div style={{ height: 1, background: `${rarityColor}55`, flexShrink: 0 }} />
 
               {/* Info content */}
               <div style={{ flex: 1, overflowY: "auto", padding: "8px 12px 0", display: "flex", flexDirection: "column", gap: 7 }}>
@@ -379,6 +382,9 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
                   />
                 )}
               </div>
+
+              {/* Foil shimmer — full card back overlay */}
+              <div style={{ position: "absolute", inset: 0, borderRadius: 14, pointerEvents: "none", ...foilStyle(rarity, mouse.x, mouse.y) }} />
 
             </div>
           </div>
