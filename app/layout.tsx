@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Gotta Meet Em All",
+  title: "SEI Gotta Meet Em' All",
   description: "Gamified colleague networking for the firm.",
 };
 
