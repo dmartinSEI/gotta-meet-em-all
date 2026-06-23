@@ -65,6 +65,7 @@ export default async function ProfilePage() {
         JOIN users u       ON u.id  = ca.user_id
         JOIN consultants c2 ON c2.email = u.email
         WHERE ca.consultant_id = (SELECT id FROM consultants WHERE email = ${session.user.email})
+          AND u.email != ${session.user.email}
         ORDER BY ca.level DESC, ca.caught_at DESC
       `,
     ]);
