@@ -299,6 +299,18 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
                   </div>
                 )}
 
+                {/* Bio */}
+                {consultant.bio && (
+                  <div>
+                    <p style={{ fontSize: 8, textTransform: "uppercase", letterSpacing: "0.1em", color: "#94a3b8", fontWeight: 700, marginBottom: 4 }}>
+                      About
+                    </p>
+                    <p style={{ fontSize: 10, color: "#475569", lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                      {consultant.bio}
+                    </p>
+                  </div>
+                )}
+
                 {/* Skills */}
                 {skillList.length > 0 && (
                   <div>
