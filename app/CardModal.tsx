@@ -352,20 +352,6 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
                   </div>
                 )}
 
-                {/* Preferred communication */}
-                {consultant.preferred_comm && (
-                  <div>
-                    <p style={LABEL_STYLE}>Preferred Communication</p>
-                    <span style={{
-                      fontSize: 10, padding: "2px 8px", borderRadius: 99,
-                      background: "rgba(45,27,78,0.07)", border: "1px solid rgba(45,27,78,0.14)",
-                      color: "#2D1B4E", fontWeight: 600,
-                    }}>
-                      {COMM_ICONS[consultant.preferred_comm]} {consultant.preferred_comm}
-                    </span>
-                  </div>
-                )}
-
                 {/* Past clients */}
                 {consultant.past_clients && (
                   <div>
@@ -381,6 +367,20 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
                         </span>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {/* Preferred communication */}
+                {consultant.preferred_comm && (
+                  <div>
+                    <p style={LABEL_STYLE}>Preferred Communication</p>
+                    <span style={{
+                      fontSize: 10, padding: "2px 8px", borderRadius: 99,
+                      background: "rgba(45,27,78,0.07)", border: "1px solid rgba(45,27,78,0.14)",
+                      color: "#2D1B4E", fontWeight: 600,
+                    }}>
+                      {COMM_ICONS[consultant.preferred_comm]} {consultant.preferred_comm}
+                    </span>
                   </div>
                 )}
 

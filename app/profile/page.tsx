@@ -173,13 +173,12 @@ export default async function ProfilePage() {
               <PhotoUpload currentUrl={consultant.photo_url ?? null} />
             </div>
 
-            {/* Bio + skills form */}
+            {/* Profile fields */}
             <div className="mb-8">
               <p className="text-[9px] font-black tracking-[0.2em] uppercase text-[#2D1B4E]/40 mb-4">
-                About you
+                Your Info
               </p>
               <ProfileForm
-                initialBio={consultant.bio ?? ""}
                 initialSkills={consultant.skills ?? ""}
                 initialCurrentClient={consultant.current_client ?? ""}
                 initialPastClients={consultant.past_clients ?? ""}

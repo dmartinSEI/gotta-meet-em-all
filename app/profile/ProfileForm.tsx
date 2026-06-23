@@ -13,19 +13,16 @@ const COMM_ICONS: Record<PreferredComm, string> = {
 };
 
 export default function ProfileForm({
-  initialBio,
   initialSkills,
   initialCurrentClient,
   initialPastClients,
   initialPreferredComm,
 }: {
-  initialBio: string;
   initialSkills: string;
   initialCurrentClient: string;
   initialPastClients: string;
   initialPreferredComm: PreferredComm | "";
 }) {
-  const [bio,           setBio]           = useState(initialBio);
   const [skills,        setSkills]        = useState(initialSkills);
   const [currentClient, setCurrentClient] = useState(initialCurrentClient);
   const [pastClients,   setPastClients]   = useState(initialPastClients);
@@ -42,7 +39,7 @@ export default function ProfileForm({
     setSaved(false);
     setError("");
     try {
-      await updateProfile({ bio, skills, current_client: currentClient, past_clients: pastClients, preferred_comm: preferredComm });
+      await updateProfile({ skills, current_client: currentClient, past_clients: pastClients, preferred_comm: preferredComm });
       setSaved(true);
     } catch {
       setError("Failed to save. Please try again.");
@@ -55,21 +52,6 @@ export default function ProfileForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-
-      {/* Bio */}
-      <div>
-        <label className="block text-sm font-medium text-[#2D1B4E] mb-1">About me</label>
-        <textarea
-          value={bio}
-          onChange={(e) => { setBio(e.target.value); markDirty(); }}
-          rows={4}
-          maxLength={500}
-          placeholder="A short bio about yourself…"
-          className="w-full px-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#2D1B4E]/30 resize-none"
-          style={{ borderColor: "rgba(45,27,78,0.18)" }}
-        />
-        <p className="text-xs text-right mt-1" style={{ color: "rgba(45,27,78,0.35)" }}>{bio.length}/500</p>
-      </div>
 
       {/* Skills */}
       <div>

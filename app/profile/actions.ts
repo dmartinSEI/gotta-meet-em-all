@@ -4,13 +4,11 @@ import { auth } from "../../auth";
 import { sql } from "@/lib/db";
 import type { PreferredComm } from "@/lib/types";
 
-const BIO_MAX = 500;
 const CLIENT_MAX = 100;
 const PAST_CLIENTS_MAX = 500;
 const COMM_OPTIONS: PreferredComm[] = ["Email", "Teams", "Calendar Invite"];
 
 export async function updateProfile(data: {
-  bio: string;
   skills: string;
   current_client: string;
   past_clients: string;
@@ -19,7 +17,6 @@ export async function updateProfile(data: {
   const session = await auth();
   if (!session?.user?.email) throw new Error("Unauthorized");
 
-  const bio            = data.bio.trim().slice(0, BIO_MAX);
   const skills         = data.skills
     .split(",").map((s) => s.trim()).filter(Boolean)
     .slice(0, 5).join(", ");
@@ -31,8 +28,7 @@ export async function updateProfile(data: {
 
   const result = await sql`
     UPDATE consultants
-    SET bio            = ${bio},
-        skills         = ${skills},
+    SET skills         = ${skills},
         current_client = ${current_client || null},
         past_clients   = ${past_clients || null},
         preferred_comm = ${preferred_comm}
