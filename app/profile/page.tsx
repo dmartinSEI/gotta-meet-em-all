@@ -7,6 +7,8 @@ import { ALL_BADGES } from "@/lib/badge-data";
 import ProfileForm from "./ProfileForm";
 import PhotoUpload from "./PhotoUpload";
 import TrainerCard from "./TrainerCard";
+import CaughtBySection from "./CaughtBySection";
+import type { CatcherRow } from "./CaughtBySection";
 import type { ConsultantRow, PreferredComm } from "@/lib/types";
 
 const HEADER_RARITY: Record<Rarity, string> = {
@@ -21,7 +23,7 @@ export default async function ProfilePage() {
   const session = await auth();
   if (!session?.user?.email) redirect("/api/auth/signin?callbackUrl=/profile");
 
-  const [{ rows: consultantRows }, { rows: badgeRows }, { rows: xpRows }, { rows: rosterRows }] =
+  const [{ rows: consultantRows }, { rows: badgeRows }, { rows: xpRows }, { rows: rosterRows }, { rows: catcherRows }] =
     await Promise.all([
       sql<{
         id: number; email: string;
@@ -57,6 +59,14 @@ export default async function ProfilePage() {
         WHERE u.email = ${session.user.email}
       `,
       sql`SELECT COUNT(*)::int AS n FROM consultants`,
+      sql<CatcherRow>`
+        SELECT c2.id, c2.first_name, c2.last_name, c2.photo_url, ca.level::int AS level
+        FROM catches ca
+        JOIN users u       ON u.id  = ca.user_id
+        JOIN consultants c2 ON c2.email = u.email
+        WHERE ca.consultant_id = (SELECT id FROM consultants WHERE email = ${session.user.email})
+        ORDER BY ca.level DESC, ca.caught_at DESC
+      `,
     ]);
 
   const totalXp: number = (xpRows[0] as { total_xp: number } | undefined)?.total_xp ?? 0;
@@ -174,7 +184,7 @@ export default async function ProfilePage() {
             </div>
 
             {/* Profile fields */}
-            <div className="mb-8">
+            <div className="mb-8 pb-8 border-b" style={{ borderColor: "rgba(45,27,78,0.08)" }}>
               <p className="text-[9px] font-black tracking-[0.2em] uppercase text-[#2D1B4E]/40 mb-4">
                 Your Info
               </p>
@@ -185,6 +195,9 @@ export default async function ProfilePage() {
                 initialPreferredComm={(consultant.preferred_comm as PreferredComm) ?? ""}
               />
             </div>
+
+            {/* Caught by */}
+            <CaughtBySection catchers={catcherRows} />
           </>
         )}
 
