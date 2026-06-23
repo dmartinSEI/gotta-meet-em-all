@@ -5,9 +5,9 @@ import Image from "next/image";
 import Link from "next/link";
 import CatchButton from "./CatchButton";
 import type { ConsultantRow } from "@/lib/types";
-import { getRarity, RARITY_LABELS, CATCH_LEVEL_LABELS, CATCH_LEVEL_ICONS, XP_PER_LEVEL } from "@/lib/xp";
+import { getRarity, RARITY_HEX, RARITY_LABELS, CATCH_LEVEL_LABELS, CATCH_LEVEL_ICONS, XP_PER_LEVEL } from "@/lib/xp";
 import type { Rarity } from "@/lib/xp";
-import { pickPhoto } from "@/lib/cards";
+import { pickPhoto, photoRingStyle } from "@/lib/cards";
 import { BADGE_MAP } from "@/lib/badge-data";
 
 type Level = 1 | 2 | 3;
@@ -197,8 +197,7 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
               <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", paddingBottom: "28%" }}>
                 <div style={{
                   width: 88, height: 88, borderRadius: "50%", overflow: "hidden", flexShrink: 0,
-                  border: `4px solid ${rarityColor}`,
-                  boxShadow: `0 0 0 4px rgba(255,255,255,0.08), 0 6px 24px rgba(0,0,0,0.60)`,
+                  ...photoRingStyle(consultant.catch_level, RARITY_HEX[rarity]),
                   background: "#2D1B4E", position: "relative",
                 }}>
                   {photo ? (

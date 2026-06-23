@@ -1,5 +1,13 @@
 export const XP_PER_LEVEL = { 1: 10, 2: 25, 3: 50 } as const;
 
+export const RARITY_HEX: Record<string, string> = {
+  common:    "#d1d5db",
+  uncommon:  "#4ade80",
+  rare:      "#60a5fa",
+  epic:      "#c084fc",
+  legendary: "#fbbf24",
+};
+
 export type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary";
 
 export const RARITY_LABELS: Record<Rarity, string> = {

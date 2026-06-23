@@ -4,18 +4,11 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import CardModal from "./CardModal";
 import type { ConsultantRow } from "@/lib/types";
-import { getRarity, CATCH_LEVEL_ICONS, CATCH_LEVEL_LABELS, type Rarity } from "@/lib/xp";
-import { pickPhoto } from "@/lib/cards";
+import { getRarity, RARITY_HEX, CATCH_LEVEL_ICONS, CATCH_LEVEL_LABELS, type Rarity } from "@/lib/xp";
+import { pickPhoto, photoRingStyle } from "@/lib/cards";
 
 type StatusFilter = "all" | "unmet" | "met";
 
-const RARITY_RING: Record<Rarity, string> = {
-  common:    "rgba(255,255,255,0.55)",
-  uncommon:  "#4ade80",
-  rare:      "#60a5fa",
-  epic:      "#c084fc",
-  legendary: "#fbbf24",
-};
 
 const CARD_GLOW: Record<Rarity, string> = {
   common:    "0 2px 10px rgba(0,0,0,0.10)",
@@ -113,7 +106,7 @@ export default function ConsultantGrid({
             const photo = pickPhoto(c);
             const caught = c.catch_level !== null;
             const rarity = getRarity(c.consultant_xp, rosterSize);
-            const ringColor = caught ? RARITY_RING[rarity] : "rgba(255,255,255,0.40)";
+            const ring = photoRingStyle(c.catch_level, RARITY_HEX[rarity]);
 
             return (
               <div
@@ -122,7 +115,7 @@ export default function ConsultantGrid({
                 style={{
                   aspectRatio: "3 / 4",
                   border: caught
-                    ? `2px solid ${RARITY_RING[rarity]}`
+                    ? `2px solid ${RARITY_HEX[rarity]}`
                     : "1.5px solid rgba(45,27,78,0.10)",
                   boxShadow: caught
                     ? CARD_GLOW[rarity]
@@ -176,10 +169,7 @@ export default function ConsultantGrid({
                       borderRadius: "50%",
                       overflow: "hidden",
                       flexShrink: 0,
-                      border: `3px solid ${ringColor}`,
-                      boxShadow: caught
-                        ? `0 0 0 3px rgba(255,255,255,0.08), 0 4px 18px rgba(0,0,0,0.55)`
-                        : "0 4px 14px rgba(0,0,0,0.45)",
+                      ...ring,
                       position: "relative",
                       background: "#2D1B4E",
                     }}
