@@ -23,6 +23,7 @@ export default async function CollectionPage() {
       SELECT
         c.id, c.email, c.first_name, c.last_name, c.title, c.office, c.bio, c.skills,
         c.photo_url, c.photo_url_l1, c.photo_url_l2, c.photo_url_l3,
+        c.current_client, c.past_clients, c.preferred_comm,
         (c.email = ${session.user.email}) AS is_own_card,
         ca.level AS catch_level,
         COALESCE(

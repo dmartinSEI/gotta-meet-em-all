@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import CatchButton from "./CatchButton";
-import type { ConsultantRow } from "@/lib/types";
+import type { ConsultantRow, PreferredComm } from "@/lib/types";
 import { getRarity, RARITY_HEX, RARITY_LABELS, CATCH_LEVEL_LABELS, CATCH_LEVEL_ICONS, XP_PER_LEVEL } from "@/lib/xp";
 import type { Rarity } from "@/lib/xp";
 import { pickPhoto, photoRingStyle } from "@/lib/cards";
@@ -12,6 +12,12 @@ import { BADGE_MAP } from "@/lib/badge-data";
 
 type Level = 1 | 2 | 3;
 type Phase = "init" | "flying" | "flipping" | "ready";
+
+const COMM_ICONS: Record<PreferredComm, string> = {
+  "Email":           "✉️",
+  "Teams":           "💬",
+  "Calendar Invite": "📅",
+};
 
 const CARD_W = 280;
 const CARD_H = 420;
@@ -289,16 +295,27 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
               {/* Info content */}
               <div style={{ flex: 1, overflowY: "auto", padding: "8px 12px 0", display: "flex", flexDirection: "column", gap: 7 }}>
 
-                {/* Catch level */}
-                {consultant.catch_level !== null && (
-                  <div style={{ alignSelf: "flex-start" }}>
-                    <span style={{
-                      fontSize: 10, padding: "2px 8px", borderRadius: 99,
-                      background: "#f1f5f9", border: "1px solid #e2e8f0",
-                      color: "#475569", fontWeight: 600,
-                    }}>
-                      {CATCH_LEVEL_ICONS[consultant.catch_level]} {CATCH_LEVEL_LABELS[consultant.catch_level]} · +{XP_PER_LEVEL[consultant.catch_level as 1 | 2 | 3]} XP
-                    </span>
+                {/* Preferred comm + catch level — same row when both present */}
+                {(consultant.preferred_comm || consultant.catch_level !== null) && (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 4, alignItems: "center" }}>
+                    {consultant.preferred_comm && (
+                      <span style={{
+                        fontSize: 10, padding: "2px 8px", borderRadius: 99,
+                        background: "rgba(45,27,78,0.07)", border: "1px solid rgba(45,27,78,0.14)",
+                        color: "#2D1B4E", fontWeight: 600,
+                      }}>
+                        {COMM_ICONS[consultant.preferred_comm]} {consultant.preferred_comm}
+                      </span>
+                    )}
+                    {consultant.catch_level !== null && (
+                      <span style={{
+                        fontSize: 10, padding: "2px 8px", borderRadius: 99,
+                        background: "#f1f5f9", border: "1px solid #e2e8f0",
+                        color: "#475569", fontWeight: 600,
+                      }}>
+                        {CATCH_LEVEL_ICONS[consultant.catch_level]} {CATCH_LEVEL_LABELS[consultant.catch_level]} · +{XP_PER_LEVEL[consultant.catch_level as 1 | 2 | 3]} XP
+                      </span>
+                    )}
                   </div>
                 )}
 
@@ -311,6 +328,42 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
                     <p style={{ fontSize: 10, color: "#475569", lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                       {consultant.bio}
                     </p>
+                  </div>
+                )}
+
+                {/* Current client */}
+                {consultant.current_client && (
+                  <div>
+                    <p style={{ fontSize: 8, textTransform: "uppercase", letterSpacing: "0.1em", color: "#94a3b8", fontWeight: 700, marginBottom: 4 }}>
+                      Current Client
+                    </p>
+                    <span style={{
+                      fontSize: 10, padding: "2px 8px", borderRadius: 99,
+                      background: "rgba(200,16,46,0.07)", border: "1px solid rgba(200,16,46,0.20)",
+                      color: "#C8102E", fontWeight: 600,
+                    }}>
+                      ● {consultant.current_client}
+                    </span>
+                  </div>
+                )}
+
+                {/* Past clients */}
+                {consultant.past_clients && (
+                  <div>
+                    <p style={{ fontSize: 8, textTransform: "uppercase", letterSpacing: "0.1em", color: "#94a3b8", fontWeight: 700, marginBottom: 4 }}>
+                      Past Clients
+                    </p>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
+                      {consultant.past_clients.split(",").map((c) => c.trim()).filter(Boolean).map((client, i) => (
+                        <span key={i} style={{
+                          padding: "2px 7px", borderRadius: 99,
+                          background: "rgba(45,27,78,0.05)", color: "#2D1B4E",
+                          fontSize: 9, border: "1px solid rgba(45,27,78,0.14)",
+                        }}>
+                          {client}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 )}
 
