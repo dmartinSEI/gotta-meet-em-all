@@ -215,29 +215,12 @@ export default async function HomePage() {
                   <Link
                     key={office.name}
                     href={`/office/${office.slug}`}
-                    className="group relative block overflow-hidden rounded-2xl select-none"
+                    className="group relative block overflow-hidden rounded-2xl select-none transition-all duration-200 hover:scale-[1.03] hover:-translate-y-[3px] hover:shadow-[0_16px_40px_rgba(0,0,0,0.55)]"
                     style={{
                       aspectRatio: "3 / 2",
                       border: done
                         ? "1.5px solid rgba(34,197,94,0.35)"
                         : "1.5px solid rgba(255,255,255,0.07)",
-                      transition: "transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease",
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.currentTarget as HTMLElement).style.transform = "scale(1.03) translateY(-3px)";
-                      (e.currentTarget as HTMLElement).style.boxShadow = done
-                        ? "0 16px 40px rgba(34,197,94,0.18)"
-                        : "0 16px 40px rgba(0,0,0,0.50)";
-                      (e.currentTarget as HTMLElement).style.borderColor = done
-                        ? "rgba(34,197,94,0.60)"
-                        : "rgba(255,255,255,0.18)";
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.currentTarget as HTMLElement).style.transform = "";
-                      (e.currentTarget as HTMLElement).style.boxShadow = "";
-                      (e.currentTarget as HTMLElement).style.borderColor = done
-                        ? "rgba(34,197,94,0.35)"
-                        : "rgba(255,255,255,0.07)";
                     }}
                   >
                     {/* Office photo / gradient background */}
