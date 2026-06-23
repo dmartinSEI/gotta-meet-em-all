@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { auth, signOut } from "../../auth";
 import { sql } from "@/lib/db";
 import type { ConsultantRow } from "@/lib/types";
-import { getRarity, RARITY_LABELS, XP_PER_LEVEL, type Rarity } from "@/lib/xp";
+import { getRarity, RARITY_LABELS, type Rarity } from "@/lib/xp";
 import CollectionGallery from "./CollectionBinder";
 
 const HEADER_RARITY: Record<Rarity, string> = {
@@ -18,7 +18,7 @@ export default async function CollectionPage() {
   const session = await auth();
   if (!session?.user?.email) redirect("/");
 
-  const [{ rows }, { rows: rosterRows }, { rows: officeTotalRows }] = await Promise.all([
+  const [{ rows }, { rows: rosterRows }, { rows: officeTotalRows }, { rows: xpRows }] = await Promise.all([
     sql<ConsultantRow>`
       SELECT
         c.id, c.email, c.first_name, c.last_name, c.title, c.office, c.bio, c.skills,
@@ -55,17 +55,27 @@ export default async function CollectionPage() {
       FROM consultants
       GROUP BY office
     `,
+    sql`
+      SELECT
+        COALESCE((
+          SELECT SUM(CASE ca.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END)
+          FROM catches ca WHERE ca.user_id = u.id
+        ), 0)::int
+        + COALESCE((
+          SELECT SUM(b.bonus_xp) FROM bounties b
+          WHERE b.user_id = u.id AND b.completed_at IS NOT NULL
+        ), 0)::int AS total_xp
+      FROM users u
+      WHERE u.email = ${session.user.email}
+    `,
   ]);
 
   const totalRoster = (rosterRows[0] as { n: number } | undefined)?.n ?? 0;
+  const totalXp: number = (xpRows[0] as { total_xp: number } | undefined)?.total_xp ?? 0;
 
   const totalsByOffice: Record<string, number> = {};
   officeTotalRows.forEach((r) => { totalsByOffice[r.office] = r.total; });
 
-  const totalXp = rows.reduce((sum, c) => {
-    if (!c.catch_level) return sum;
-    return sum + XP_PER_LEVEL[c.catch_level as 1 | 2 | 3];
-  }, 0);
   const viewerRarity = getRarity(totalXp, totalRoster);
 
   return (
