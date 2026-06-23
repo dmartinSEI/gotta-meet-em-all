@@ -106,7 +106,7 @@ export default function ConsultantGrid({
             const photo = pickPhoto(c);
             const caught = c.catch_level !== null;
             const rarity = getRarity(c.consultant_xp, rosterSize);
-            const ring = photoRingStyle(c.catch_level, RARITY_HEX[rarity]);
+            const ring = photoRingStyle(rarity, RARITY_HEX[rarity]);
 
             return (
               <div

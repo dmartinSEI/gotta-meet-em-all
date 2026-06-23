@@ -197,7 +197,7 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
               <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", paddingBottom: "28%" }}>
                 <div style={{
                   width: 88, height: 88, borderRadius: "50%", overflow: "hidden", flexShrink: 0,
-                  ...photoRingStyle(consultant.catch_level, RARITY_HEX[rarity]),
+                  ...photoRingStyle(rarity, RARITY_HEX[rarity]),
                   background: "#2D1B4E", position: "relative",
                 }}>
                   {photo ? (
