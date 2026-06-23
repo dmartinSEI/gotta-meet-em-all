@@ -43,16 +43,16 @@ const RARITY_GLOW: Record<Rarity, string> = {
 function foilStyle(rarity: Rarity, mx: number, my: number): React.CSSProperties {
   if (rarity === "common") return { display: "none" };
   const angle = mx * 1.8;
-  const shine = `radial-gradient(circle at ${mx}% ${my}%, rgba(255,255,255,0.65) 0%, transparent 55%)`;
+  const shine = `radial-gradient(circle at ${mx}% ${my}%, rgba(255,255,255,0.22) 0%, transparent 60%)`;
   const overlays: Record<Exclude<Rarity, "common">, string> = {
-    uncommon:  `${shine}, linear-gradient(135deg, rgba(74,222,128,0.4), rgba(16,185,129,0.25))`,
-    rare:      `${shine}, linear-gradient(135deg, rgba(96,165,250,0.5), rgba(59,130,246,0.3))`,
-    epic:      `${shine}, linear-gradient(135deg, rgba(192,132,252,0.55), rgba(139,92,246,0.35))`,
-    legendary: `${shine}, linear-gradient(${angle}deg, rgba(255,0,128,0.45), rgba(255,165,0,0.45), rgba(64,224,208,0.45), rgba(160,32,240,0.45), rgba(255,0,128,0.45))`,
+    uncommon:  `${shine}, linear-gradient(135deg, rgba(74,222,128,0.22), rgba(16,185,129,0.14))`,
+    rare:      `${shine}, linear-gradient(135deg, rgba(96,165,250,0.26), rgba(59,130,246,0.16))`,
+    epic:      `${shine}, linear-gradient(135deg, rgba(192,132,252,0.28), rgba(139,92,246,0.18))`,
+    legendary: `${shine}, linear-gradient(${angle}deg, rgba(255,0,128,0.24), rgba(255,165,0,0.24), rgba(64,224,208,0.24), rgba(160,32,240,0.24), rgba(255,0,128,0.24))`,
   };
   return {
     background:   overlays[rarity as Exclude<Rarity, "common">],
-    mixBlendMode: "color-dodge" as const,
+    mixBlendMode: "screen" as const,
     pointerEvents: "none" as const,
   };
 }
@@ -284,7 +284,7 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
               <div style={{ margin: "8px 10px 0", height: 1, background: `${rarityColor}55`, flexShrink: 0 }} />
 
               {/* Info content */}
-              <div style={{ flex: 1, overflow: "hidden", padding: "8px 12px 0", display: "flex", flexDirection: "column", gap: 7 }}>
+              <div style={{ flex: 1, overflowY: "auto", padding: "8px 12px 0", display: "flex", flexDirection: "column", gap: 7 }}>
 
                 {/* Catch level */}
                 {consultant.catch_level !== null && (
@@ -311,6 +311,23 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
                   </div>
                 )}
 
+                {/* Earned badges */}
+                {earnedBadges.length > 0 && (
+                  <div>
+                    <p style={{ fontSize: 8, textTransform: "uppercase", letterSpacing: "0.1em", color: "#94a3b8", fontWeight: 700, marginBottom: 4 }}>
+                      Achievements
+                    </p>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                      {earnedBadges.map((b) => (
+                        <span key={b.id} title={`${b.name}: ${b.description}`}
+                              style={{ fontSize: 17, lineHeight: 1, cursor: "default" }}>
+                          {b.icon}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Skills */}
                 {skillList.length > 0 && (
                   <div>
@@ -332,30 +349,6 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
                           +{skillList.length - 6}
                         </span>
                       )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Email */}
-                {consultant.email && (
-                  <p style={{ fontSize: 10, color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    📧 {consultant.email}
-                  </p>
-                )}
-
-                {/* Earned badges */}
-                {earnedBadges.length > 0 && (
-                  <div>
-                    <p style={{ fontSize: 8, textTransform: "uppercase", letterSpacing: "0.1em", color: "#94a3b8", fontWeight: 700, marginBottom: 4 }}>
-                      Achievements
-                    </p>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-                      {earnedBadges.map((b) => (
-                        <span key={b.id} title={`${b.name}: ${b.description}`}
-                              style={{ fontSize: 17, lineHeight: 1, cursor: "default" }}>
-                          {b.icon}
-                        </span>
-                      ))}
                     </div>
                   </div>
                 )}
