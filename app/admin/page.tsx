@@ -27,10 +27,10 @@ export default async function AdminPage({
 
   const adminEmails = (process.env.ADMIN_EMAILS ?? "")
     .split(",")
-    .map((e) => e.trim())
+    .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
 
-  if (!adminEmails.includes(session.user.email)) redirect("/");
+  if (!adminEmails.includes(session.user.email.toLowerCase())) redirect("/");
 
   const { tab: tabParam = "import" } = await searchParams;
   const tab: TabId = (["import", "consultants", "players", "export"] as string[]).includes(tabParam)
@@ -211,10 +211,7 @@ export default async function AdminPage({
 
           <a
             href="/api/admin/export"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white text-sm transition-colors"
-            style={{ background: "#2D1B4E" }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "#1a0f2e")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "#2D1B4E")}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white text-sm bg-[#2D1B4E] hover:bg-[#1a0f2e] transition-colors"
           >
             ↓ Download Leadership Report
           </a>

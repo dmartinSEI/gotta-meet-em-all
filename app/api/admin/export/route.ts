@@ -7,8 +7,8 @@ async function requireAdmin(): Promise<boolean> {
   const session = await auth();
   if (!session?.user?.email) return false;
   const adminEmails = (process.env.ADMIN_EMAILS ?? "")
-    .split(",").map((e) => e.trim()).filter(Boolean);
-  return adminEmails.includes(session.user.email);
+    .split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+  return adminEmails.includes(session.user.email.toLowerCase());
 }
 
 export async function GET() {

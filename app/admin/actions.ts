@@ -14,10 +14,10 @@ async function requireAdmin() {
 
   const adminEmails = (process.env.ADMIN_EMAILS ?? "")
     .split(",")
-    .map((e) => e.trim())
+    .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
 
-  if (!adminEmails.includes(session.user.email)) throw new Error("Forbidden");
+  if (!adminEmails.includes(session.user.email.toLowerCase())) throw new Error("Forbidden");
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
