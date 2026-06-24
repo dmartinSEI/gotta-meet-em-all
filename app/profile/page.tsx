@@ -13,6 +13,7 @@ import StandingSection from "./StandingSection";
 import CardBgUpload from "./CardBgUpload";
 import BadgeGrid from "./BadgeGrid";
 import type { ConsultantRow, PreferredComm } from "@/lib/types";
+import { getAllUserRanks } from "@/lib/ranks";
 
 const HEADER_RARITY: Record<Rarity, string> = {
   common:    "bg-white/10 text-white/80 border border-white/20",
@@ -26,7 +27,7 @@ export default async function ProfilePage() {
   const session = await auth();
   if (!session?.user?.email) redirect("/api/auth/signin?callbackUrl=/profile");
 
-  const [{ rows: consultantRows }, { rows: badgeRows }, { rows: xpRows }, { rows: rosterRows }, { rows: catcherRows }, { rows: caughtRows }] =
+  const [{ rows: consultantRows }, { rows: badgeRows }, { rows: xpRows }, { rows: rosterRows }, { rows: catcherRows }, { rows: caughtRows }, rankMap] =
     await Promise.all([
       sql<{
         id: number; email: string;
@@ -78,6 +79,7 @@ export default async function ProfilePage() {
         JOIN users u ON u.id = ca.user_id
         WHERE u.email = ${session.user.email}
       `,
+      getAllUserRanks(),
     ]);
 
   const totalXp: number = (xpRows[0] as { total_xp: number } | undefined)?.total_xp ?? 0;
@@ -87,6 +89,7 @@ export default async function ProfilePage() {
   const earnedMap = new Map(badgeRows.map((r) => [r.badge_id, r.earned_at]));
   const consultant = consultantRows[0] ?? null;
 
+  const viewerRanks = rankMap.get(session.user.email);
   const trainerCard: ConsultantRow | null = consultant ? {
     ...consultant,
     preferred_comm: consultant.preferred_comm as PreferredComm | null,
@@ -94,6 +97,8 @@ export default async function ProfilePage() {
     is_own_card: true,
     badge_ids: badgeRows.map((r) => r.badge_id),
     consultant_xp: totalXp,
+    alltime_rank: viewerRanks?.alltime_rank ?? null,
+    monthly_rank: viewerRanks?.monthly_rank ?? null,
   } : null;
 
   return (

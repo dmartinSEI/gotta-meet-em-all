@@ -9,6 +9,7 @@ import { DOSSIER_SECTIONS, type SurveyData } from "@/lib/survey-fields";
 import CatchButton from "../../CatchButton";
 import BackLink from "./BackLink";
 import type { ConsultantRow } from "@/lib/types";
+import { getAllUserRanks } from "@/lib/ranks";
 
 const HEADER_RARITY: Record<Rarity, string> = {
   common:    "bg-white/10 text-white/80 border border-white/20",
@@ -42,7 +43,7 @@ export default async function ConsultantDossierPage({
   const consultantId = parseInt(id, 10);
   if (isNaN(consultantId)) redirect("/");
 
-  const [{ rows }, { rows: xpRows }, { rows: rosterRows }] = await Promise.all([
+  const [{ rows }, { rows: xpRows }, { rows: rosterRows }, rankMap] = await Promise.all([
     sql<ConsultantRecord>`
       SELECT
         c.id, c.email, c.first_name, c.last_name, c.title, c.office, c.bio, c.skills,
@@ -87,11 +88,18 @@ export default async function ConsultantDossierPage({
       FROM users u WHERE u.email = ${session.user.email}
     `,
     sql`SELECT COUNT(*)::int AS n FROM consultants`,
+    getAllUserRanks(),
   ]);
 
   if (rows.length === 0) redirect("/");
 
-  const consultant    = rows[0];
+  const consultantBase = rows[0];
+  const subjectRanks   = rankMap.get(consultantBase.email);
+  const consultant     = {
+    ...consultantBase,
+    alltime_rank: subjectRanks?.alltime_rank ?? null,
+    monthly_rank: subjectRanks?.monthly_rank ?? null,
+  };
   const viewerXp      = (xpRows[0] as { total_xp: number } | undefined)?.total_xp ?? 0;
   const rosterSize    = (rosterRows[0] as { n: number } | undefined)?.n ?? 0;
   const viewerRarity  = getRarity(viewerXp, rosterSize);
@@ -194,6 +202,24 @@ export default async function ConsultantDossierPage({
               <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${HEADER_RARITY[subjectRarity]}`}>
                 {RARITY_LABELS[subjectRarity]}
               </span>
+              {consultant.alltime_rank && (
+                <span style={{
+                  fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99,
+                  background: "rgba(251,191,36,0.18)", color: "#fbbf24",
+                  border: "1px solid rgba(251,191,36,0.35)",
+                }}>
+                  🏆 #{consultant.alltime_rank} All Time
+                </span>
+              )}
+              {consultant.monthly_rank && (
+                <span style={{
+                  fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 99,
+                  background: "rgba(96,165,250,0.18)", color: "#93c5fd",
+                  border: "1px solid rgba(96,165,250,0.35)",
+                }}>
+                  📅 #{consultant.monthly_rank} This Month
+                </span>
+              )}
             </div>
             {consultant.bio && (
               <p className="text-white/60 text-sm mt-3 leading-relaxed max-w-lg">{consultant.bio}</p>

@@ -107,6 +107,36 @@ export default function TrainerCard({
           {/* Scrim */}
           <div className="absolute inset-0" style={{ background: "rgba(0,0,0,0.22)" }} />
 
+          {/* Rank badges */}
+          {(consultant.alltime_rank || consultant.monthly_rank) && (
+            <div className="absolute" style={{ top: 7, left: 7, zIndex: 2, display: "flex", flexDirection: "column", gap: 3 }}>
+              {consultant.alltime_rank && (
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 3,
+                  background: "rgba(10,6,24,0.78)", borderRadius: 4, padding: "2px 5px",
+                  border: "1px solid rgba(251,191,36,0.35)",
+                }}>
+                  <span style={{ fontSize: 8 }}>🏆</span>
+                  <span style={{ fontSize: 8, fontWeight: 800, color: "#fbbf24", letterSpacing: "0.04em" }}>
+                    #{consultant.alltime_rank}
+                  </span>
+                </div>
+              )}
+              {consultant.monthly_rank && (
+                <div style={{
+                  display: "flex", alignItems: "center", gap: 3,
+                  background: "rgba(10,6,24,0.78)", borderRadius: 4, padding: "2px 5px",
+                  border: "1px solid rgba(96,165,250,0.35)",
+                }}>
+                  <span style={{ fontSize: 8 }}>📅</span>
+                  <span style={{ fontSize: 8, fontWeight: 800, color: "#93c5fd", letterSpacing: "0.04em" }}>
+                    #{consultant.monthly_rank}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Circle profile photo */}
           <div
             className="absolute inset-0 flex items-center justify-center"

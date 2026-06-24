@@ -321,7 +321,7 @@ export default async function LeaderboardPage({
 
             {/* ── Ranked list ─────────────────────────────────────── */}
             <div className="flex flex-col gap-1.5">
-              {displayRows.map((entry, i) => {
+              {displayRows.slice(0, isMonthly ? 25 : 50).map((entry, i) => {
                 const rank     = i + 1;
                 const isSelf   = entry.email === session.user!.email;
                 const fullName = `${entry.first_name} ${entry.last_name}`;
@@ -398,6 +398,12 @@ export default async function LeaderboardPage({
                 );
               })}
             </div>
+
+            {displayRows.length > (isMonthly ? 25 : 50) && (
+              <p className="text-center text-xs mt-4" style={{ color: "rgba(45,27,78,0.35)" }}>
+                Showing top {isMonthly ? 25 : 50} · {displayRows.length} total participants
+              </p>
+            )}
           </>
         )}
       </main>

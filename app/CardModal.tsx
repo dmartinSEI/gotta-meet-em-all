@@ -211,6 +211,38 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
               {/* Scrim */}
               <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.28)" }} />
 
+              {/* Rank badges */}
+              {(consultant.alltime_rank || consultant.monthly_rank) && (
+                <div style={{ position: "absolute", top: 10, left: 10, zIndex: 2, display: "flex", flexDirection: "column", gap: 4 }}>
+                  {consultant.alltime_rank && (
+                    <div style={{
+                      display: "flex", alignItems: "center", gap: 4,
+                      background: "rgba(10,6,24,0.78)", backdropFilter: "blur(6px)",
+                      borderRadius: 5, padding: "3px 7px",
+                      border: "1px solid rgba(251,191,36,0.35)",
+                    }}>
+                      <span style={{ fontSize: 10 }}>🏆</span>
+                      <span style={{ fontSize: 9, fontWeight: 800, color: "#fbbf24", letterSpacing: "0.04em" }}>
+                        #{consultant.alltime_rank} All Time
+                      </span>
+                    </div>
+                  )}
+                  {consultant.monthly_rank && (
+                    <div style={{
+                      display: "flex", alignItems: "center", gap: 4,
+                      background: "rgba(10,6,24,0.78)", backdropFilter: "blur(6px)",
+                      borderRadius: 5, padding: "3px 7px",
+                      border: "1px solid rgba(96,165,250,0.35)",
+                    }}>
+                      <span style={{ fontSize: 10 }}>📅</span>
+                      <span style={{ fontSize: 9, fontWeight: 800, color: "#93c5fd", letterSpacing: "0.04em" }}>
+                        #{consultant.monthly_rank} This Month
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Circle profile photo — centered, shifted up */}
               <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", paddingBottom: "28%" }}>
                 <div style={{
@@ -286,6 +318,28 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
                         {RARITY_LABELS[rarity]}
                       </div>
                     </div>
+                    {(consultant.alltime_rank || consultant.monthly_rank) && (
+                      <div style={{ display: "flex", gap: 4, marginBottom: 3, flexWrap: "wrap" }}>
+                        {consultant.alltime_rank && (
+                          <span style={{
+                            fontSize: 8, fontWeight: 700, padding: "2px 6px", borderRadius: 3,
+                            background: "rgba(251,191,36,0.18)", color: "#fbbf24",
+                            border: "1px solid rgba(251,191,36,0.35)",
+                          }}>
+                            🏆 #{consultant.alltime_rank} All Time
+                          </span>
+                        )}
+                        {consultant.monthly_rank && (
+                          <span style={{
+                            fontSize: 8, fontWeight: 700, padding: "2px 6px", borderRadius: 3,
+                            background: "rgba(96,165,250,0.18)", color: "#93c5fd",
+                            border: "1px solid rgba(96,165,250,0.35)",
+                          }}>
+                            📅 #{consultant.monthly_rank} This Month
+                          </span>
+                        )}
+                      </div>
+                    )}
                     {consultant.title && (
                       <p style={{ color: "rgba(255,255,255,0.75)", fontSize: 10, lineHeight: 1.35, marginBottom: 2 }}>
                         {consultant.title}

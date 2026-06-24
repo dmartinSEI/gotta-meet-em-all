@@ -5,6 +5,7 @@ import { sql } from "@/lib/db";
 import ConsultantGrid from "../../ConsultantGrid";
 import type { ConsultantRow } from "@/lib/types";
 import { getRarity, RARITY_LABELS, type Rarity } from "@/lib/xp";
+import { getAllUserRanks } from "@/lib/ranks";
 
 interface OfficeRecord {
   name: string;
@@ -34,7 +35,7 @@ export default async function OfficePage({
   const session = await auth();
   if (!session?.user?.email) redirect("/");
 
-  const [{ rows: officeRows }, { rows: statsRows }] = await Promise.all([
+  const [{ rows: officeRows }, { rows: statsRows }, rankMap] = await Promise.all([
     sql<OfficeRecord>`
       SELECT name, slug, description
       FROM offices
@@ -55,6 +56,7 @@ export default async function OfficePage({
       FROM users u
       WHERE u.email = ${session.user.email}
     `,
+    getAllUserRanks(),
   ]);
 
   if (officeRows.length === 0) redirect("/");
@@ -96,8 +98,13 @@ export default async function OfficePage({
     ORDER BY c.last_name, c.first_name
   `;
 
-  const total = rows.length;
-  const met = rows.filter((c) => c.catch_level !== null).length;
+  const rankedRows = rows.map((c) => {
+    const r = rankMap.get(c.email);
+    return { ...c, alltime_rank: r?.alltime_rank ?? null, monthly_rank: r?.monthly_rank ?? null };
+  });
+
+  const total = rankedRows.length;
+  const met = rankedRows.filter((c) => c.catch_level !== null).length;
   const pct = total > 0 ? Math.round((met / total) * 100) : 0;
   const done = pct === 100 && total > 0;
 
@@ -205,7 +212,7 @@ export default async function OfficePage({
           </div>
         ) : (
           <ConsultantGrid
-            consultants={rows}
+            consultants={rankedRows}
             rosterSize={globalRosterSize}
             officeName={office.name}
             officeImageUrl={`/brand/offices/${office.slug}.jpg`}

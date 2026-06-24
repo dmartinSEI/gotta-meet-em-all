@@ -4,6 +4,7 @@ import { auth, signOut } from "../../auth";
 import { sql } from "@/lib/db";
 import type { ConsultantRow } from "@/lib/types";
 import { getRarity, RARITY_LABELS, type Rarity } from "@/lib/xp";
+import { getAllUserRanks } from "@/lib/ranks";
 import CollectionGallery from "./CollectionBinder";
 
 const HEADER_RARITY: Record<Rarity, string> = {
@@ -18,7 +19,7 @@ export default async function CollectionPage() {
   const session = await auth();
   if (!session?.user?.email) redirect("/");
 
-  const [{ rows }, { rows: rosterRows }, { rows: officeTotalRows }, { rows: xpRows }] = await Promise.all([
+  const [{ rows }, { rows: rosterRows }, { rows: officeTotalRows }, { rows: xpRows }, rankMap] = await Promise.all([
     sql<ConsultantRow>`
       SELECT
         c.id, c.email, c.first_name, c.last_name, c.title, c.office, c.bio, c.skills,
@@ -68,9 +69,14 @@ export default async function CollectionPage() {
       FROM users u
       WHERE u.email = ${session.user.email}
     `,
+    getAllUserRanks(),
   ]);
 
   const totalRoster = (rosterRows[0] as { n: number } | undefined)?.n ?? 0;
+  const rankedRows = rows.map((c) => {
+    const r = rankMap.get(c.email);
+    return { ...c, alltime_rank: r?.alltime_rank ?? null, monthly_rank: r?.monthly_rank ?? null };
+  });
   const totalXp: number = (xpRows[0] as { total_xp: number } | undefined)?.total_xp ?? 0;
 
   const totalsByOffice: Record<string, number> = {};
@@ -160,7 +166,7 @@ export default async function CollectionPage() {
           </div>
         ) : (
           <CollectionGallery
-            consultants={rows}
+            consultants={rankedRows}
             totalRoster={totalRoster}
             totalsByOffice={totalsByOffice}
           />
