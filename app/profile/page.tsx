@@ -269,7 +269,7 @@ export default async function ProfilePage() {
         )}
 
         {/* Badges — full width below columns */}
-        <div className="mt-8">
+        <div className="mt-6">
           <BadgeGrid
             badgeList={ALL_BADGES.map((b) => ({
               ...b,

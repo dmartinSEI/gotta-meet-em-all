@@ -1,18 +1,19 @@
-"use client";
-
-import { useState } from "react";
 import type { BadgeInfo } from "@/lib/types";
 
 type BadgeItem = BadgeInfo & { earnedAt: string | null };
 
+const CATEGORY_COLOR: Record<string, string> = {
+  Meetings:    "#60a5fa",
+  Depth:       "#c084fc",
+  Exploration: "#34d399",
+  Bounties:    "#fb923c",
+  Recognition: "#fbbf24",
+  Rank:        "#C8102E",
+};
+
 export default function BadgeGrid({ badgeList }: { badgeList: BadgeItem[] }) {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [hoveredId,  setHoveredId]  = useState<string | null>(null);
-
   const earnedCount = badgeList.filter((b) => b.earnedAt !== null).length;
-  const selected    = badgeList.find((b) => b.id === selectedId) ?? null;
 
-  // Preserve category order from the source array
   const categories: string[] = [];
   const byCategory: Record<string, BadgeItem[]> = {};
   for (const badge of badgeList) {
@@ -23,168 +24,89 @@ export default function BadgeGrid({ badgeList }: { badgeList: BadgeItem[] }) {
     byCategory[badge.category].push(badge);
   }
 
-  function toggle(id: string) {
-    setSelectedId((prev) => (prev === id ? null : id));
-  }
-
   return (
-    <div className="pt-8 border-t" style={{ borderColor: "rgba(45,27,78,0.08)" }}>
+    <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(45,27,78,0.08)" }}>
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-5">
+      <div className="px-5 py-4 flex items-center justify-between bg-white"
+           style={{ borderBottom: "1px solid rgba(45,27,78,0.08)" }}>
         <p className="text-[9px] font-black tracking-[0.2em] uppercase text-[#2D1B4E]/40">
           Achievements
         </p>
-        <span className="text-xs tabular-nums" style={{ color: "rgba(45,27,78,0.40)" }}>
-          {earnedCount} / {badgeList.length}
+        <span className="text-xs font-semibold tabular-nums" style={{ color: "rgba(45,27,78,0.38)" }}>
+          {earnedCount} / {badgeList.length} earned
         </span>
       </div>
 
-      {/* Category groups */}
-      <div className="space-y-5">
-        {categories.map((category) => (
-          <div key={category}>
-            <p
-              className="text-[9px] font-bold uppercase tracking-[0.15em] mb-2"
-              style={{ color: "rgba(45,27,78,0.28)" }}
-            >
-              {category}
-            </p>
-            <div role="group" aria-label={`${category} badges`} className="flex flex-wrap gap-2">
-              {byCategory[category].map((badge) => {
-                const isEarned   = badge.earnedAt !== null;
-                const isSelected = selectedId === badge.id;
-                const isHovered  = hoveredId === badge.id;
-                return (
-                  /* Wrapper holds both button and tooltip so tooltip escapes
-                     the button's filter/opacity stacking context */
-                  <div
-                    key={badge.id}
-                    style={{ position: "relative", display: "inline-block" }}
-                    onMouseEnter={() => setHoveredId(badge.id)}
-                    onMouseLeave={() => setHoveredId(null)}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => toggle(badge.id)}
-                      aria-pressed={isSelected}
-                      aria-label={`${badge.name}: ${badge.description}. ${isEarned ? "Earned" : "Not yet earned"}`}
-                      className="relative flex items-center justify-center rounded-xl transition-all duration-100 focus-visible:ring-2 focus-visible:ring-[#2D1B4E]/40 focus-visible:outline-none"
+      {/* Category grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2"
+           style={{ gap: 1, background: "rgba(45,27,78,0.07)" }}>
+        {categories.map((category) => {
+          const badges = byCategory[category];
+          const earned = badges.filter((b) => b.earnedAt !== null).length;
+          const color  = CATEGORY_COLOR[category] ?? "#2D1B4E";
+
+          return (
+            <div key={category} className="bg-white flex flex-col">
+
+              {/* Category header */}
+              <div className="px-4 py-2.5 flex items-center justify-between shrink-0"
+                   style={{
+                     borderBottom: "1px solid rgba(45,27,78,0.06)",
+                     borderLeft: `3px solid ${color}`,
+                   }}>
+                <p className="text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color }}>
+                  {category}
+                </p>
+                <span className="text-[10px] tabular-nums" style={{ color: "rgba(45,27,78,0.35)" }}>
+                  {earned}/{badges.length}
+                </span>
+              </div>
+
+              {/* Badge rows */}
+              <div className="flex flex-col">
+                {badges.map((badge, i) => {
+                  const isEarned = badge.earnedAt !== null;
+                  return (
+                    <div
+                      key={badge.id}
+                      className="flex items-center gap-3 px-4 py-2.5"
                       style={{
-                        width: 52, height: 52,
-                        fontSize: 24,
-                        background: isSelected
-                          ? "rgba(45,27,78,0.09)"
-                          : isEarned ? "rgba(45,27,78,0.04)" : "rgba(45,27,78,0.02)",
-                        border: isSelected
-                          ? "2px solid rgba(45,27,78,0.22)"
-                          : "1.5px solid rgba(45,27,78,0.08)",
-                        filter:  isEarned ? "none" : "grayscale(1)",
-                        opacity: isEarned ? 1 : 0.32,
+                        borderTop: i > 0 ? "1px solid rgba(45,27,78,0.05)" : undefined,
+                        opacity: isEarned ? 1 : 0.42,
                       }}
                     >
-                      <span aria-hidden="true">{badge.icon}</span>
-                      {isEarned && (
-                        <span
-                          className="absolute bottom-1 right-1 w-1.5 h-1.5 rounded-full bg-green-500"
-                          aria-hidden="true"
-                        />
-                      )}
-                    </button>
-
-                    {/* Tooltip — sibling of button, not child, so it's not
-                        affected by the button's filter/opacity */}
-                    {isHovered && (
-                      <div
-                        aria-hidden="true"
-                        className="pointer-events-none"
-                        style={{
-                          position: "absolute",
-                          bottom: "calc(100% + 8px)",
-                          left: "50%",
-                          transform: "translateX(-50%)",
-                          zIndex: 50,
-                          background: "rgba(15,12,30,0.93)",
-                          borderRadius: 8,
-                          padding: "6px 10px",
-                          minWidth: 140,
-                          maxWidth: 210,
-                          textAlign: "center",
-                        }}
-                      >
-                        <p style={{ fontSize: 11, fontWeight: 700, color: "#fff", marginBottom: 2, whiteSpace: "nowrap" }}>
+                      <span style={{ fontSize: 20, lineHeight: 1, flexShrink: 0, filter: isEarned ? "none" : "grayscale(1)" }}>
+                        {badge.icon}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] font-semibold text-[#2D1B4E] leading-tight">
                           {badge.name}
                         </p>
-                        <p style={{ fontSize: 10, color: "rgba(255,255,255,0.70)", lineHeight: 1.4 }}>
+                        <p className="text-[11px] mt-0.5 leading-snug" style={{ color: "rgba(45,27,78,0.45)" }}>
                           {badge.description}
                         </p>
-                        <div style={{
-                          position: "absolute",
-                          top: "100%",
-                          left: "50%",
-                          transform: "translateX(-50%)",
-                          width: 0, height: 0,
-                          borderLeft: "5px solid transparent",
-                          borderRight: "5px solid transparent",
-                          borderTop: "5px solid rgba(15,12,30,0.93)",
-                        }} />
                       </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Detail panel */}
-      {selected && (
-        <div
-          role="region"
-          aria-live="polite"
-          aria-label="Badge details"
-          className="mt-5 flex items-start gap-4 px-4 py-4 rounded-xl"
-          style={{ background: "rgba(45,27,78,0.04)", border: "1px solid rgba(45,27,78,0.09)" }}
-        >
-          <span className="text-3xl leading-none shrink-0 mt-0.5" aria-hidden="true">
-            {selected.icon}
-          </span>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-2 mb-1">
-              <p className="font-bold text-sm text-[#2D1B4E] leading-tight">{selected.name}</p>
-              {selected.earnedAt ? (
-                <span className="text-[10px] font-semibold text-green-600 shrink-0">Earned</span>
-              ) : (
-                <span className="text-[10px] shrink-0" style={{ color: "rgba(45,27,78,0.35)" }}>
-                  Not yet earned
-                </span>
-              )}
-            </div>
-            <p className="text-xs leading-snug" style={{ color: "rgba(45,27,78,0.55)" }}>
-              {selected.description}
-            </p>
-            {selected.earnedAt && (
-              <p className="text-[10px] mt-1.5" style={{ color: "#C8102E" }}>
-                {new Date(selected.earnedAt).toLocaleDateString("en-US", {
-                  month: "short", day: "numeric", year: "numeric",
+                      {isEarned ? (
+                        <div className="shrink-0 text-right">
+                          <p style={{ fontSize: 11, fontWeight: 700, color: "#22c55e" }}>✓</p>
+                          <p className="text-[10px]" style={{ color: "rgba(45,27,78,0.35)" }}>
+                            {new Date(badge.earnedAt!).toLocaleDateString("en-US", {
+                              month: "short", day: "numeric", year: "numeric",
+                            })}
+                          </p>
+                        </div>
+                      ) : (
+                        <span style={{ fontSize: 14, color: "rgba(45,27,78,0.18)", flexShrink: 0 }}>—</span>
+                      )}
+                    </div>
+                  );
                 })}
-              </p>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={() => setSelectedId(null)}
-            className="shrink-0 transition-colors focus-visible:ring-2 focus-visible:ring-[#2D1B4E]/40 focus-visible:outline-none rounded"
-            style={{ color: "rgba(45,27,78,0.30)", fontSize: 12 }}
-            aria-label="Close badge details"
-            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = "rgba(45,27,78,0.60)")}
-            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = "rgba(45,27,78,0.30)")}
-          >
-            ✕
-          </button>
-        </div>
-      )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
