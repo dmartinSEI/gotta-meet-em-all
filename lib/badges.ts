@@ -113,7 +113,7 @@ export async function checkAndAwardBadges(email: string): Promise<BadgeInfo[]> {
     `,
     sql<OfficeStats>`
       SELECT
-        COUNT(*) FILTER (WHERE total_count > 0)::int                                    AS total_offices,
+        COUNT(*)::int                                                                    AS total_offices,
         COUNT(*) FILTER (WHERE met_count > 0)::int                                      AS offices_with_catch
       FROM (
         SELECT o.name,
