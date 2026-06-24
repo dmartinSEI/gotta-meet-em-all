@@ -12,7 +12,6 @@ interface UserStats {
   catches7Days: number;
   bountiesCompleted: number;
   officesWithCatch: number;
-  officesCompleted: number;
   totalOffices: number;
   recognizedByCount: number;
   totalXp: number;
@@ -20,9 +19,6 @@ interface UserStats {
   mutualCatches: number;
   homeOfficeMet: number;
   homeOfficeTotal: number;
-  hasPhoto: boolean;
-  hasCardBg: boolean;
-  hasSurvey: boolean;
   monthlyStreak: number;
   alltimeRank: number | null;
 }
@@ -52,8 +48,6 @@ function newlyEarned(stats: UserStats, alreadyEarned: Set<string>): Badge[] {
 
   const checks: [string, () => boolean][] = [
     // Meetings
-    ["networker_10",       () => stats.totalCatches >= 10],
-    ["speed_networker",    () => stats.catches7Days >= 5],
     ["surge",              () => stats.catches7Days >= 10],
     ["networker_50",       () => stats.totalCatches >= 50],
     ["century_club",       () => stats.totalCatches >= 100],
@@ -61,17 +55,13 @@ function newlyEarned(stats: UserStats, alreadyEarned: Set<string>): Badge[] {
     ["everybody_knows",    () => stats.totalCatches >= 250],
     ["met_em_all",         () => metEmAllDone],
     // Depth
-    ["true_partner",       () => stats.partneredCount >= 1],
-    ["delivered_5",        () => stats.partneredCount >= 5],
     ["delivered_25",       () => stats.partneredCount >= 25],
     ["iron_bond",          () => stats.partneredCount >= 50],
     ["living_legend",      () => stats.partneredCount >= 100],
     // Exploration
     ["home_turf",          () => homeTurfDone],
-    ["office_champion",    () => stats.officesCompleted >= 1],
     ["world_traveler",     () => stats.totalOffices > 0 && stats.officesWithCatch >= stats.totalOffices],
     // Bounties
-    ["dedicated_hunter",   () => stats.bountiesCompleted >= 3],
     ["bounty_streak",      () => stats.bountiesCompleted >= 6],
     // Recognition
     ["recognized_25",      () => stats.recognizedByCount >= 25],
@@ -83,12 +73,9 @@ function newlyEarned(stats: UserStats, alreadyEarned: Set<string>): Badge[] {
     // Consistency
     ["iron_will",          () => stats.monthlyStreak >= 12],
     // Prestige
-    ["full_picture",       () => stats.hasPhoto && stats.hasCardBg && stats.hasSurvey],
     ["dynasty",            () => stats.alltimeRank !== null && stats.alltimeRank <= 10],
     ["untouchable",        () => stats.alltimeRank === 1],
     // Rank
-    ["rank_connected",     () => rarityIdx >= 1],
-    ["rank_established",   () => rarityIdx >= 2],
     ["rank_influential",   () => rarityIdx >= 3],
     ["rank_distinguished", () => rarityIdx >= 4],
   ];
@@ -103,19 +90,18 @@ export async function checkAndAwardBadges(email: string): Promise<Badge[]> {
   interface CatchStats {
     total_catches: number; partnered_count: number; catches_7_days: number;
   }
-  interface OfficeStats { total_offices: number; offices_with_catch: number; offices_completed: number; }
+  interface OfficeStats { total_offices: number; offices_with_catch: number; }
   interface BountyStats { bounties_completed: number; }
   interface RecognizedStats { recognized_by_count: number; }
   interface XpStats { total_xp: number; roster_size: number; }
   interface MutualStats { mutual_catches: number; }
   interface HomeOfficeStats { home_office_met: number; home_office_total: number; }
-  interface ProfileStats { has_photo: boolean; has_card_bg: boolean; has_survey: boolean; }
   interface ActiveMonthRow { active_month: string; }
   interface RankStats { alltime_rank: number; }
 
   const [
     catchResult, officeResult, bountyResult, recognizedResult, xpResult,
-    mutualResult, homeOfficeResult, profileResult, activeMonthsResult, rankResult,
+    mutualResult, homeOfficeResult, activeMonthsResult, rankResult,
     earnedResult,
   ] = await Promise.all([
     sql<CatchStats>`
@@ -130,8 +116,7 @@ export async function checkAndAwardBadges(email: string): Promise<Badge[]> {
     sql<OfficeStats>`
       SELECT
         COUNT(*) FILTER (WHERE total_count > 0)::int                                    AS total_offices,
-        COUNT(*) FILTER (WHERE met_count > 0)::int                                      AS offices_with_catch,
-        COUNT(*) FILTER (WHERE total_count > 0 AND met_count >= total_count)::int       AS offices_completed
+        COUNT(*) FILTER (WHERE met_count > 0)::int                                      AS offices_with_catch
       FROM (
         SELECT o.name,
           COUNT(c.id)::int             AS total_count,
@@ -190,14 +175,6 @@ export async function checkAndAwardBadges(email: string): Promise<Badge[]> {
       WHERE c.office = (SELECT office FROM user_office)
         AND c.email != ${email}
     `,
-    // Profile completeness
-    sql<ProfileStats>`
-      SELECT
-        (photo_url   IS NOT NULL AND photo_url   != '')::boolean AS has_photo,
-        (card_bg_url IS NOT NULL AND card_bg_url != '')::boolean AS has_card_bg,
-        (survey_data IS NOT NULL AND survey_data::text NOT IN ('{}', 'null', ''))::boolean AS has_survey
-      FROM consultants WHERE email = ${email}
-    `,
     // Active months for streak (last 24 months)
     sql<ActiveMonthRow>`
       SELECT DISTINCT TO_CHAR(DATE_TRUNC('month', caught_at), 'YYYY-MM') AS active_month
@@ -236,7 +213,6 @@ export async function checkAndAwardBadges(email: string): Promise<Badge[]> {
   const x = xpResult.rows[0];
   if (!c || !o || !x) return [];
 
-  const prof    = profileResult.rows[0];
   const home    = homeOfficeResult.rows[0];
   const mutual  = mutualResult.rows[0];
   const rankRow = rankResult.rows[0];
@@ -249,16 +225,12 @@ export async function checkAndAwardBadges(email: string): Promise<Badge[]> {
     bountiesCompleted: bountyResult.rows[0]?.bounties_completed ?? 0,
     recognizedByCount: recognizedResult.rows[0]?.recognized_by_count ?? 0,
     officesWithCatch:  o.offices_with_catch,
-    officesCompleted:  o.offices_completed,
     totalOffices:      o.total_offices,
     totalXp:           x.total_xp,
     rosterSize:        x.roster_size,
     mutualCatches:     mutual?.mutual_catches ?? 0,
     homeOfficeMet:     home?.home_office_met ?? 0,
     homeOfficeTotal:   home?.home_office_total ?? 0,
-    hasPhoto:          prof?.has_photo ?? false,
-    hasCardBg:         prof?.has_card_bg ?? false,
-    hasSurvey:         prof?.has_survey ?? false,
     monthlyStreak:     computeMonthlyStreak(activeMonths),
     alltimeRank:       rankRow?.alltime_rank ?? null,
   };
