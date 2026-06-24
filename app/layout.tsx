@@ -3,6 +3,8 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import BadgeToaster from "./BadgeToaster";
 import MobileNav from "./MobileNav";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const plusJakarta = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
@@ -30,6 +32,8 @@ export default function RootLayout({
         {children}
         <BadgeToaster />
         <MobileNav />
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
