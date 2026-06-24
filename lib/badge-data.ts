@@ -2,7 +2,6 @@ import type { BadgeInfo } from "./types";
 
 export const ALL_BADGES: BadgeInfo[] = [
   // ── Meetings ─────────────────────────────────────────────────────────────
-  { id: "surge",              category: "Meetings",    name: "Surge",            icon: "💥", description: "Meet 10 people within 7 days." },
   { id: "networker_50",       category: "Meetings",    name: "Connector",        icon: "🌐", description: "Meet 50 colleagues." },
   { id: "century_club",       category: "Meetings",    name: "Century Club",     icon: "💯", description: "Meet 100 colleagues." },
   { id: "inner_circle",       category: "Meetings",    name: "Inner Circle",     icon: "⭕", description: "Meet 150 colleagues." },

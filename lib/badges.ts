@@ -6,7 +6,6 @@ import { getRarity } from "./xp";
 interface UserStats {
   totalCatches: number;
   partneredCount: number;
-  catches7Days: number;
   bountiesCompleted: number;
   officesWithCatch: number;
   totalOffices: number;
@@ -45,7 +44,6 @@ function newlyEarned(stats: UserStats, alreadyEarned: Set<string>): BadgeInfo[] 
 
   const checks: [string, () => boolean][] = [
     // Meetings
-    ["surge",              () => stats.catches7Days >= 10],
     ["networker_50",       () => stats.totalCatches >= 50],
     ["century_club",       () => stats.totalCatches >= 100],
     ["inner_circle",       () => stats.totalCatches >= 150],
@@ -85,7 +83,7 @@ function newlyEarned(stats: UserStats, alreadyEarned: Set<string>): BadgeInfo[] 
 
 export async function checkAndAwardBadges(email: string): Promise<BadgeInfo[]> {
   interface CatchStats {
-    total_catches: number; partnered_count: number; catches_7_days: number;
+    total_catches: number; partnered_count: number;
   }
   interface OfficeStats { total_offices: number; offices_with_catch: number; }
   interface BountyStats { bounties_completed: number; }
@@ -103,9 +101,8 @@ export async function checkAndAwardBadges(email: string): Promise<BadgeInfo[]> {
   ] = await Promise.all([
     sql<CatchStats>`
       SELECT
-        COUNT(*)::int                                                         AS total_catches,
-        COUNT(*) FILTER (WHERE level = 3)::int                               AS partnered_count,
-        COUNT(*) FILTER (WHERE caught_at >= NOW() - INTERVAL '7 days')::int  AS catches_7_days
+        COUNT(*)::int                          AS total_catches,
+        COUNT(*) FILTER (WHERE level = 3)::int AS partnered_count
       FROM catches ca
       JOIN users u ON u.id = ca.user_id
       WHERE u.email = ${email}
@@ -219,7 +216,6 @@ export async function checkAndAwardBadges(email: string): Promise<BadgeInfo[]> {
   const stats: UserStats = {
     totalCatches:      c.total_catches,
     partneredCount:    c.partnered_count,
-    catches7Days:      c.catches_7_days,
     bountiesCompleted: bountyResult.rows[0]?.bounties_completed ?? 0,
     recognizedByCount: recognizedResult.rows[0]?.recognized_by_count ?? 0,
     officesWithCatch:  o.offices_with_catch,
