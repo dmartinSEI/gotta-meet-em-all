@@ -1,4 +1,4 @@
-import { RARITY_LABELS, RARITY_HEX, XP_PER_LEVEL, CATCH_LEVEL_LABELS, CATCH_LEVEL_ICONS, CATCH_LEVEL_DESC, getRarityThresholds, type Rarity } from "@/lib/xp";
+import { RARITY_LABELS, RARITY_HEX, getRarityThresholds, type Rarity } from "@/lib/xp";
 
 const TIER_ORDER: Rarity[] = ["common", "uncommon", "rare", "epic", "legendary"];
 
@@ -9,8 +9,6 @@ const TIER_DESC: Record<Rarity, string> = {
   epic:      "Widely recognized — a go-to collaborator at SEI.",
   legendary: "Top of the network — you've met everyone at SEI.",
 };
-
-const HOW_TO_EARN: { level: 1 | 2 | 3 }[] = [{ level: 1 }, { level: 2 }, { level: 3 }];
 
 interface Props {
   totalXp: number;
@@ -170,32 +168,6 @@ export default function StandingSection({ totalXp, totalRoster, caughtCount, rec
         </p>
       </div>
 
-      {/* How to earn */}
-      <div>
-        <p className="text-[9px] font-black tracking-[0.15em] uppercase mb-3" style={{ color: "rgba(45,27,78,0.30)" }}>
-          How to Earn Meet Points
-        </p>
-        <div className="space-y-2">
-          {HOW_TO_EARN.map(({ level }) => (
-            <div
-              key={level}
-              className="flex items-start gap-3 px-3 py-2.5 rounded-lg"
-              style={{ background: "rgba(45,27,78,0.03)", border: "1px solid rgba(45,27,78,0.06)" }}
-            >
-              <span className="text-lg leading-none mt-0.5">{CATCH_LEVEL_ICONS[level]}</span>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm text-[#2D1B4E]">{CATCH_LEVEL_LABELS[level]}</p>
-                <p className="text-xs mt-0.5 leading-snug capitalize" style={{ color: "rgba(45,27,78,0.50)" }}>
-                  {CATCH_LEVEL_DESC[level]}
-                </p>
-              </div>
-              <span className="font-black text-sm tabular-nums shrink-0" style={{ color: "#2D1B4E" }}>
-                +{XP_PER_LEVEL[level]} pts
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { auth, signOut } from "../../auth";
 import { redirect } from "next/navigation";
 import { sql } from "@/lib/db";
-import { getRarity, RARITY_LABELS, type Rarity } from "@/lib/xp";
+import { getRarity, RARITY_LABELS, CATCH_LEVEL_ICONS, CATCH_LEVEL_LABELS, XP_PER_LEVEL, type Rarity } from "@/lib/xp";
 import { ALL_BADGES } from "@/lib/badge-data";
 import ProfileForm from "./ProfileForm";
 import PhotoUpload from "./PhotoUpload";
@@ -184,6 +184,25 @@ export default async function ProfilePage() {
                   <TrainerCard consultant={trainerCard} rosterSize={totalRoster} />
                 </div>
               )}
+              {/* How to Earn — compact */}
+              <div className="w-full rounded-2xl p-4" style={{ background: "#fff", border: "1px solid rgba(45,27,78,0.07)" }}>
+                <p className="text-[9px] font-black tracking-[0.2em] uppercase text-[#2D1B4E]/40 mb-3">
+                  How to Earn
+                </p>
+                <div className="space-y-1.5">
+                  {([1, 2, 3] as const).map((level) => (
+                    <div key={level} className="flex items-center gap-2 px-2.5 py-2 rounded-lg"
+                         style={{ background: "rgba(45,27,78,0.03)", border: "1px solid rgba(45,27,78,0.06)" }}>
+                      <span style={{ fontSize: 14, lineHeight: 1 }}>{CATCH_LEVEL_ICONS[level]}</span>
+                      <p className="flex-1 text-xs font-semibold text-[#2D1B4E] truncate">{CATCH_LEVEL_LABELS[level]}</p>
+                      <span className="text-xs font-black tabular-nums shrink-0 text-[#2D1B4E]">
+                        +{XP_PER_LEVEL[level]}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <div className="w-full rounded-2xl p-4" style={{ background: "#fff", border: "1px solid rgba(45,27,78,0.07)" }}>
                 <CaughtBySection catchers={catcherRows} />
               </div>
