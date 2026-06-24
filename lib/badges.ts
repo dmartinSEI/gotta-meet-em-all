@@ -1,10 +1,7 @@
 import { sql } from "./db";
 import type { BadgeInfo } from "./types";
-import { ALL_BADGES, BADGE_MAP } from "./badge-data";
+import { BADGE_MAP } from "./badge-data";
 import { getRarity } from "./xp";
-
-export type Badge = BadgeInfo;
-export { ALL_BADGES } from "./badge-data";
 
 interface UserStats {
   totalCatches: number;
@@ -41,7 +38,7 @@ function computeMonthlyStreak(activeMonths: string[]): number {
   return streak;
 }
 
-function newlyEarned(stats: UserStats, alreadyEarned: Set<string>): Badge[] {
+function newlyEarned(stats: UserStats, alreadyEarned: Set<string>): BadgeInfo[] {
   const rarityIdx = RARITY_ORDER.indexOf(getRarity(stats.totalXp, stats.rosterSize));
   const homeTurfDone = stats.homeOfficeTotal > 0 && stats.homeOfficeMet >= stats.homeOfficeTotal;
   const metEmAllDone = stats.rosterSize > 0 && stats.totalCatches >= stats.rosterSize;
@@ -86,7 +83,7 @@ function newlyEarned(stats: UserStats, alreadyEarned: Set<string>): Badge[] {
     .filter((b): b is NonNullable<typeof b> => b !== undefined);
 }
 
-export async function checkAndAwardBadges(email: string): Promise<Badge[]> {
+export async function checkAndAwardBadges(email: string): Promise<BadgeInfo[]> {
   interface CatchStats {
     total_catches: number; partnered_count: number; catches_7_days: number;
   }

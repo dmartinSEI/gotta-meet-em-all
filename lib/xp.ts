@@ -18,27 +18,6 @@ export const RARITY_LABELS: Record<Rarity, string> = {
   legendary: "Distinguished",
 };
 
-// Border/glow styles for each rarity tier
-export const RARITY_STYLES: Record<Rarity, string> = {
-  common: "border-gray-200",
-  uncommon: "border-green-400 ring-1 ring-green-300",
-  rare: "border-blue-400 ring-1 ring-blue-300",
-  epic: "border-purple-500 ring-2 ring-purple-300",
-  legendary: "border-yellow-400 ring-2 ring-yellow-300 shadow-yellow-100",
-};
-
-export const RARITY_BADGE_STYLES: Record<Rarity, string> = {
-  common: "bg-gray-100 text-gray-500",
-  uncommon: "bg-green-100 text-green-700",
-  rare: "bg-blue-100 text-blue-700",
-  epic: "bg-purple-100 text-purple-700",
-  legendary: "bg-yellow-100 text-yellow-700",
-};
-
-export function computeXp(catches: { level: 1 | 2 | 3 }[]): number {
-  return catches.reduce((sum, c) => sum + XP_PER_LEVEL[c.level], 0);
-}
-
 // Legendary floor = every consultant Delivered with (level 3, 50 pts each)
 // Offices are cleared at ~Established; cross-office catches are needed for Influential+
 export function getRarityThresholds(rosterSize: number): Record<Rarity, number> {
