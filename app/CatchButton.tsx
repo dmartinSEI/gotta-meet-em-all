@@ -32,6 +32,7 @@ export default function CatchButton({
   const [removing, setRemoving]         = useState(false);
   const [confirming, setConfirming]     = useState(false);
   const [upgradeOpen, setUpgradeOpen]   = useState(false);
+  const [freshCatch, setFreshCatch]     = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
@@ -42,6 +43,7 @@ export default function CatchButton({
     setLoadingLevel(targetLevel);
     const result = await catchConsultant(consultantId, targetLevel);
     if (result.success) {
+      setFreshCatch(true);
       setLevel(targetLevel);
       setUpgradeOpen(false);
       fireBadgeEvent(result.newBadges);
@@ -53,6 +55,7 @@ export default function CatchButton({
     setLoadingLevel(targetLevel);
     const result = await upgradeConsultant(consultantId, targetLevel as 2 | 3);
     if (result.success) {
+      setFreshCatch(true);
       setLevel(targetLevel);
       setUpgradeOpen(false);
       fireBadgeEvent(result.newBadges);
@@ -74,17 +77,18 @@ export default function CatchButton({
       <div className="flex gap-1.5">
         {ALL_LEVELS.map((lvl) => {
           const c = LEVEL_COLORS[lvl];
+          const loading = loadingLevel === lvl;
           return (
             <button
               key={lvl}
               onClick={() => handleCatch(lvl)}
               disabled={isLoading}
               title={CATCH_LEVEL_DESC[lvl]}
-              className="flex-1 flex flex-col items-center gap-0.5 py-2 rounded-lg border transition-colors disabled:opacity-50"
+              className="flex-1 flex flex-col items-center gap-0.5 py-2 rounded-lg border transition-all duration-100 disabled:opacity-50 hover:brightness-95 active:scale-95 active:brightness-90"
               style={{ background: c.bg, color: c.text, borderColor: c.border, fontSize: 10 }}
             >
-              <span style={{ fontSize: 15, lineHeight: 1 }}>
-                {loadingLevel === lvl ? "…" : CATCH_LEVEL_ICONS[lvl]}
+              <span style={{ fontSize: 15, lineHeight: 1 }} className={loading ? "animate-spin" : ""}>
+                {loading ? "⋯" : CATCH_LEVEL_ICONS[lvl]}
               </span>
               <span className="font-semibold leading-none">{CATCH_LEVEL_LABELS[lvl]}</span>
               <span style={{ color: "inherit", opacity: 0.6 }}>+{XP_PER_LEVEL[lvl]} pts</span>
@@ -100,7 +104,16 @@ export default function CatchButton({
   const c = LEVEL_COLORS[level];
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <>
+    <style>{`
+      @keyframes catchIn {
+        0%   { opacity: 0; transform: scale(0.88); }
+        60%  { opacity: 1; transform: scale(1.04); }
+        100% { opacity: 1; transform: scale(1); }
+      }
+      .catch-in { animation: catchIn 0.35s cubic-bezier(0.34,1.56,0.64,1) both; }
+    `}</style>
+    <div className={`flex flex-col gap-1.5${freshCatch ? " catch-in" : ""}`}>
 
       {/* Current level + upgrade toggle on the same row */}
       <div className="flex items-center gap-1.5">
@@ -118,7 +131,7 @@ export default function CatchButton({
             onClick={() => setUpgradeOpen((o) => !o)}
             disabled={isLoading}
             title="Upgrade connection level"
-            className="flex items-center justify-center w-8 h-8 rounded-lg border transition-colors disabled:opacity-50 shrink-0"
+            className="flex items-center justify-center w-8 h-8 rounded-lg border transition-all duration-100 disabled:opacity-50 shrink-0 hover:brightness-95 active:scale-90"
             style={{
               background: upgradeOpen ? "#2D1B4E" : "#fff",
               color:      upgradeOpen ? "#fff"    : "rgba(45,27,78,0.50)",
@@ -141,7 +154,7 @@ export default function CatchButton({
             onClick={() => handleUpgrade(lvl)}
             disabled={isLoading}
             title={CATCH_LEVEL_DESC[lvl]}
-            className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-colors disabled:opacity-50"
+            className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all duration-100 disabled:opacity-50 hover:brightness-95 active:scale-95"
             style={{ background: uc.bg, color: uc.text, borderColor: uc.border }}
           >
             <span style={{ fontSize: 13, lineHeight: 1 }}>
@@ -187,5 +200,6 @@ export default function CatchButton({
         </button>
       )}
     </div>
+    </>
   );
 }
