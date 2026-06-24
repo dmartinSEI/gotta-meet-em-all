@@ -77,31 +77,6 @@ function foilStyle(rarity: Rarity, mx: number, my: number): React.CSSProperties 
   };
 }
 
-function holoFrontStyle(rarity: Rarity, mx: number, my: number): React.CSSProperties {
-  if (rarity === "common") return { display: "none" };
-  const r = rarity as Exclude<Rarity, "common">;
-  const angle = (mx / 100) * 180;
-  const stripeW  = ({ uncommon: 32, rare: 26, epic: 20, legendary: 14 } as const)[r];
-  const opacityM = ({ uncommon: 0.55, rare: 0.72, epic: 0.88, legendary: 1.0 } as const)[r];
-  const w = stripeW;
-  const stops = [
-    `rgba(255,0,128,0) 0px`,
-    `rgba(255,0,128,0.32) ${(w * 0.10).toFixed(1)}px`,
-    `rgba(255,165,0,0.30) ${(w * 0.25).toFixed(1)}px`,
-    `rgba(255,255,0,0.24) ${(w * 0.42).toFixed(1)}px`,
-    `rgba(0,255,128,0.30) ${(w * 0.58).toFixed(1)}px`,
-    `rgba(0,128,255,0.30) ${(w * 0.75).toFixed(1)}px`,
-    `rgba(128,0,255,0.30) ${(w * 0.90).toFixed(1)}px`,
-    `rgba(255,0,128,0) ${w}px`,
-  ].join(", ");
-  const specular = `radial-gradient(ellipse 65% 78% at ${mx}% ${my}%, rgba(255,255,255,0.20) 0%, transparent 100%)`;
-  return {
-    backgroundImage: `${specular}, repeating-linear-gradient(${angle}deg, ${stops})`,
-    mixBlendMode: "screen" as const,
-    pointerEvents: "none" as const,
-    opacity: opacityM,
-  };
-}
 
 interface Props {
   consultant: ConsultantRow;
@@ -321,9 +296,6 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
                 <p style={{ color: "#fff", fontWeight: 900, fontSize: 17, lineHeight: 1.2 }}>{fullName}</p>
                 {consultant.title && <p style={{ color: "rgba(255,255,255,0.65)", fontSize: 12, marginTop: 2 }}>{consultant.title}</p>}
               </div>
-
-              {/* Holographic shimmer — front face only */}
-              <div style={{ position: "absolute", inset: 0, borderRadius: 14, pointerEvents: "none", ...holoFrontStyle(rarity, mouse.x, mouse.y) }} />
             </div>
 
             {/* ── BACK FACE (TCG info card) ──────────────────────────── */}
