@@ -271,14 +271,14 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
               )}
 
               {/* Circle profile photo — centered, shifted up */}
-              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", paddingBottom: "28%" }}>
+              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", paddingBottom: "24%" }}>
                 <div style={{
-                  width: 100, height: 100, borderRadius: "50%", overflow: "hidden", flexShrink: 0,
+                  width: 152, height: 152, borderRadius: "50%", overflow: "hidden", flexShrink: 0,
                   ...photoRingStyle(rarity, RARITY_HEX[rarity]),
                   background: "#2D1B4E", position: "relative",
                 }}>
                   {photo ? (
-                    <Image src={photo} alt={fullName} fill sizes="100px" className="object-cover object-top" />
+                    <Image src={photo} alt={fullName} fill sizes="152px" className="object-cover object-top" />
                   ) : (
                     <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: RARITY_HEADER[rarity], color: "#fff", fontWeight: 900, fontSize: 28 }}>
                       {fullName.split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase()}
