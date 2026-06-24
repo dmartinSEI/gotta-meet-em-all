@@ -192,11 +192,11 @@ export default function CatchButton({
             timer.current = setTimeout(() => setConfirming(false), 3000);
           }}
           className="text-[10px] text-right transition-colors"
-          style={{ color: "rgba(45,27,78,0.22)" }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(45,27,78,0.45)")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(45,27,78,0.22)")}
+          style={{ color: "rgba(45,27,78,0.42)" }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = "rgba(45,27,78,0.65)")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(45,27,78,0.42)")}
         >
-          undo
+          Oops!
         </button>
       )}
     </div>
