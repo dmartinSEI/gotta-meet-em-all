@@ -273,12 +273,12 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
               {/* Circle profile photo — centered, shifted up */}
               <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", paddingBottom: "28%" }}>
                 <div style={{
-                  width: 88, height: 88, borderRadius: "50%", overflow: "hidden", flexShrink: 0,
+                  width: 100, height: 100, borderRadius: "50%", overflow: "hidden", flexShrink: 0,
                   ...photoRingStyle(rarity, RARITY_HEX[rarity]),
                   background: "#2D1B4E", position: "relative",
                 }}>
                   {photo ? (
-                    <Image src={photo} alt={fullName} fill sizes="88px" className="object-cover object-top" />
+                    <Image src={photo} alt={fullName} fill sizes="100px" className="object-cover object-top" />
                   ) : (
                     <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: RARITY_HEADER[rarity], color: "#fff", fontWeight: 900, fontSize: 28 }}>
                       {fullName.split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase()}
@@ -314,12 +314,12 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
 
                   {/* Circle photo */}
                   <div style={{
-                    width: 80, height: 80, borderRadius: "50%", overflow: "hidden", flexShrink: 0,
+                    width: 90, height: 90, borderRadius: "50%", overflow: "hidden", flexShrink: 0,
                     ...photoRingStyle(rarity, RARITY_HEX[rarity]),
                     background: "#2D1B4E", position: "relative",
                   }}>
                     {photo ? (
-                      <Image src={photo} alt={fullName} fill sizes="80px" className="object-cover object-center" />
+                      <Image src={photo} alt={fullName} fill sizes="90px" className="object-cover object-center" />
                     ) : (
                       <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.35)", color: "#fff", fontWeight: 900, fontSize: 24 }}>
                         {fullName.split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase()}

@@ -160,7 +160,7 @@ export default function TrainerCard({
             style={{ paddingBottom: "28%" }}
           >
             <div style={{
-              width: 80, height: 80,
+              width: 90, height: 90,
               borderRadius: "50%",
               overflow: "hidden",
               border: `3px solid ${ringColor}`,
@@ -169,7 +169,7 @@ export default function TrainerCard({
               background: "#2D1B4E",
             }}>
               {photo ? (
-                <Image src={photo} alt={fullName} fill sizes="80px" className="object-cover object-top" />
+                <Image src={photo} alt={fullName} fill sizes="90px" className="object-cover object-top" />
               ) : (
                 <InitialsAvatar name={fullName} />
               )}
