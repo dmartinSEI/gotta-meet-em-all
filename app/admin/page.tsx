@@ -12,6 +12,7 @@ const TABS = [
   { id: "import",      label: "Import" },
   { id: "consultants", label: "Consultants" },
   { id: "players",     label: "Players" },
+  { id: "export",      label: "Export" },
 ] as const;
 
 type TabId = typeof TABS[number]["id"];
@@ -32,7 +33,7 @@ export default async function AdminPage({
   if (!adminEmails.includes(session.user.email)) redirect("/");
 
   const { tab: tabParam = "import" } = await searchParams;
-  const tab: TabId = (["import", "consultants", "players"] as string[]).includes(tabParam)
+  const tab: TabId = (["import", "consultants", "players", "export"] as string[]).includes(tabParam)
     ? (tabParam as TabId)
     : "import";
 
@@ -156,6 +157,70 @@ export default async function AdminPage({
             entirely — their consultant card stays on the roster.
           </p>
           <PlayerManager players={players} />
+        </div>
+      )}
+
+      {/* ── Export tab ── */}
+      {tab === "export" && (
+        <div className="max-w-2xl">
+          <p className="text-sm mb-8" style={{ color: "rgba(45,27,78,0.45)" }}>
+            Downloads a single Excel workbook with five sheets of leadership-ready data. No
+            formatting needed — open and share as-is.
+          </p>
+
+          {/* Sheet previews */}
+          <div className="flex flex-col gap-3 mb-8">
+            {[
+              {
+                sheet: "Summary",
+                desc: "High-level adoption, activity, and achievement KPIs at a glance — participation rate, total meets, cross-office connections, and badge totals.",
+              },
+              {
+                sheet: "Player Rankings",
+                desc: "Every signed-in employee ranked by XP, with their office, title, meet breakdown (Delivered / Hung Out / Connected), badge count, and last active date.",
+              },
+              {
+                sheet: "By Office",
+                desc: "Office-level participation rate, meet volume, average meets per player, delivered relationships, and cross-office connection count.",
+              },
+              {
+                sheet: "Monthly Trends",
+                desc: "Last 12 months of activity: meets logged and unique active players per month. Paste into a chart for an engagement trend line.",
+              },
+              {
+                sheet: "Badge Stats",
+                desc: "Every badge with earner count, percentage of active players who hold it, and first / most recent award dates.",
+              },
+            ].map(({ sheet, desc }) => (
+              <div
+                key={sheet}
+                className="flex gap-4 rounded-xl p-4"
+                style={{ border: "1px solid rgba(45,27,78,0.08)", background: "#fff" }}
+              >
+                <div
+                  className="shrink-0 w-2 rounded-full self-stretch"
+                  style={{ background: "#C8102E", opacity: 0.7 }}
+                />
+                <div>
+                  <p className="text-sm font-semibold text-[#2D1B4E]">{sheet}</p>
+                  <p className="text-sm mt-0.5" style={{ color: "rgba(45,27,78,0.5)" }}>{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <a
+            href="/api/admin/export"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white text-sm transition-colors"
+            style={{ background: "#2D1B4E" }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "#1a0f2e")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "#2D1B4E")}
+          >
+            ↓ Download Leadership Report
+          </a>
+          <p className="text-xs mt-3" style={{ color: "rgba(45,27,78,0.35)" }}>
+            Generates a fresh snapshot each time. Filename includes today&apos;s date.
+          </p>
         </div>
       )}
     </main>
