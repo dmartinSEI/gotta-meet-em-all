@@ -1,17 +1,23 @@
-import type { BadgeInfo } from "@/lib/types";
+"use client";
 
-type BadgeItem = BadgeInfo & { earnedAt: string | null };
+import { useState } from "react";
+import BadgeSVG, { type BadgeItem } from "./BadgeSVG";
 
 const CATEGORY_COLOR: Record<string, string> = {
-  Meetings:    "#60a5fa",
-  Depth:       "#c084fc",
-  Exploration: "#34d399",
-  Bounties:    "#fb923c",
-  Recognition: "#fbbf24",
+  Meetings:    "#3b82f6",
+  Depth:       "#7c3aed",
+  Exploration: "#10b981",
+  Bounties:    "#f97316",
+  Recognition: "#ca8a04",
+  Reciprocity: "#0891b2",
+  Consistency: "#475569",
+  Prestige:    "#d97706",
   Rank:        "#C8102E",
 };
 
 export default function BadgeGrid({ badgeList }: { badgeList: BadgeItem[] }) {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
   const earnedCount = badgeList.filter((b) => b.earnedAt !== null).length;
 
   const categories: string[] = [];
@@ -24,12 +30,16 @@ export default function BadgeGrid({ badgeList }: { badgeList: BadgeItem[] }) {
     byCategory[badge.category].push(badge);
   }
 
+  const selected = badgeList.find((b) => b.id === selectedId) ?? null;
+
   return (
     <div className="rounded-2xl overflow-hidden" style={{ border: "1px solid rgba(45,27,78,0.08)" }}>
 
       {/* Header */}
-      <div className="px-5 py-4 flex items-center justify-between bg-white"
-           style={{ borderBottom: "1px solid rgba(45,27,78,0.08)" }}>
+      <div
+        className="px-5 py-4 flex items-center justify-between bg-white"
+        style={{ borderBottom: "1px solid rgba(45,27,78,0.08)" }}
+      >
         <p className="text-[9px] font-black tracking-[0.2em] uppercase text-[#2D1B4E]/40">
           Achievements
         </p>
@@ -38,71 +48,95 @@ export default function BadgeGrid({ badgeList }: { badgeList: BadgeItem[] }) {
         </span>
       </div>
 
-      {/* Category grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2"
-           style={{ gap: 1, background: "rgba(45,27,78,0.07)" }}>
-        {categories.map((category) => {
-          const badges = byCategory[category];
-          const earned = badges.filter((b) => b.earnedAt !== null).length;
-          const color  = CATEGORY_COLOR[category] ?? "#2D1B4E";
+      {/* Category sections */}
+      <div className="bg-white">
+        {categories.map((category, ci) => {
+          const badges  = byCategory[category];
+          const earned  = badges.filter((b) => b.earnedAt !== null).length;
+          const color   = CATEGORY_COLOR[category] ?? "#2D1B4E";
+          const detail  = selected && badges.some((b) => b.id === selected.id) ? selected : null;
 
           return (
-            <div key={category} className="bg-white flex flex-col">
-
+            <div
+              key={category}
+              style={{ borderTop: ci > 0 ? "1px solid rgba(45,27,78,0.07)" : undefined }}
+            >
               {/* Category header */}
-              <div className="px-4 py-2.5 flex items-center justify-between shrink-0"
-                   style={{
-                     borderBottom: "1px solid rgba(45,27,78,0.06)",
-                     borderLeft: `3px solid ${color}`,
-                   }}>
+              <div className="px-5 pt-4 pb-2 flex items-center gap-2">
+                <div style={{ width: 3, height: 14, background: color, borderRadius: 2, flexShrink: 0 }} />
                 <p className="text-[10px] font-bold uppercase tracking-[0.12em]" style={{ color }}>
                   {category}
                 </p>
-                <span className="text-[10px] tabular-nums" style={{ color: "rgba(45,27,78,0.35)" }}>
+                <span className="text-[10px] tabular-nums ml-0.5" style={{ color: "rgba(45,27,78,0.30)" }}>
                   {earned}/{badges.length}
                 </span>
               </div>
 
-              {/* Badge rows */}
-              <div className="flex flex-col">
-                {badges.map((badge, i) => {
-                  const isEarned = badge.earnedAt !== null;
+              {/* Badge tiles */}
+              <div className="px-4 pb-4 flex flex-wrap gap-3">
+                {badges.map((badge) => {
+                  const isSelected = selectedId === badge.id;
                   return (
-                    <div
+                    <button
                       key={badge.id}
-                      className="flex items-center gap-3 px-4 py-2.5"
+                      type="button"
+                      onClick={() => setSelectedId(isSelected ? null : badge.id)}
+                      aria-pressed={isSelected}
+                      aria-label={badge.name}
+                      className="relative transition-transform duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D1B4E]/40 rounded-sm"
                       style={{
-                        borderTop: i > 0 ? "1px solid rgba(45,27,78,0.05)" : undefined,
-                        opacity: isEarned ? 1 : 0.42,
+                        transform: isSelected ? "scale(1.13)" : "scale(1)",
+                        background: "transparent",
+                        padding: 0,
                       }}
                     >
-                      <span style={{ fontSize: 20, lineHeight: 1, flexShrink: 0, filter: isEarned ? "none" : "grayscale(1)" }}>
-                        {badge.icon}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[13px] font-semibold text-[#2D1B4E] leading-tight">
-                          {badge.name}
-                        </p>
-                        <p className="text-[11px] mt-0.5 leading-snug" style={{ color: "rgba(45,27,78,0.45)" }}>
-                          {badge.description}
-                        </p>
-                      </div>
-                      {isEarned ? (
-                        <div className="shrink-0 text-right">
-                          <p style={{ fontSize: 11, fontWeight: 700, color: "#22c55e" }}>✓</p>
-                          <p className="text-[10px]" style={{ color: "rgba(45,27,78,0.35)" }}>
-                            {new Date(badge.earnedAt!).toLocaleDateString("en-US", {
-                              month: "short", day: "numeric", year: "numeric",
-                            })}
-                          </p>
-                        </div>
-                      ) : (
-                        <span style={{ fontSize: 14, color: "rgba(45,27,78,0.18)", flexShrink: 0 }}>—</span>
-                      )}
-                    </div>
+                      <BadgeSVG badge={badge} size={64} />
+                    </button>
                   );
                 })}
               </div>
+
+              {/* Inline detail panel */}
+              {detail && (
+                <div
+                  className="mx-4 mb-4 flex items-start gap-4 p-4 rounded-xl"
+                  style={{
+                    background: "rgba(45,27,78,0.03)",
+                    border: "1px solid rgba(45,27,78,0.09)",
+                  }}
+                >
+                  <BadgeSVG badge={detail} size={72} />
+                  <div className="flex-1 min-w-0 py-0.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="font-bold text-[#2D1B4E] text-sm leading-tight">{detail.name}</p>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedId(null)}
+                        className="text-xs leading-none shrink-0 transition-colors hover:text-[#2D1B4E]/70"
+                        style={{ color: "rgba(45,27,78,0.30)", marginTop: 1 }}
+                        aria-label="Close"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <p className="text-xs mt-1.5 leading-snug" style={{ color: "rgba(45,27,78,0.55)" }}>
+                      {detail.description}
+                    </p>
+                    {detail.earnedAt ? (
+                      <p className="text-[10px] mt-2 font-semibold" style={{ color: "#16a34a" }}>
+                        ✓ Earned{" "}
+                        {new Date(detail.earnedAt).toLocaleDateString("en-US", {
+                          month: "long", day: "numeric", year: "numeric",
+                        })}
+                      </p>
+                    ) : (
+                      <p className="text-[10px] mt-2" style={{ color: "rgba(45,27,78,0.32)" }}>
+                        Not yet earned
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
