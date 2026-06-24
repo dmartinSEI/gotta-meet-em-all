@@ -161,7 +161,7 @@ export default async function ProfilePage() {
       </header>
 
       {/* ── Content ─────────────────────────────────────────────── */}
-      <main className="max-w-2xl mx-auto px-4 md:px-8 py-6 md:py-8">
+      <main className="max-w-4xl mx-auto px-4 md:px-8 py-6 md:py-8">
 
         {!consultant ? (
           <div
@@ -172,79 +172,92 @@ export default async function ProfilePage() {
             <p style={{ color: "rgba(45,27,78,0.55)" }}>Ask an admin to upload the roster with your email address included.</p>
           </div>
         ) : (
-          <>
-            {/* Trainer Card */}
-            {trainerCard && (
-              <div className="mb-8 pb-8 border-b flex flex-col items-center" style={{ borderColor: "rgba(45,27,78,0.08)" }}>
-                <p className="text-[9px] font-black tracking-[0.2em] uppercase text-[#2D1B4E]/40 mb-5 self-start">
-                  Your Card
-                </p>
-                <TrainerCard consultant={trainerCard} rosterSize={totalRoster} />
+          <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
+
+            {/* ── Left column: card + caught by ───────────────── */}
+            <div className="w-full md:w-56 md:sticky md:top-8 flex flex-col items-center md:items-stretch gap-5 shrink-0">
+              {trainerCard && (
+                <div className="flex flex-col items-center gap-3">
+                  <p className="text-[9px] font-black tracking-[0.2em] uppercase text-[#2D1B4E]/40 self-start">
+                    Your Card
+                  </p>
+                  <TrainerCard consultant={trainerCard} rosterSize={totalRoster} />
+                </div>
+              )}
+              <div className="w-full rounded-2xl p-4" style={{ background: "#fff", border: "1px solid rgba(45,27,78,0.07)" }}>
+                <CaughtBySection catchers={catcherRows} />
               </div>
-            )}
-
-            {/* Identity block */}
-            <div className="mb-8 pb-8 border-b" style={{ borderColor: "rgba(45,27,78,0.08)" }}>
-              <p className="text-2xl font-black text-[#2D1B4E] leading-tight">
-                {consultant.first_name} {consultant.last_name}
-              </p>
-              {consultant.title && <p className="text-[#2D1B4E]/55 mt-0.5 text-sm">{consultant.title}</p>}
-              {consultant.office && <p className="text-xs mt-0.5" style={{ color: "rgba(45,27,78,0.38)" }}>{consultant.office}</p>}
             </div>
 
-            {/* Standing */}
-            <StandingSection
-              totalXp={totalXp}
-              totalRoster={totalRoster}
-              caughtCount={caughtCount}
-              recognizedByCount={catcherRows.length}
-              rarity={rarity}
-            />
+            {/* ── Right column: detail sections ───────────────── */}
+            <div className="flex-1 min-w-0 flex flex-col gap-4">
 
-            {/* Photo upload */}
-            <div className="mb-8 pb-8 border-b" style={{ borderColor: "rgba(45,27,78,0.08)" }}>
-              <p className="text-[9px] font-black tracking-[0.2em] uppercase text-[#2D1B4E]/40 mb-4">
-                Profile photo
-              </p>
-              <PhotoUpload currentUrl={consultant.photo_url ?? null} />
+              {/* Identity */}
+              <div className="rounded-2xl p-5" style={{ background: "#fff", border: "1px solid rgba(45,27,78,0.07)" }}>
+                <p className="text-2xl font-black text-[#2D1B4E] leading-tight">
+                  {consultant.first_name} {consultant.last_name}
+                </p>
+                {consultant.title && <p className="text-[#2D1B4E]/55 mt-0.5 text-sm">{consultant.title}</p>}
+                {consultant.office && <p className="text-xs mt-0.5" style={{ color: "rgba(45,27,78,0.38)" }}>{consultant.office}</p>}
+              </div>
+
+              {/* Standing */}
+              <div className="rounded-2xl p-5" style={{ background: "#fff", border: "1px solid rgba(45,27,78,0.07)" }}>
+                <StandingSection
+                  totalXp={totalXp}
+                  totalRoster={totalRoster}
+                  caughtCount={caughtCount}
+                  recognizedByCount={catcherRows.length}
+                  rarity={rarity}
+                />
+              </div>
+
+              {/* Photo + Card BG */}
+              <div className="rounded-2xl p-5" style={{ background: "#fff", border: "1px solid rgba(45,27,78,0.07)" }}>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div>
+                    <p className="text-[9px] font-black tracking-[0.2em] uppercase text-[#2D1B4E]/40 mb-4">
+                      Profile photo
+                    </p>
+                    <PhotoUpload currentUrl={consultant.photo_url ?? null} />
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-black tracking-[0.2em] uppercase text-[#2D1B4E]/40 mb-4">
+                      Card background
+                    </p>
+                    <CardBgUpload
+                      currentUrl={consultant.card_bg_url ?? null}
+                      office={consultant.office ?? null}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Your Info */}
+              <div className="rounded-2xl p-5" style={{ background: "#fff", border: "1px solid rgba(45,27,78,0.07)" }}>
+                <p className="text-[9px] font-black tracking-[0.2em] uppercase text-[#2D1B4E]/40 mb-4">
+                  Your Info
+                </p>
+                <ProfileForm
+                  initialSkills={consultant.skills ?? ""}
+                  initialCurrentClient={consultant.current_client ?? ""}
+                  initialPastClients={consultant.past_clients ?? ""}
+                  initialPreferredComm={(consultant.preferred_comm as PreferredComm) ?? ""}
+                />
+              </div>
             </div>
-
-            {/* Card background */}
-            <div className="mb-8 pb-8 border-b" style={{ borderColor: "rgba(45,27,78,0.08)" }}>
-              <p className="text-[9px] font-black tracking-[0.2em] uppercase text-[#2D1B4E]/40 mb-4">
-                Card background
-              </p>
-              <CardBgUpload
-                currentUrl={consultant.card_bg_url ?? null}
-                office={consultant.office ?? null}
-              />
-            </div>
-
-            {/* Profile fields */}
-            <div className="mb-8 pb-8 border-b" style={{ borderColor: "rgba(45,27,78,0.08)" }}>
-              <p className="text-[9px] font-black tracking-[0.2em] uppercase text-[#2D1B4E]/40 mb-4">
-                Your Info
-              </p>
-              <ProfileForm
-                initialSkills={consultant.skills ?? ""}
-                initialCurrentClient={consultant.current_client ?? ""}
-                initialPastClients={consultant.past_clients ?? ""}
-                initialPreferredComm={(consultant.preferred_comm as PreferredComm) ?? ""}
-              />
-            </div>
-
-            {/* Caught by */}
-            <CaughtBySection catchers={catcherRows} />
-          </>
+          </div>
         )}
 
-        {/* Badges */}
-        <BadgeGrid
-          badgeList={ALL_BADGES.map((b) => ({
-            ...b,
-            earnedAt: earnedMap.get(b.id) ?? null,
-          }))}
-        />
+        {/* Badges — full width below columns */}
+        <div className="mt-8">
+          <BadgeGrid
+            badgeList={ALL_BADGES.map((b) => ({
+              ...b,
+              earnedAt: earnedMap.get(b.id) ?? null,
+            }))}
+          />
+        </div>
       </main>
     </div>
   );

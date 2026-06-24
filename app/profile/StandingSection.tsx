@@ -33,7 +33,7 @@ export default function StandingSection({ totalXp, totalRoster, caughtCount, rec
   const rarityHex   = RARITY_HEX[rarity];
 
   return (
-    <div className="mb-8 pb-8 border-b" style={{ borderColor: "rgba(45,27,78,0.08)" }}>
+    <div>
       <p className="text-[9px] font-black tracking-[0.2em] uppercase text-[#2D1B4E]/40 mb-5">
         Your Standing
       </p>

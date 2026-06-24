@@ -35,7 +35,7 @@ export default function CaughtBySection({ catchers }: { catchers: CatcherRow[] }
   );
 
   return (
-    <div className="mb-8 pb-8 border-b" style={{ borderColor: "rgba(45,27,78,0.08)" }}>
+    <div>
       <div className="flex items-center justify-between mb-4">
         <p className="text-[9px] font-black tracking-[0.2em] uppercase text-[#2D1B4E]/40">
           Recognized by
