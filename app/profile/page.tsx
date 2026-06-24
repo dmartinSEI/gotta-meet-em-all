@@ -252,6 +252,9 @@ export default async function ProfilePage() {
                     <CardBgUpload
                       currentUrl={consultant.card_bg_url ?? null}
                       office={consultant.office ?? null}
+                      firstName={consultant.first_name}
+                      lastName={consultant.last_name}
+                      title={consultant.title ?? ""}
                     />
                   </div>
                 </div>
