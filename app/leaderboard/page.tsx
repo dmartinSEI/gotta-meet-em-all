@@ -125,8 +125,9 @@ export default async function LeaderboardPage({
          SELECT COUNT(*)::int FROM catches ca2
          WHERE ca2.user_id = u.id
            AND ca2.caught_at >= date_trunc('month', now())
+           AND ca2.consultant_id != c.id
        ), 0)::int`
-    : `COUNT(ca.consultant_id)::int`;
+    : `COUNT(CASE WHEN ca.consultant_id != c.id THEN 1 END)::int`;
 
   const catchesJoin = isMonthly ? "" : "LEFT JOIN catches ca ON ca.user_id = u.id";
 

@@ -109,6 +109,7 @@ export async function checkAndAwardBadges(email: string): Promise<BadgeInfo[]> {
       FROM catches ca
       JOIN users u ON u.id = ca.user_id
       WHERE u.email = ${email}
+        AND ca.consultant_id != (SELECT c.id FROM consultants c WHERE c.email = ${email})
     `,
     sql<OfficeStats>`
       SELECT

@@ -78,6 +78,7 @@ export default async function ProfilePage() {
         FROM catches ca
         JOIN users u ON u.id = ca.user_id
         WHERE u.email = ${session.user.email}
+          AND ca.consultant_id != (SELECT id FROM consultants WHERE email = ${session.user.email})
       `,
       getAllUserRanks(),
     ]);

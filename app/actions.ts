@@ -17,9 +17,10 @@ export async function catchConsultant(consultantId: number, level: 1 | 2 | 3 = 1
 
     const result = await sql`
       INSERT INTO catches (user_id, consultant_id, level)
-      SELECT id, ${consultantId}, ${level}
-      FROM users
-      WHERE email = ${session.user.email}
+      SELECT u.id, ${consultantId}, ${level}
+      FROM users u
+      WHERE u.email = ${session.user.email}
+        AND ${consultantId} != (SELECT id FROM consultants WHERE email = ${session.user.email})
       ON CONFLICT (user_id, consultant_id) DO NOTHING
     `;
 
