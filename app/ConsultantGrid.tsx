@@ -201,14 +201,35 @@ export default function ConsultantGrid({
                   )}
                 </div>
 
-                {/* Catch level badge */}
-                {caught && (
-                  <div
-                    className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full flex items-center justify-center text-xs leading-none"
-                    style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
-                    title={CATCH_LEVEL_LABELS[c.catch_level!]}
-                  >
-                    {CATCH_LEVEL_ICONS[c.catch_level!]}
+                {/* Top-right badge column: catch level + top-10 rank */}
+                {(caught || (c.alltime_rank && c.alltime_rank <= 10)) && (
+                  <div className="absolute top-1.5 right-1.5 flex flex-col items-end gap-1">
+                    {caught && (
+                      <div
+                        className="w-5 h-5 rounded-full flex items-center justify-center text-xs leading-none"
+                        style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
+                        title={CATCH_LEVEL_LABELS[c.catch_level!]}
+                      >
+                        {CATCH_LEVEL_ICONS[c.catch_level!]}
+                      </div>
+                    )}
+                    {c.alltime_rank && c.alltime_rank <= 10 && (
+                      <div
+                        className="flex items-center gap-0.5 rounded px-1"
+                        style={{
+                          height: 16,
+                          background: "rgba(10,6,24,0.78)",
+                          backdropFilter: "blur(4px)",
+                          border: "1px solid rgba(251,191,36,0.55)",
+                        }}
+                        title={`#${c.alltime_rank} All Time`}
+                      >
+                        <span style={{ fontSize: 8, lineHeight: 1 }}>🏆</span>
+                        <span style={{ fontSize: 8, fontWeight: 800, color: "#fbbf24", lineHeight: 1 }}>
+                          #{c.alltime_rank}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
 
