@@ -282,6 +282,18 @@ export async function updateConsultant(id: number, formData: FormData) {
   }
 }
 
+export async function setNewHire(id: number, value: boolean) {
+  try {
+    await requireAdmin();
+    await sql`UPDATE consultants SET is_new_hire = ${value} WHERE id = ${id}`;
+    revalidatePath("/admin");
+    revalidatePath("/", "layout");
+    return { success: true as const };
+  } catch {
+    return { success: false as const, error: "Failed to update new hire status." };
+  }
+}
+
 export async function deleteConsultant(id: number) {
   try {
     await requireAdmin();

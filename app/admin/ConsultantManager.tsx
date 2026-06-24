@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { addConsultant, updateConsultant, deleteConsultant } from "./actions";
+import { addConsultant, updateConsultant, deleteConsultant, setNewHire } from "./actions";
 
 export interface ConsultantRow {
   id: number;
@@ -11,6 +11,7 @@ export interface ConsultantRow {
   last_name: string;
   title: string;
   office: string;
+  is_new_hire: boolean;
 }
 
 function Field({
@@ -116,7 +117,7 @@ export default function ConsultantManager({
         <table className="w-full text-sm">
           <thead>
             <tr style={{ background: "rgba(45,27,78,0.04)", borderBottom: "1px solid rgba(45,27,78,0.1)" }}>
-              {["Name", "Email", "Office", "Title", ""].map((h) => (
+              {["Name", "Email", "Office", "Title", "New Hire", ""].map((h) => (
                 <th
                   key={h}
                   className={`px-4 py-2.5 text-xs font-semibold ${h ? "text-left" : ""}`}
@@ -131,7 +132,7 @@ export default function ConsultantManager({
             {/* ── Add row ── */}
             {addingNew && (
               <tr style={{ borderBottom: "1px solid rgba(45,27,78,0.07)", background: "rgba(200,16,46,0.03)" }}>
-                <td colSpan={5} className="px-4 py-3">
+                <td colSpan={6} className="px-4 py-3">
                   <form action={handleAdd}>
                     <div className="flex flex-wrap gap-2 items-end">
                       <LabeledField label="First name *" name="first_name" placeholder="Jane" required />
@@ -174,7 +175,7 @@ export default function ConsultantManager({
               editingId === c.id ? (
                 /* ── Edit row ── */
                 <tr key={c.id} style={{ borderBottom: "1px solid rgba(45,27,78,0.07)", background: "rgba(251,191,36,0.06)" }}>
-                  <td colSpan={5} className="px-4 py-3">
+                  <td colSpan={6} className="px-4 py-3">
                     <form action={(fd) => handleEdit(c.id, fd)}>
                       <div className="flex flex-wrap gap-2 items-end">
                         <LabeledField label="First name *" name="first_name" defaultValue={c.first_name} required />
@@ -220,6 +221,19 @@ export default function ConsultantManager({
                   </td>
                   <td className="px-4 py-3" style={{ color: "rgba(45,27,78,0.55)" }}>
                     {c.title || "—"}
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <button
+                      onClick={async () => { await setNewHire(c.id, !c.is_new_hire); refresh(); }}
+                      disabled={isPending}
+                      title={c.is_new_hire ? "Remove new hire status" : "Mark as new hire"}
+                      className="text-xs font-semibold px-2.5 py-1 rounded-full border transition-colors disabled:opacity-50"
+                      style={c.is_new_hire
+                        ? { background: "rgba(34,197,94,0.12)", color: "#15803d", borderColor: "rgba(34,197,94,0.4)" }
+                        : { background: "transparent", color: "rgba(45,27,78,0.30)", borderColor: "rgba(45,27,78,0.15)" }}
+                    >
+                      {c.is_new_hire ? "✓ New Hire" : "+ New Hire"}
+                    </button>
                   </td>
                   <td className="px-4 py-3">
                     {confirmDeleteId === c.id ? (

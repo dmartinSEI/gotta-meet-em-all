@@ -47,6 +47,7 @@ export interface ConsultantRow {
   catch_level: number | null;
   is_own_card: boolean;
   is_creator?: boolean;
+  is_new_hire?: boolean;
   badge_ids: string[];
   consultant_xp: number;
   survey_data?: Record<string, string> | null;

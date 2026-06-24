@@ -59,8 +59,76 @@ export default function ConsultantGrid({
     });
   }, [consultants, search, statusFilter]);
 
+  const newHires = consultants.filter((c) => c.is_new_hire);
+
   return (
     <div>
+
+      {/* ── New Hires spotlight ─────────────────────────────────────────── */}
+      {newHires.length > 0 && (
+        <div className="mb-7 rounded-2xl overflow-hidden" style={{
+          background: "linear-gradient(135deg, rgba(45,27,78,0.03) 0%, rgba(34,197,94,0.05) 100%)",
+          border: "1.5px solid rgba(34,197,94,0.22)",
+        }}>
+          <div className="px-5 pt-4 pb-5">
+            <div className="flex items-center gap-2.5 mb-4">
+              <span style={{ fontSize: 18 }}>👋</span>
+              <p className="text-sm font-black text-[#2D1B4E]">New to the Team</p>
+              <span style={{
+                fontSize: 9.5, fontWeight: 700, color: "#15803d",
+                background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.3)",
+                padding: "1px 8px", borderRadius: 99,
+              }}>
+                {newHires.length} {newHires.length === 1 ? "person" : "people"}
+              </span>
+            </div>
+            <div className="flex gap-5 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+              {newHires.map((c) => {
+                const fullName = `${c.first_name} ${c.last_name}`;
+                const photo = pickPhoto(c);
+                const rarity = getRarity(c.consultant_xp, rosterSize);
+                const ring = photoRingStyle(rarity, RARITY_HEX[rarity]);
+                return (
+                  <div
+                    key={c.id}
+                    className="shrink-0 flex flex-col items-center gap-2 cursor-pointer group"
+                    style={{ width: 76 }}
+                    onClick={(e) => setSelectedCard({ consultant: c, rect: e.currentTarget.getBoundingClientRect() })}
+                  >
+                    <div style={{
+                      width: 64, height: 64, borderRadius: "50%",
+                      overflow: "hidden", position: "relative", flexShrink: 0,
+                      ...ring, background: "#2D1B4E",
+                    }}
+                      className="transition-transform duration-150 group-hover:scale-105"
+                    >
+                      {photo ? (
+                        <Image src={photo} alt={fullName} fill sizes="64px" className="object-cover object-top" />
+                      ) : (
+                        <InitialsAvatar name={fullName} />
+                      )}
+                    </div>
+                    <div className="text-center" style={{ width: "100%" }}>
+                      <p className="font-bold leading-tight truncate" style={{ fontSize: 10.5, color: "#2D1B4E" }}>
+                        {c.first_name}
+                      </p>
+                      <p className="font-bold leading-tight truncate" style={{ fontSize: 10.5, color: "#2D1B4E" }}>
+                        {c.last_name}
+                      </p>
+                      {c.title && (
+                        <p className="leading-tight truncate mt-0.5" style={{ fontSize: 9, color: "rgba(45,27,78,0.45)" }}>
+                          {c.title}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Filter bar */}
       <div className="flex flex-wrap gap-3 mb-5">
         <input
@@ -233,16 +301,30 @@ export default function ConsultantGrid({
                   </div>
                 )}
 
-                {/* "You" pill for own card */}
-                {c.is_own_card && (
-                  <a
-                    href="/profile"
-                    className="absolute top-1.5 left-1.5 text-white font-bold rounded leading-none"
-                    style={{ fontSize: 9, padding: "3px 6px", background: "rgba(200,16,46,0.80)", backdropFilter: "blur(4px)" }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    You
-                  </a>
+                {/* Top-left: "NEW" badge and/or "You" pill */}
+                {(c.is_new_hire || c.is_own_card) && (
+                  <div className="absolute top-1.5 left-1.5 flex flex-col gap-1">
+                    {c.is_new_hire && (
+                      <span style={{
+                        fontSize: 8, fontWeight: 800, color: "#fff",
+                        padding: "2px 5px", borderRadius: 3,
+                        background: "rgba(34,197,94,0.88)", backdropFilter: "blur(4px)",
+                        letterSpacing: "0.06em", lineHeight: 1.4,
+                      }}>
+                        NEW
+                      </span>
+                    )}
+                    {c.is_own_card && (
+                      <a
+                        href="/profile"
+                        className="text-white font-bold rounded leading-none"
+                        style={{ fontSize: 9, padding: "3px 6px", background: "rgba(200,16,46,0.80)", backdropFilter: "blur(4px)" }}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        You
+                      </a>
+                    )}
+                  </div>
                 )}
               </div>
             );

@@ -44,7 +44,8 @@ export default async function AdminPage({
     const { rows } = await sql<ConsultantRow>`
       SELECT id, email, first_name, last_name,
              COALESCE(title,  '') AS title,
-             COALESCE(office, '') AS office
+             COALESCE(office, '') AS office,
+             COALESCE(is_new_hire, false) AS is_new_hire
       FROM consultants
       ORDER BY last_name, first_name
     `;
