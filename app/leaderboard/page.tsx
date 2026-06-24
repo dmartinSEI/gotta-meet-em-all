@@ -58,9 +58,9 @@ const AVATAR_COLORS = [
 const MEDAL = ["🥇", "🥈", "🥉"];
 
 const PODIUM_STYLES = [
-  { height: 80,  bg: "linear-gradient(180deg, #64748b 0%, #475569 100%)" }, // 2nd — silver
-  { height: 112, bg: "linear-gradient(180deg, #f59e0b 0%, #d97706 100%)" }, // 1st — gold
-  { height: 56,  bg: "linear-gradient(180deg, #c2410c 0%, #9a3412 100%)" }, // 3rd — bronze
+  { height: 90,  bg: "linear-gradient(180deg, #94a3b8 0%, #64748b 100%)" }, // 2nd — silver
+  { height: 130, bg: "linear-gradient(180deg, #fbbf24 0%, #d97706 100%)" }, // 1st — gold
+  { height: 62,  bg: "linear-gradient(180deg, #cd7c4a 0%, #92471c 100%)" }, // 3rd — bronze
 ] as const;
 
 const PODIUM_COL_ORDER = [1, 0, 2];
@@ -261,49 +261,118 @@ export default async function LeaderboardPage({
           <>
             {/* ── Podium ──────────────────────────────────────────── */}
             {top3.length > 0 && (
-              <div className="flex items-end justify-center gap-6 mb-10">
-                {PODIUM_COL_ORDER.map((rankIdx) => {
-                  const entry = top3[rankIdx];
-                  if (!entry) return null;
-                  const style    = PODIUM_STYLES[rankIdx];
-                  const rank     = rankIdx + 1;
-                  const isSelf   = entry.email === session.user!.email;
-                  const fullName = `${entry.first_name} ${entry.last_name}`;
-                  const rarity   = getRarity(entry.total_xp, rosterSize);
-                  const pct      = rosterSize > 0 ? Math.round((entry.total_met / rosterSize) * 100) : 0;
+              <div className="mb-10" style={{
+                background: "rgba(45,27,78,0.03)",
+                border: "1px solid rgba(45,27,78,0.07)",
+                borderRadius: 20,
+                padding: "24px 12px 0",
+              }}>
+                <div className="flex items-end justify-center gap-2 sm:gap-3">
+                  {PODIUM_COL_ORDER.map((rankIdx) => {
+                    const entry = top3[rankIdx];
+                    if (!entry) return null;
+                    const style    = PODIUM_STYLES[rankIdx];
+                    const rank     = rankIdx + 1;
+                    const isSelf   = entry.email === session.user!.email;
+                    const fullName = `${entry.first_name} ${entry.last_name}`;
+                    const rarity   = getRarity(entry.total_xp, rosterSize);
+                    const pct      = rosterSize > 0 ? Math.round((entry.total_met / rosterSize) * 100) : 0;
 
-                  return (
-                    <div key={entry.email} className="flex flex-col items-center gap-2 flex-1"
-                         style={{ transform: isSelf ? "scale(1.06)" : undefined }}>
-                      <div className="relative">
-                        <div style={{ borderRadius: "50%", padding: 3, background: isSelf ? "#C8102E" : "rgba(45,27,78,0.10)" }}>
-                          <Avatar name={fullName} photoUrl={entry.photo_url} size={rank === 1 ? 68 : 52} />
+                    return (
+                      <div key={entry.email} className="flex flex-col items-center min-w-0"
+                           style={{ flex: 1, transform: isSelf ? "scale(1.03)" : undefined, transformOrigin: "bottom center" }}>
+
+                        {/* Crown for 1st */}
+                        {rank === 1 && (
+                          <div style={{ fontSize: 22, lineHeight: 1, marginBottom: 6 }}>👑</div>
+                        )}
+
+                        {/* Avatar */}
+                        <div style={{
+                          position: "relative",
+                          borderRadius: "50%",
+                          padding: 3,
+                          background: isSelf ? "#C8102E" : RARITY_RING[rarity],
+                          boxShadow: rank === 1 ? "0 0 28px 8px rgba(251,191,36,0.28)" : undefined,
+                          marginBottom: 10,
+                          flexShrink: 0,
+                        }}>
+                          <Avatar name={fullName} photoUrl={entry.photo_url} size={rank === 1 ? 80 : 58} />
+                          <span style={{
+                            position: "absolute", top: -4, right: -3,
+                            fontSize: rank === 1 ? 18 : 14, lineHeight: 1,
+                          }}>{MEDAL[rankIdx]}</span>
                         </div>
-                        <span className="absolute -top-2 -right-1 text-xl leading-none">{MEDAL[rankIdx]}</span>
-                      </div>
 
-                      <div className="text-center">
-                        <p className="font-black text-sm leading-tight text-[#2D1B4E]">
-                          {entry.first_name}{isSelf && <span style={{ color: "#C8102E" }}> ★</span>}
-                        </p>
-                        <p className="text-[10px]" style={{ color: "rgba(45,27,78,0.38)" }}>{entry.office}</p>
-                      </div>
+                        {/* Frosted nameplate */}
+                        <div style={{
+                          width: "100%",
+                          background: "rgba(255,255,255,0.93)",
+                          backdropFilter: "blur(8px)",
+                          borderRadius: "12px 12px 0 0",
+                          border: "1px solid rgba(45,27,78,0.08)",
+                          borderBottom: "none",
+                          padding: "10px 8px 12px",
+                          textAlign: "center",
+                          boxShadow: "0 -2px 12px rgba(45,27,78,0.06)",
+                        }}>
+                          <p style={{
+                            fontSize: rank === 1 ? 13 : 11,
+                            fontWeight: 800,
+                            color: "#2D1B4E",
+                            lineHeight: 1.25,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}>
+                            {fullName}{isSelf && <span style={{ color: "#C8102E" }}> ★</span>}
+                          </p>
+                          <p style={{
+                            fontSize: 9, color: "rgba(45,27,78,0.38)", marginTop: 2,
+                            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                          }}>
+                            {entry.office}
+                          </p>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 5, marginTop: 7, flexWrap: "wrap" }}>
+                            <span style={{ fontSize: rank === 1 ? 14 : 12, fontWeight: 800, color: "#2D1B4E" }}>
+                              {entry.total_xp} pts
+                            </span>
+                            <span style={{
+                              fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 99,
+                              background: RARITY_ROW_BADGE[rarity].bg, color: RARITY_ROW_BADGE[rarity].color,
+                            }}>
+                              {RARITY_LABELS[rarity]}
+                            </span>
+                          </div>
+                          <p style={{ fontSize: 9, color: "rgba(45,27,78,0.32)", marginTop: 4 }}>
+                            {isMonthly ? `${entry.total_met} new this month` : `${entry.total_met} met · ${pct}%`}
+                          </p>
+                        </div>
 
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                            style={{ background: RARITY_ROW_BADGE[rarity].bg, color: RARITY_ROW_BADGE[rarity].color }}>
-                        {RARITY_LABELS[rarity]}
-                      </span>
-
-                      <div className="w-full rounded-t-xl flex flex-col items-center justify-start pt-3 gap-0.5"
-                           style={{ height: style.height, background: style.bg }}>
-                        <p className="text-white font-black text-sm tabular-nums">{entry.total_xp} pts</p>
-                        <p className="text-white/65 text-[10px] tabular-nums">
-                          {isMonthly ? `${entry.total_met} new` : `${entry.total_met} met · ${pct}%`}
-                        </p>
+                        {/* Platform */}
+                        <div style={{
+                          width: "100%",
+                          height: style.height,
+                          background: style.bg,
+                          borderRadius: "0 0 10px 10px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          boxShadow: "inset 0 2px 0 rgba(255,255,255,0.18), 0 6px 20px rgba(0,0,0,0.18)",
+                        }}>
+                          <span style={{
+                            fontSize: rank === 1 ? 40 : 30,
+                            fontWeight: 800,
+                            color: "rgba(255,255,255,0.20)",
+                            lineHeight: 1,
+                          }}>
+                            {rank}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             )}
 
