@@ -243,6 +243,22 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
                 </div>
               )}
 
+              {/* Creator badge */}
+              {consultant.is_creator && (
+                <div style={{
+                  position: "absolute", top: 10, right: 10, zIndex: 2,
+                  display: "flex", alignItems: "center", gap: 4,
+                  background: "rgba(10,6,24,0.82)", backdropFilter: "blur(6px)",
+                  borderRadius: 5, padding: "3px 7px",
+                  border: "1px solid rgba(200,16,46,0.6)",
+                }}>
+                  <span style={{ fontSize: 10, lineHeight: 1 }}>♛</span>
+                  <span style={{ fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.92)", letterSpacing: "0.08em" }}>
+                    CREATOR
+                  </span>
+                </div>
+              )}
+
               {/* Circle profile photo — centered, shifted up */}
               <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", paddingBottom: "28%" }}>
                 <div style={{

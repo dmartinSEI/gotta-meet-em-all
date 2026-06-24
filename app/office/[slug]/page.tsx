@@ -98,9 +98,17 @@ export default async function OfficePage({
     ORDER BY c.last_name, c.first_name
   `;
 
+  const adminEmails = new Set(
+    (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase())
+  );
   const rankedRows = rows.map((c) => {
     const r = rankMap.get(c.email);
-    return { ...c, alltime_rank: r?.alltime_rank ?? null, monthly_rank: r?.monthly_rank ?? null };
+    return {
+      ...c,
+      alltime_rank: r?.alltime_rank ?? null,
+      monthly_rank: r?.monthly_rank ?? null,
+      is_creator: adminEmails.has(c.email.toLowerCase()),
+    };
   });
 
   const total = rankedRows.length;

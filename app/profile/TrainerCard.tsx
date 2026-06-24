@@ -137,6 +137,22 @@ export default function TrainerCard({
             </div>
           )}
 
+          {/* Creator badge */}
+          {consultant.is_creator && (
+            <div style={{
+              position: "absolute", top: 7, right: 7, zIndex: 2,
+              display: "flex", alignItems: "center", gap: 3,
+              background: "rgba(10,6,24,0.82)", backdropFilter: "blur(4px)",
+              borderRadius: 4, padding: "2px 5px",
+              border: "1px solid rgba(200,16,46,0.6)",
+            }}>
+              <span style={{ fontSize: 7, lineHeight: 1 }}>♛</span>
+              <span style={{ fontSize: 7, fontWeight: 900, color: "rgba(255,255,255,0.92)", letterSpacing: "0.1em" }}>
+                CREATOR
+              </span>
+            </div>
+          )}
+
           {/* Circle profile photo */}
           <div
             className="absolute inset-0 flex items-center justify-center"

@@ -73,9 +73,17 @@ export default async function CollectionPage() {
   ]);
 
   const totalRoster = (rosterRows[0] as { n: number } | undefined)?.n ?? 0;
+  const adminEmails = new Set(
+    (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase())
+  );
   const rankedRows = rows.map((c) => {
     const r = rankMap.get(c.email);
-    return { ...c, alltime_rank: r?.alltime_rank ?? null, monthly_rank: r?.monthly_rank ?? null };
+    return {
+      ...c,
+      alltime_rank: r?.alltime_rank ?? null,
+      monthly_rank: r?.monthly_rank ?? null,
+      is_creator: adminEmails.has(c.email.toLowerCase()),
+    };
   });
   const totalXp: number = (xpRows[0] as { total_xp: number } | undefined)?.total_xp ?? 0;
 

@@ -46,6 +46,7 @@ export interface ConsultantRow {
   monthly_rank?: number | null;
   catch_level: number | null;
   is_own_card: boolean;
+  is_creator?: boolean;
   badge_ids: string[];
   consultant_xp: number;
   survey_data?: Record<string, string> | null;
