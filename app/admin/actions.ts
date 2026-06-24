@@ -4,6 +4,7 @@ import * as XLSX from "xlsx";
 import { put } from "@vercel/blob";
 import { pool, sql } from "@/lib/db";
 import { auth } from "../../auth";
+import { revalidatePath } from "next/cache";
 import type { Consultant } from "@/lib/types";
 import { SURVEY_FIELD_MAP, SKIP_KEYS, SYSTEM_COLUMNS } from "@/lib/survey-fields";
 
@@ -224,5 +225,103 @@ export async function importPhotos(formData: FormData) {
   } catch (error) {
     console.error("importPhotos error:", error);
     return { success: false as const, error: "Photo import failed. Please try again." };
+  }
+}
+
+// ── God-mode: individual consultant management ────────────────────────────────
+
+export async function addConsultant(formData: FormData) {
+  try {
+    await requireAdmin();
+    const email      = ((formData.get("email")      as string) ?? "").trim().toLowerCase();
+    const first_name = ((formData.get("first_name") as string) ?? "").trim();
+    const last_name  = ((formData.get("last_name")  as string) ?? "").trim();
+    const title      = ((formData.get("title")      as string) ?? "").trim();
+    const office     = ((formData.get("office")     as string) ?? "").trim();
+
+    if (!email || !EMAIL_RE.test(email) || !first_name || !last_name)
+      return { success: false as const, error: "Email, first name, and last name are required." };
+
+    await sql`
+      INSERT INTO consultants (email, first_name, last_name, title, office)
+      VALUES (${email}, ${first_name}, ${last_name}, ${title}, ${office})
+      ON CONFLICT (email) DO UPDATE SET
+        first_name = EXCLUDED.first_name,
+        last_name  = EXCLUDED.last_name,
+        title      = EXCLUDED.title,
+        office     = EXCLUDED.office
+    `;
+    revalidatePath("/admin");
+    return { success: true as const };
+  } catch {
+    return { success: false as const, error: "Failed to add consultant." };
+  }
+}
+
+export async function updateConsultant(id: number, formData: FormData) {
+  try {
+    await requireAdmin();
+    const first_name = ((formData.get("first_name") as string) ?? "").trim();
+    const last_name  = ((formData.get("last_name")  as string) ?? "").trim();
+    const title      = ((formData.get("title")      as string) ?? "").trim();
+    const office     = ((formData.get("office")     as string) ?? "").trim();
+
+    if (!first_name || !last_name)
+      return { success: false as const, error: "First and last name are required." };
+
+    await sql`
+      UPDATE consultants
+      SET first_name = ${first_name}, last_name = ${last_name},
+          title = ${title}, office = ${office}
+      WHERE id = ${id}
+    `;
+    revalidatePath("/admin");
+    return { success: true as const };
+  } catch {
+    return { success: false as const, error: "Failed to update consultant." };
+  }
+}
+
+export async function deleteConsultant(id: number) {
+  try {
+    await requireAdmin();
+    await sql`DELETE FROM catch_events WHERE consultant_id = ${id}`;
+    await sql`DELETE FROM catches      WHERE consultant_id = ${id}`;
+    await sql`DELETE FROM consultants  WHERE id = ${id}`;
+    revalidatePath("/admin");
+    return { success: true as const };
+  } catch {
+    return { success: false as const, error: "Failed to delete consultant." };
+  }
+}
+
+// ── God-mode: player progress management ─────────────────────────────────────
+
+export async function resetUserProgress(userId: number) {
+  try {
+    await requireAdmin();
+    await sql`DELETE FROM user_badges  WHERE user_id = ${userId}`;
+    await sql`DELETE FROM catch_events WHERE user_id = ${userId}`;
+    await sql`DELETE FROM catches      WHERE user_id = ${userId}`;
+    revalidatePath("/admin");
+    return { success: true as const };
+  } catch {
+    return { success: false as const, error: "Failed to reset progress." };
+  }
+}
+
+export async function removeUser(userId: number) {
+  try {
+    await requireAdmin();
+    await sql`DELETE FROM user_badges  WHERE user_id = ${userId}`;
+    await sql`DELETE FROM catch_events WHERE user_id = ${userId}`;
+    await sql`DELETE FROM catches      WHERE user_id = ${userId}`;
+    await sql`DELETE FROM sessions     WHERE user_id = ${userId}`;
+    await sql`DELETE FROM accounts     WHERE user_id = ${userId}`;
+    await sql`DELETE FROM users        WHERE id = ${userId}`;
+    revalidatePath("/admin");
+    return { success: true as const };
+  } catch {
+    return { success: false as const, error: "Failed to remove user." };
   }
 }
