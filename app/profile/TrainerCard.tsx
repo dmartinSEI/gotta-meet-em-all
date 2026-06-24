@@ -142,12 +142,13 @@ export default function TrainerCard({
             <div style={{
               position: "absolute", top: 7, right: 7, zIndex: 2,
               display: "flex", alignItems: "center", gap: 3,
-              background: "rgba(10,6,24,0.82)", backdropFilter: "blur(4px)",
-              borderRadius: 4, padding: "2px 5px",
-              border: "1px solid rgba(200,16,46,0.6)",
+              background: "rgba(10,6,24,0.88)", backdropFilter: "blur(6px)",
+              borderRadius: 4, padding: "3px 6px",
+              border: "1px solid rgba(251,191,36,0.7)",
+              boxShadow: "0 0 8px rgba(251,191,36,0.3)",
             }}>
-              <span style={{ fontSize: 7, lineHeight: 1 }}>♛</span>
-              <span style={{ fontSize: 7, fontWeight: 900, color: "rgba(255,255,255,0.92)", letterSpacing: "0.1em" }}>
+              <span style={{ fontSize: 8, lineHeight: 1, color: "#fbbf24" }}>♛</span>
+              <span style={{ fontSize: 7, fontWeight: 900, color: "#fbbf24", letterSpacing: "0.1em" }}>
                 CREATOR
               </span>
             </div>

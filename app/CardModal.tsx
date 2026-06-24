@@ -248,12 +248,13 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
                 <div style={{
                   position: "absolute", top: 10, right: 10, zIndex: 2,
                   display: "flex", alignItems: "center", gap: 4,
-                  background: "rgba(10,6,24,0.82)", backdropFilter: "blur(6px)",
-                  borderRadius: 5, padding: "3px 7px",
-                  border: "1px solid rgba(200,16,46,0.6)",
+                  background: "rgba(10,6,24,0.88)", backdropFilter: "blur(6px)",
+                  borderRadius: 5, padding: "4px 8px",
+                  border: "1px solid rgba(251,191,36,0.7)",
+                  boxShadow: "0 0 12px rgba(251,191,36,0.35)",
                 }}>
-                  <span style={{ fontSize: 10, lineHeight: 1 }}>♛</span>
-                  <span style={{ fontSize: 9, fontWeight: 800, color: "rgba(255,255,255,0.92)", letterSpacing: "0.08em" }}>
+                  <span style={{ fontSize: 11, lineHeight: 1, color: "#fbbf24" }}>♛</span>
+                  <span style={{ fontSize: 9, fontWeight: 800, color: "#fbbf24", letterSpacing: "0.1em" }}>
                     CREATOR
                   </span>
                 </div>
@@ -334,8 +335,17 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
                         {RARITY_LABELS[rarity]}
                       </div>
                     </div>
-                    {(consultant.alltime_rank || consultant.monthly_rank) && (
+                    {(consultant.alltime_rank || consultant.monthly_rank || consultant.is_creator) && (
                       <div style={{ display: "flex", gap: 4, marginBottom: 3, flexWrap: "wrap" }}>
+                        {consultant.is_creator && (
+                          <span style={{
+                            fontSize: 8, fontWeight: 800, padding: "2px 6px", borderRadius: 3,
+                            background: "rgba(251,191,36,0.15)", color: "#fbbf24",
+                            border: "1px solid rgba(251,191,36,0.55)",
+                          }}>
+                            ♛ Creator
+                          </span>
+                        )}
                         {consultant.alltime_rank && (
                           <span style={{
                             fontSize: 8, fontWeight: 700, padding: "2px 6px", borderRadius: 3,
