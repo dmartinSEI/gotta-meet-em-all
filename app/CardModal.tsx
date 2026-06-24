@@ -77,6 +77,32 @@ function foilStyle(rarity: Rarity, mx: number, my: number): React.CSSProperties 
   };
 }
 
+function holoFrontStyle(rarity: Rarity, mx: number, my: number): React.CSSProperties {
+  if (rarity === "common") return { display: "none" };
+  const r = rarity as Exclude<Rarity, "common">;
+  const angle = (mx / 100) * 180;
+  const stripeW  = ({ uncommon: 32, rare: 26, epic: 20, legendary: 14 } as const)[r];
+  const opacityM = ({ uncommon: 0.55, rare: 0.72, epic: 0.88, legendary: 1.0 } as const)[r];
+  const w = stripeW;
+  const stops = [
+    `rgba(255,0,128,0) 0px`,
+    `rgba(255,0,128,0.32) ${(w * 0.10).toFixed(1)}px`,
+    `rgba(255,165,0,0.30) ${(w * 0.25).toFixed(1)}px`,
+    `rgba(255,255,0,0.24) ${(w * 0.42).toFixed(1)}px`,
+    `rgba(0,255,128,0.30) ${(w * 0.58).toFixed(1)}px`,
+    `rgba(0,128,255,0.30) ${(w * 0.75).toFixed(1)}px`,
+    `rgba(128,0,255,0.30) ${(w * 0.90).toFixed(1)}px`,
+    `rgba(255,0,128,0) ${w}px`,
+  ].join(", ");
+  const specular = `radial-gradient(ellipse 65% 78% at ${mx}% ${my}%, rgba(255,255,255,0.20) 0%, transparent 100%)`;
+  return {
+    backgroundImage: `${specular}, repeating-linear-gradient(${angle}deg, ${stops})`,
+    mixBlendMode: "screen" as const,
+    pointerEvents: "none" as const,
+    opacity: opacityM,
+  };
+}
+
 interface Props {
   consultant: ConsultantRow;
   sourceRect: DOMRect;
@@ -85,8 +111,10 @@ interface Props {
 }
 
 export default function CardModal({ consultant, sourceRect, rosterSize, onClose }: Props) {
-  const [phase, setPhase]  = useState<Phase>("init");
-  const [mouse, setMouse]  = useState({ x: 50, y: 50 });
+  const [phase, setPhase]        = useState<Phase>("init");
+  const [mouse, setMouse]        = useState({ x: 50, y: 50 });
+  const [flipped, setFlipped]    = useState(true);
+  const [isUserFlipping, setIsUserFlipping] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const rarity      = getRarity(consultant.consultant_xp, rosterSize);
@@ -141,6 +169,13 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
 
   const handleMouseLeave = useCallback(() => setMouse({ x: 50, y: 50 }), []);
 
+  const handleCardFlip = useCallback(() => {
+    if (phase !== "ready") return;
+    setIsUserFlipping(true);
+    setFlipped((prev) => !prev);
+    setTimeout(() => setIsUserFlipping(false), 520);
+  }, [phase]);
+
   const positionerTransform  = phase === "init"
     ? `translate(${initOffset.x}px, ${initOffset.y}px) scale(${initOffset.scale})`
     : "translate(0,0) scale(1)";
@@ -148,15 +183,15 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
     ? "transform 0.42s cubic-bezier(0.34,1.56,0.64,1)"
     : "none";
 
-  const tiltX = phase === "ready" ? (mouse.y - 50) * 0.14 : 0;
-  const tiltY = phase === "ready" ? (mouse.x - 50) * -0.14 : 0;
+  const tiltX = phase === "ready" && !isUserFlipping ? (mouse.y - 50) * 0.14 : 0;
+  const tiltY = phase === "ready" && !isUserFlipping ? (mouse.x - 50) * -0.14 : 0;
   const flipperTransform =
     phase === "init" || phase === "flying" ? "rotateY(0deg)"
     : phase === "flipping"                 ? "rotateY(180deg)"
-    : `rotateY(${180 + tiltY}deg) rotateX(${tiltX}deg)`;
+    : `rotateY(${(flipped ? 180 : 0) + tiltY}deg) rotateX(${tiltX}deg)`;
   const flipperTransition =
     phase === "flipping" ? "transform 0.56s cubic-bezier(0.4,0,0.2,1)"
-    : phase === "ready"  ? "transform 0.08s ease-out"
+    : phase === "ready"  ? (isUserFlipping ? "transform 0.52s cubic-bezier(0.4,0,0.2,1)" : "transform 0.08s ease-out")
     : "none";
 
   return (
@@ -286,6 +321,9 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
                 <p style={{ color: "#fff", fontWeight: 900, fontSize: 17, lineHeight: 1.2 }}>{fullName}</p>
                 {consultant.title && <p style={{ color: "rgba(255,255,255,0.65)", fontSize: 12, marginTop: 2 }}>{consultant.title}</p>}
               </div>
+
+              {/* Holographic shimmer — front face only */}
+              <div style={{ position: "absolute", inset: 0, borderRadius: 14, pointerEvents: "none", ...holoFrontStyle(rarity, mouse.x, mouse.y) }} />
             </div>
 
             {/* ── BACK FACE (TCG info card) ──────────────────────────── */}
@@ -510,9 +548,24 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
           </div>
         </div>
 
-        <p style={{ textAlign: "center", color: "rgba(255,255,255,0.35)", fontSize: 11, marginTop: 12, userSelect: "none" }}>
-          Click outside or press Esc to close
-        </p>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, marginTop: 12 }}>
+          {phase === "ready" && (
+            <button
+              onClick={(e) => { e.stopPropagation(); handleCardFlip(); }}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 5,
+                background: "rgba(255,255,255,0.10)", border: "1px solid rgba(255,255,255,0.22)",
+                color: "rgba(255,255,255,0.75)", borderRadius: 99,
+                padding: "5px 13px 5px 9px", fontSize: 11, cursor: "pointer",
+              }}
+            >
+              <span style={{ fontSize: 15, lineHeight: 1 }}>↺</span> Flip
+            </button>
+          )}
+          <p style={{ color: "rgba(255,255,255,0.28)", fontSize: 11, userSelect: "none" }}>
+            Click outside or Esc to close
+          </p>
+        </div>
       </div>
     </div>
   );
