@@ -244,7 +244,7 @@ export default function CardBgUpload({
             : "Defaults to your office image. Upload to personalize your card."}
         </p>
         <p className="text-xs mb-2" style={{ color: "rgba(45,27,78,0.30)" }}>
-          Best: portrait, 1000px+, under 5 MB
+          Best: portrait, 1000px+, under 5 MB · phone wallpapers work great
         </p>
         <button
           type="button"
