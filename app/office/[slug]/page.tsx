@@ -51,7 +51,8 @@ export default async function OfficePage({
         + COALESCE((
           SELECT SUM(b.bonus_xp) FROM bounties b
           WHERE b.user_id = u.id AND b.completed_at IS NOT NULL
-        ), 0)::int AS total_xp,
+        ), 0)::int
+        + COALESCE((SELECT COUNT(*)::int * 5 FROM onboarding_steps os WHERE os.user_id = u.id), 0) AS total_xp,
         (SELECT COUNT(*)::int FROM consultants) AS roster_size
       FROM users u
       WHERE u.email = ${session.user.email}

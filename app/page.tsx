@@ -7,6 +7,7 @@ import { getRarity, RARITY_LABELS, type Rarity } from "@/lib/xp";
 import { officeImageSrc } from "@/lib/cards";
 import { getOrAssignBounty } from "@/lib/bounty";
 import BountyCard from "./BountyCard";
+import OnboardingChecklist from "./OnboardingChecklist";
 
 const HEADER_RARITY: Record<Rarity, string> = {
   common:    "bg-white/10 text-white/80 border border-white/20",
@@ -60,7 +61,8 @@ export default async function HomePage() {
         + COALESCE((
           SELECT SUM(b.bonus_xp) FROM bounties b
           WHERE b.user_id = u.id AND b.completed_at IS NOT NULL
-        ), 0)::int AS total_xp
+        ), 0)::int
+        + COALESCE((SELECT COUNT(*)::int * 5 FROM onboarding_steps os WHERE os.user_id = u.id), 0) AS total_xp
       FROM users u
       WHERE u.email = ${session.user.email}
     `,
@@ -127,6 +129,7 @@ export default async function HomePage() {
       {/* ── Content ─────────────────────────────────────────────── */}
       <main className="max-w-5xl mx-auto px-4 md:px-8 py-8">
 
+        <OnboardingChecklist email={session.user.email} />
         {bounty && <BountyCard bounty={bounty} />}
 
         {officeRows.length === 0 ? (
