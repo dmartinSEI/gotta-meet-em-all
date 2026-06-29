@@ -4,7 +4,7 @@ import { auth, signOut } from "../../../auth";
 import { sql } from "@/lib/db";
 import ConsultantGrid from "../../ConsultantGrid";
 import type { ConsultantRow } from "@/lib/types";
-import { getRarity, RARITY_LABELS, type Rarity } from "@/lib/xp";
+import { getRarity, RARITY_LABELS, HEADER_RARITY } from "@/lib/xp";
 import { getAllUserRanks } from "@/lib/ranks";
 
 interface OfficeRecord {
@@ -18,13 +18,6 @@ interface GlobalStats {
   roster_size: number;
 }
 
-const HEADER_RARITY: Record<Rarity, string> = {
-  common:    "bg-white/10 text-white/80 border border-white/20",
-  uncommon:  "bg-green-400/20 text-green-300 border border-green-400/40",
-  rare:      "bg-blue-400/20 text-blue-300 border border-blue-400/40",
-  epic:      "bg-purple-400/20 text-purple-200 border border-purple-400/40",
-  legendary: "bg-yellow-400/20 text-yellow-300 border border-yellow-400/40",
-};
 
 export default async function OfficePage({
   params,

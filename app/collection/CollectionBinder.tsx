@@ -5,7 +5,7 @@ import Image from "next/image";
 import CardModal from "../CardModal";
 import type { ConsultantRow } from "@/lib/types";
 import { getRarity, CATCH_LEVEL_ICONS, CATCH_LEVEL_LABELS, type Rarity } from "@/lib/xp";
-import { pickPhoto, officeImageSrc } from "@/lib/cards";
+import { pickPhoto, officeImageSrc, AVATAR_COLORS } from "@/lib/cards";
 
 const CARD_BORDER: Record<Rarity, string> = {
   common:    "1px solid rgba(45,27,78,0.12)",
@@ -36,16 +36,12 @@ const LEVEL_BADGE_SIZE: Record<1 | 2 | 3, string> = {
   3: "w-7 h-7 text-base",
 };
 
-const AVATAR_COLORS = [
-  "bg-blue-500", "bg-purple-500", "bg-emerald-500", "bg-orange-500",
-  "bg-pink-500", "bg-teal-500", "bg-indigo-500", "bg-rose-500",
-];
-
 function CardAvatar({ name }: { name: string }) {
   const initials = name.split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase();
-  const color = AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
+  const bg = AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
   return (
-    <div className={`w-full h-full flex items-center justify-center text-white font-bold text-2xl ${color}`}>
+    <div className="w-full h-full flex items-center justify-center text-white font-bold text-2xl"
+         style={{ background: bg }}>
       {initials}
     </div>
   );

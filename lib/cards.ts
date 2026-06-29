@@ -1,4 +1,10 @@
 import type { ConsultantRow } from "./types";
+import type { Rarity } from "./xp";
+
+export const AVATAR_COLORS = [
+  "#3b82f6", "#8b5cf6", "#10b981", "#f97316",
+  "#ec4899", "#14b8a6", "#6366f1", "#f43f5e",
+] as const;
 
 export function officeImageSrc(office: string | null | undefined): string | null {
   if (!office) return null;
@@ -18,7 +24,7 @@ export function pickPhoto(c: ConsultantRow): string {
 // Returns border + boxShadow CSS for the circular profile photo ring.
 // Rarity drives both the ring structure and color — common = simple ring, legendary = triple ring.
 export function photoRingStyle(
-  rarity: string,
+  rarity: Rarity,
   rarityHex: string,
 ): { border: string; boxShadow: string } {
   const c = rarityHex;

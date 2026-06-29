@@ -5,7 +5,7 @@ import Image from "next/image";
 import CardModal from "../CardModal";
 import type { ConsultantRow } from "@/lib/types";
 import { getRarity, RARITY_LABELS, type Rarity } from "@/lib/xp";
-import { pickPhoto, officeImageSrc } from "@/lib/cards";
+import { pickPhoto, officeImageSrc, AVATAR_COLORS } from "@/lib/cards";
 
 const RARITY_RING: Record<Rarity, string> = {
   common:    "rgba(255,255,255,0.55)",
@@ -32,9 +32,8 @@ const RARITY_TEXT: Record<Rarity, string> = {
 };
 
 function InitialsAvatar({ name }: { name: string }) {
-  const COLORS = ["#3b82f6","#8b5cf6","#10b981","#f97316","#ec4899","#14b8a6","#6366f1","#f43f5e"];
   const initials = name.split(" ").slice(0, 2).map(n => n[0]).join("").toUpperCase();
-  const bg = COLORS[name.charCodeAt(0) % COLORS.length];
+  const bg = AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length];
   return (
     <div className="w-full h-full flex items-center justify-center text-white font-bold"
          style={{ background: bg, fontSize: 28 }}>

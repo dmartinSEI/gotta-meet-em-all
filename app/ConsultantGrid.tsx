@@ -5,7 +5,7 @@ import Image from "next/image";
 import CardModal from "./CardModal";
 import type { ConsultantRow } from "@/lib/types";
 import { getRarity, RARITY_HEX, CATCH_LEVEL_ICONS, CATCH_LEVEL_LABELS, type Rarity } from "@/lib/xp";
-import { pickPhoto, photoRingStyle } from "@/lib/cards";
+import { pickPhoto, photoRingStyle, AVATAR_COLORS } from "@/lib/cards";
 
 type StatusFilter = "all" | "unmet" | "met";
 
@@ -17,11 +17,6 @@ const CARD_GLOW: Record<Rarity, string> = {
   epic:      "0 0 14px 3px rgba(192,132,252,0.42),  0 2px 10px rgba(0,0,0,0.12)",
   legendary: "0 0 18px 5px rgba(251,191,36,0.50),   0 2px 10px rgba(0,0,0,0.12)",
 };
-
-const AVATAR_COLORS = [
-  "#3b82f6", "#8b5cf6", "#10b981", "#f97316",
-  "#ec4899", "#14b8a6", "#6366f1", "#f43f5e",
-];
 
 function InitialsAvatar({ name }: { name: string }) {
   const initials = name.split(" ").slice(0, 2).map((n) => n[0]).join("").toUpperCase();

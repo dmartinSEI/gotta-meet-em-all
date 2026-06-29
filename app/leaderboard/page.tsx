@@ -3,7 +3,8 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { auth, signOut } from "../../auth";
 import { pool, sql } from "@/lib/db";
-import { getRarity, RARITY_LABELS, type Rarity } from "@/lib/xp";
+import { getRarity, RARITY_LABELS, HEADER_RARITY, type Rarity } from "@/lib/xp";
+import { AVATAR_COLORS } from "@/lib/cards";
 import LeaderboardFilters from "./LeaderboardFilters";
 import { Suspense } from "react";
 
@@ -17,14 +18,6 @@ interface LeaderboardEntry {
   total_met: number;
   roster_size: number;
 }
-
-const HEADER_RARITY: Record<Rarity, string> = {
-  common:    "bg-white/10 text-white/80 border border-white/20",
-  uncommon:  "bg-green-400/20 text-green-300 border border-green-400/40",
-  rare:      "bg-blue-400/20 text-blue-300 border border-blue-400/40",
-  epic:      "bg-purple-400/20 text-purple-200 border border-purple-400/40",
-  legendary: "bg-yellow-400/20 text-yellow-300 border border-yellow-400/40",
-};
 
 const RARITY_RING: Record<Rarity, string> = {
   common:    "rgba(255,255,255,0.50)",
@@ -49,11 +42,6 @@ const RARITY_ROW_BADGE: Record<Rarity, { bg: string; color: string }> = {
   epic:      { bg: "rgba(192,132,252,0.12)", color: "#7e22ce" },
   legendary: { bg: "rgba(251,191,36,0.15)",  color: "#b45309" },
 };
-
-const AVATAR_COLORS = [
-  "#3b82f6", "#8b5cf6", "#10b981", "#f97316",
-  "#ec4899", "#14b8a6", "#6366f1", "#f43f5e",
-];
 
 const MEDAL = ["🥇", "🥈", "🥉"];
 

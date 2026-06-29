@@ -3,19 +3,11 @@ import { auth, signOut } from "../auth";
 import AnimatedAuthBackground from "./AnimatedAuthBackground";
 import { sql } from "@/lib/db";
 import type { OfficeRow } from "@/lib/types";
-import { getRarity, RARITY_LABELS, type Rarity } from "@/lib/xp";
+import { getRarity, RARITY_LABELS, HEADER_RARITY } from "@/lib/xp";
 import { officeImageSrc } from "@/lib/cards";
 import { getOrAssignBounty } from "@/lib/bounty";
 import BountyCard from "./BountyCard";
 import OnboardingChecklist from "./OnboardingChecklist";
-
-const HEADER_RARITY: Record<Rarity, string> = {
-  common:    "bg-white/10 text-white/80 border border-white/20",
-  uncommon:  "bg-green-400/20 text-green-300 border border-green-400/40",
-  rare:      "bg-blue-400/20 text-blue-300 border border-blue-400/40",
-  epic:      "bg-purple-400/20 text-purple-200 border border-purple-400/40",
-  legendary: "bg-yellow-400/20 text-yellow-300 border border-yellow-400/40",
-};
 
 export default async function HomePage() {
   const session = await auth();
@@ -106,6 +98,9 @@ export default async function HomePage() {
             <div className="hidden md:flex items-center gap-4">
               <div className="w-px h-4 bg-white/20" />
               <nav className="flex items-center gap-4 flex-wrap">
+                <Link href="/search" className="text-white/65 hover:text-white text-sm font-medium transition-colors whitespace-nowrap">
+                  Find People
+                </Link>
                 <Link href="/leaderboard" className="text-white/65 hover:text-white text-sm font-medium transition-colors whitespace-nowrap">
                   Leaderboard
                 </Link>
@@ -131,6 +126,32 @@ export default async function HomePage() {
 
         <OnboardingChecklist email={session.user.email} />
         {bounty && <BountyCard bounty={bounty} />}
+
+        {/* ── Cross-office search ─────────────────────────────────── */}
+        <form action="/search" method="GET" className="mb-8">
+          <div
+            className="flex gap-3 rounded-2xl px-4 py-3"
+            style={{ background: "#fff", border: "1.5px solid rgba(45,27,78,0.08)" }}
+          >
+            <svg className="w-4 h-4 shrink-0 self-center" style={{ color: "rgba(45,27,78,0.35)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5} aria-hidden>
+              <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+            </svg>
+            <input
+              name="q"
+              type="search"
+              placeholder="Find people by interest, hobby, or skill…"
+              className="flex-1 text-sm bg-transparent focus:outline-none"
+              style={{ color: "#2D1B4E" }}
+            />
+            <button
+              type="submit"
+              className="shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-opacity hover:opacity-90"
+              style={{ background: "#C8102E" }}
+            >
+              Search
+            </button>
+          </div>
+        </form>
 
         {officeRows.length === 0 ? (
           <p style={{ color: "rgba(45,27,78,0.45)" }}>

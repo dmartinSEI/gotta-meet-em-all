@@ -5,8 +5,9 @@ import { put } from "@vercel/blob";
 import { pool, sql } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import type { Consultant } from "@/lib/types";
-import { SURVEY_FIELD_MAP, SKIP_KEYS, SYSTEM_COLUMNS } from "@/lib/survey-fields";
+import { SURVEY_FIELD_MAP, SKIP_KEYS, SYSTEM_COLUMNS, type SurveyData } from "@/lib/survey-fields";
 import { requireAdmin, AdminAuthError } from "@/lib/require-admin";
+import { generateConsultantBio } from "@/lib/ai";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
@@ -127,12 +128,32 @@ export async function importSurveyData(formData: FormData) {
       const result = await pool.query(
         `UPDATE consultants
          SET survey_data = COALESCE(survey_data, '{}'::jsonb) || $1::jsonb
-         WHERE LOWER(email) = $2`,
+         WHERE LOWER(email) = $2
+         RETURNING first_name, last_name, title`,
         [JSON.stringify(surveyData), email]
       );
 
-      if ((result.rowCount ?? 0) === 0) unmatched++;
-      else matched++;
+      if ((result.rowCount ?? 0) === 0) {
+        unmatched++;
+      } else {
+        matched++;
+        try {
+          const { first_name, last_name, title } = result.rows[0];
+          const bio = await generateConsultantBio(
+            `${first_name} ${last_name}`,
+            title,
+            surveyData as SurveyData
+          );
+          if (bio) {
+            await pool.query(
+              `UPDATE consultants SET bio = $1 WHERE LOWER(email) = $2`,
+              [bio, email]
+            );
+          }
+        } catch (err) {
+          console.error(`Bio generation failed for ${email}:`, err);
+        }
+      }
     }
 
     return {
