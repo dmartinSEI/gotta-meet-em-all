@@ -121,7 +121,7 @@ export default async function SearchPage({
          c.id, c.email, c.first_name, c.last_name, c.title, c.office,
          c.bio, c.skills, c.survey_data,
          c.photo_url, c.photo_url_l1, c.photo_url_l2, c.photo_url_l3,
-         c.card_bg_url, c.is_new_hire, c.is_creator,
+         c.card_bg_url, COALESCE(c.is_new_hire, false) AS is_new_hire,
          COALESCE((
            SELECT SUM(CASE ca2.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END)
            FROM catches ca2 JOIN users cu ON cu.id = ca2.user_id WHERE cu.email = c.email
@@ -150,7 +150,10 @@ export default async function SearchPage({
        LIMIT 30`,
       [pattern, session.user.email]
     );
-    results = rows;
+    const adminEmails = new Set(
+      (process.env.ADMIN_EMAILS ?? "").split(",").map(e => e.trim().toLowerCase())
+    );
+    results = rows.map(r => ({ ...r, is_creator: adminEmails.has(r.email.toLowerCase()) }));
     } catch (err) {
       console.error("Search query failed:", err);
       searchError = true;
