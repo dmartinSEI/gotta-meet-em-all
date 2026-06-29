@@ -145,7 +145,6 @@ export default async function SearchPage({
          OR c.survey_data::text ILIKE $1
          OR c.skills ILIKE $1
        )
-       AND LOWER(c.email) != LOWER($2)
        ORDER BY c.first_name, c.last_name
        LIMIT 30`,
       [pattern, session.user.email]
