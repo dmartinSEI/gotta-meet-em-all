@@ -468,10 +468,10 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
                   </div>
                 )}
 
-                {/* Skills */}
+                {/* What I can help with */}
                 {skillList.length > 0 && (
                   <div>
-                    <p style={LABEL_STYLE}>Skills</p>
+                    <p style={LABEL_STYLE}>What I can help with!</p>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
                       {skillList.map((skill, i) => (
                         <span key={i} style={{

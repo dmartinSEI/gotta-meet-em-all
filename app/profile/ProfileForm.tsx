@@ -53,18 +53,18 @@ export default function ProfileForm({
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
 
-      {/* Skills */}
+      {/* What I can help with */}
       <div>
-        <label className="block text-sm font-medium text-[#2D1B4E] mb-1">Skills</label>
+        <label className="block text-sm font-medium text-[#2D1B4E] mb-1">What I can help with</label>
         <p className="text-xs mb-2" style={{ color: "rgba(45,27,78,0.45)" }}>
-          Separate with commas — up to 5 skills
+          Skills or things you&apos;re willing to help colleagues with — work or otherwise. Example: Workday Implementations, Baking a Peach Cobbler, Blowing up the Death Star
         </p>
         <input
           type="text"
           value={skills}
           onChange={(e) => { setSkills(e.target.value); markDirty(); }}
           maxLength={300}
-          placeholder="Data Analysis, Python, Project Management…"
+          placeholder="Workday Implementations, Baking a Peach Cobbler, Blowing up the Death Star…"
           className="w-full px-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#2D1B4E]/30"
           style={{ borderColor: "rgba(45,27,78,0.18)" }}
         />
@@ -74,7 +74,7 @@ export default function ProfileForm({
           return (
             <>
               <p className="text-xs text-right mt-1" style={{ color: over ? "#C8102E" : "rgba(45,27,78,0.35)" }}>
-                {parsed.length}/5 skills{over ? " — only the first 5 will be saved" : ""}
+                {parsed.length}/5{over ? " — only the first 5 will be saved" : ""}
               </p>
               {parsed.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mt-2">
