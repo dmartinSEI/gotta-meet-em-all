@@ -20,8 +20,8 @@ interface SearchRow extends ConsultantRow {
 }
 
 function getSnippets(
-  bio: string,
-  surveyData: Record<string, string> | null,
+  bio: string | null,
+  surveyData: Record<string, unknown> | null,
   query: string
 ): { label: string; value: string }[] {
   const q = query.toLowerCase();
@@ -36,8 +36,9 @@ function getSnippets(
   }
 
   if (surveyData) {
-    for (const [key, value] of Object.entries(surveyData)) {
+    for (const [key, raw] of Object.entries(surveyData)) {
       if (results.length >= 2) break;
+      const value = raw != null ? String(raw) : "";
       if (value && value.toLowerCase().includes(q)) {
         const label = FIELD_LABELS[key as keyof SurveyData] ?? key;
         results.push({ label, value });
@@ -111,8 +112,10 @@ export default async function SearchPage({
   const viewerRarity = getRarity(totalXp, rosterSize);
 
   let results: SearchRow[] = [];
+  let searchError = false;
   if (query.length >= 2) {
     const pattern = `%${query}%`;
+    try {
     const { rows } = await pool.query<SearchRow>(
       `SELECT
          c.id, c.email, c.first_name, c.last_name, c.title, c.office,
@@ -148,6 +151,10 @@ export default async function SearchPage({
       [pattern, session.user.email]
     );
     results = rows;
+    } catch (err) {
+      console.error("Search query failed:", err);
+      searchError = true;
+    }
   }
 
   return (
@@ -216,8 +223,12 @@ export default async function SearchPage({
           </div>
         </form>
 
-        {/* State: prompt / empty / results */}
-        {query.length < 2 ? (
+        {/* State: error / prompt / empty / results */}
+        {searchError ? (
+          <p className="text-center text-sm py-16" style={{ color: "rgba(45,27,78,0.40)" }}>
+            Search is temporarily unavailable — please try again in a moment.
+          </p>
+        ) : query.length < 2 ? (
           <div className="text-center py-16">
             <p className="text-sm" style={{ color: "rgba(45,27,78,0.40)" }}>
               Find colleagues with shared interests
