@@ -427,7 +427,7 @@ export default function CardModal({ consultant, sourceRect, rosterSize, onClose 
                 {/* Past clients */}
                 {consultant.past_clients && (
                   <div>
-                    <p style={LABEL_STYLE}>Past Clients</p>
+                    <p style={LABEL_STYLE}>Past Clients / Employers</p>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
                       {consultant.past_clients.split(",").map((c) => c.trim()).filter(Boolean).map((client, i) => (
                         <span key={i} style={{

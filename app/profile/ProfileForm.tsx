@@ -113,9 +113,9 @@ export default function ProfileForm({
 
       {/* Past clients */}
       <div>
-        <label className="block text-sm font-medium text-[#2D1B4E] mb-1">Past clients</label>
+        <label className="block text-sm font-medium text-[#2D1B4E] mb-1">Past Clients / Employers</label>
         <p className="text-xs mb-2" style={{ color: "rgba(45,27,78,0.45)" }}>
-          Separate with commas — clients or engagements from previous work.
+          Separate with commas — clients, engagements, or employers from previous work.
         </p>
         <input
           type="text"
