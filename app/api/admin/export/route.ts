@@ -1,19 +1,14 @@
 import * as XLSX from "xlsx";
-import { auth } from "../../../../auth";
 import { sql } from "@/lib/db";
 import { BADGE_MAP } from "@/lib/badge-data";
-
-async function requireAdmin(): Promise<boolean> {
-  const session = await auth();
-  if (!session?.user?.email) return false;
-  const adminEmails = (process.env.ADMIN_EMAILS ?? "")
-    .split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
-  return adminEmails.includes(session.user.email.toLowerCase());
-}
+import { requireAdmin, AdminAuthError } from "@/lib/require-admin";
 
 export async function GET() {
-  if (!(await requireAdmin())) {
-    return new Response("Forbidden", { status: 403 });
+  try {
+    await requireAdmin();
+  } catch (error) {
+    const status = error instanceof AdminAuthError && error.message === "Unauthorized" ? 401 : 403;
+    return new Response(error instanceof AdminAuthError ? error.message : "Forbidden", { status });
   }
 
   // ── Fetch all data in parallel ────────────────────────────────────────────

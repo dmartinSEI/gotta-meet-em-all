@@ -3,22 +3,10 @@
 import * as XLSX from "xlsx";
 import { put } from "@vercel/blob";
 import { pool, sql } from "@/lib/db";
-import { auth } from "../../auth";
 import { revalidatePath } from "next/cache";
 import type { Consultant } from "@/lib/types";
 import { SURVEY_FIELD_MAP, SKIP_KEYS, SYSTEM_COLUMNS } from "@/lib/survey-fields";
-
-async function requireAdmin() {
-  const session = await auth();
-  if (!session?.user?.email) throw new Error("Unauthorized");
-
-  const adminEmails = (process.env.ADMIN_EMAILS ?? "")
-    .split(",")
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-
-  if (!adminEmails.includes(session.user.email.toLowerCase())) throw new Error("Forbidden");
-}
+import { requireAdmin, AdminAuthError } from "@/lib/require-admin";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
@@ -56,6 +44,7 @@ export async function saveConsultants(consultants: Consultant[]) {
     await requireAdmin();
     return await insertConsultants(consultants);
   } catch (error) {
+    if (error instanceof AdminAuthError) throw error;
     console.error("saveConsultants error:", error);
     return { success: false as const, error: "Failed to save to database." };
   }
@@ -86,6 +75,7 @@ export async function importConsultants(formData: FormData) {
 
     return await insertConsultants(rows);
   } catch (error) {
+    if (error instanceof AdminAuthError) throw error;
     console.error("importConsultants error:", error);
     return { success: false as const, error: "Import failed. Check the file format and try again." };
   }
@@ -152,6 +142,7 @@ export async function importSurveyData(formData: FormData) {
       unrecognizedColumns: [...unrecognizedColumns],
     };
   } catch (error) {
+    if (error instanceof AdminAuthError) throw error;
     console.error("importSurveyData error:", error);
     return { success: false as const, error: "Survey import failed. Check the file format and try again." };
   }
@@ -223,6 +214,7 @@ export async function importPhotos(formData: FormData) {
 
     return { success: true as const, matched, unmatched, errors };
   } catch (error) {
+    if (error instanceof AdminAuthError) throw error;
     console.error("importPhotos error:", error);
     return { success: false as const, error: "Photo import failed. Please try again." };
   }
@@ -253,7 +245,8 @@ export async function addConsultant(formData: FormData) {
     `;
     revalidatePath("/admin");
     return { success: true as const };
-  } catch {
+  } catch (error) {
+    if (error instanceof AdminAuthError) throw error;
     return { success: false as const, error: "Failed to add consultant." };
   }
 }
@@ -277,7 +270,8 @@ export async function updateConsultant(id: number, formData: FormData) {
     `;
     revalidatePath("/admin");
     return { success: true as const };
-  } catch {
+  } catch (error) {
+    if (error instanceof AdminAuthError) throw error;
     return { success: false as const, error: "Failed to update consultant." };
   }
 }
@@ -289,7 +283,8 @@ export async function setNewHire(id: number, value: boolean) {
     revalidatePath("/admin");
     revalidatePath("/", "layout");
     return { success: true as const };
-  } catch {
+  } catch (error) {
+    if (error instanceof AdminAuthError) throw error;
     return { success: false as const, error: "Failed to update new hire status." };
   }
 }
@@ -302,7 +297,8 @@ export async function deleteConsultant(id: number) {
     await sql`DELETE FROM consultants  WHERE id = ${id}`;
     revalidatePath("/admin");
     return { success: true as const };
-  } catch {
+  } catch (error) {
+    if (error instanceof AdminAuthError) throw error;
     return { success: false as const, error: "Failed to delete consultant." };
   }
 }
@@ -317,7 +313,8 @@ export async function resetUserProgress(userId: number) {
     await sql`DELETE FROM catches      WHERE user_id = ${userId}`;
     revalidatePath("/admin");
     return { success: true as const };
-  } catch {
+  } catch (error) {
+    if (error instanceof AdminAuthError) throw error;
     return { success: false as const, error: "Failed to reset progress." };
   }
 }
@@ -333,7 +330,8 @@ export async function removeUser(userId: number) {
     await sql`DELETE FROM users        WHERE id = ${userId}`;
     revalidatePath("/admin");
     return { success: true as const };
-  } catch {
+  } catch (error) {
+    if (error instanceof AdminAuthError) throw error;
     return { success: false as const, error: "Failed to remove user." };
   }
 }
