@@ -1,5 +1,3 @@
-import { existsSync } from "fs";
-import { join } from "path";
 import type { ConsultantRow } from "./types";
 import type { Rarity } from "./xp";
 
@@ -8,15 +6,16 @@ export const AVATAR_COLORS = [
   "#ec4899", "#14b8a6", "#6366f1", "#f43f5e",
 ] as const;
 
+// Add an entry here when an office image is not a .jpg
+const OFFICE_IMAGE_EXT: Record<string, string> = {
+  charlotte: "png",
+};
+
 export function officeImageSrc(office: string | null | undefined): string | null {
   if (!office) return null;
   const slug = office.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
-  for (const ext of ["jpg", "png", "webp"]) {
-    if (existsSync(join(process.cwd(), "public", "brand", "offices", `${slug}.${ext}`))) {
-      return `/brand/offices/${slug}.${ext}`;
-    }
-  }
-  return null;
+  const ext = OFFICE_IMAGE_EXT[slug] ?? "jpg";
+  return `/brand/offices/${slug}.${ext}`;
 }
 
 type Level = 1 | 2 | 3;
