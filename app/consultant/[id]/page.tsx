@@ -10,6 +10,7 @@ import CatchButton from "../../CatchButton";
 import BackLink from "./BackLink";
 import type { ConsultantRow } from "@/lib/types";
 import { getAllUserRanks } from "@/lib/ranks";
+import { getUserPoints } from "@/lib/points";
 
 
 const RARITY_RING: Record<Rarity, string> = {
@@ -36,7 +37,7 @@ export default async function ConsultantDossierPage({
   const consultantId = parseInt(id, 10);
   if (isNaN(consultantId)) redirect("/");
 
-  const [{ rows }, { rows: xpRows }, { rows: rosterRows }, rankMap] = await Promise.all([
+  const [{ rows }, viewerXp, { rows: rosterRows }, rankMap] = await Promise.all([
     sql<ConsultantRecord>`
       SELECT
         c.id, c.email, c.first_name, c.last_name, c.title, c.office, c.bio, c.skills,
@@ -55,31 +56,12 @@ export default async function ConsultantDossierPage({
            WHERE cu.email = c.email),
           '[]'::json
         ) AS badge_ids,
-        (
-          COALESCE((
-            SELECT SUM(CASE ca2.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END)
-            FROM catches ca2 JOIN users cu ON cu.id = ca2.user_id WHERE cu.email = c.email
-          ), 0)
-          + COALESCE((
-            SELECT SUM(b.bonus_xp) FROM bounties b JOIN users cu ON cu.id = b.user_id
-            WHERE cu.email = c.email AND b.completed_at IS NOT NULL
-          ), 0)
-        )::int AS consultant_xp
+        COALESCE(up.total_points, 0) AS consultant_xp
       FROM consultants c
+      LEFT JOIN user_points up ON up.email = c.email
       WHERE c.id = ${consultantId}
     `,
-    sql`
-      SELECT
-        COALESCE((
-          SELECT SUM(CASE ca.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END)
-          FROM catches ca WHERE ca.user_id = u.id
-        ), 0)::int
-        + COALESCE((
-          SELECT SUM(b.bonus_xp) FROM bounties b
-          WHERE b.user_id = u.id AND b.completed_at IS NOT NULL
-        ), 0)::int AS total_xp
-      FROM users u WHERE u.email = ${session.user.email}
-    `,
+    getUserPoints(session.user.email),
     sql`SELECT COUNT(*)::int AS n FROM consultants`,
     getAllUserRanks(),
   ]);
@@ -93,7 +75,6 @@ export default async function ConsultantDossierPage({
     alltime_rank: subjectRanks?.alltime_rank ?? null,
     monthly_rank: subjectRanks?.monthly_rank ?? null,
   };
-  const viewerXp      = (xpRows[0] as { total_xp: number } | undefined)?.total_xp ?? 0;
   const rosterSize    = (rosterRows[0] as { n: number } | undefined)?.n ?? 0;
   const viewerRarity  = getRarity(viewerXp, rosterSize);
   const subjectRarity = getRarity(consultant.consultant_xp, rosterSize);

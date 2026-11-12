@@ -20,7 +20,7 @@ export async function catchConsultant(consultantId: number, level: 1 | 2 | 3 = 1
       SELECT u.id, ${consultantId}, ${level}
       FROM users u
       WHERE u.email = ${session.user.email}
-        AND ${consultantId} != (SELECT id FROM consultants WHERE email = ${session.user.email})
+        AND ${consultantId} IS DISTINCT FROM (SELECT id FROM consultants WHERE email = ${session.user.email})
       ON CONFLICT (user_id, consultant_id) DO NOTHING
     `;
 

@@ -6,6 +6,7 @@ import ConsultantGrid from "../../ConsultantGrid";
 import type { ConsultantRow } from "@/lib/types";
 import { getRarity, RARITY_LABELS, HEADER_RARITY } from "@/lib/xp";
 import { getAllUserRanks } from "@/lib/ranks";
+import { officeImageSrc } from "@/lib/cards";
 
 interface OfficeRecord {
   name: string;
@@ -37,18 +38,10 @@ export default async function OfficePage({
     `,
     sql<GlobalStats>`
       SELECT
-        COALESCE((
-          SELECT SUM(CASE ca.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END)
-          FROM catches ca WHERE ca.user_id = u.id
-        ), 0)::int
-        + COALESCE((
-          SELECT SUM(b.bonus_xp) FROM bounties b
-          WHERE b.user_id = u.id AND b.completed_at IS NOT NULL
-        ), 0)::int
-        + COALESCE((SELECT COUNT(*)::int * 5 FROM onboarding_steps os WHERE os.user_id = u.id), 0) AS total_xp,
+        up.total_points AS total_xp,
         (SELECT COUNT(*)::int FROM consultants) AS roster_size
-      FROM users u
-      WHERE u.email = ${session.user.email}
+      FROM user_points up
+      WHERE up.email = ${session.user.email}
     `,
     getAllUserRanks(),
   ]);
@@ -78,17 +71,9 @@ export default async function OfficePage({
          WHERE cu.email = c.email),
         '[]'::json
       ) AS badge_ids,
-      (
-        COALESCE((
-          SELECT SUM(CASE ca2.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END)
-          FROM catches ca2 JOIN users cu ON cu.id = ca2.user_id WHERE cu.email = c.email
-        ), 0)
-        + COALESCE((
-          SELECT SUM(b.bonus_xp) FROM bounties b JOIN users cu ON cu.id = b.user_id
-          WHERE cu.email = c.email AND b.completed_at IS NOT NULL
-        ), 0)
-      )::int AS consultant_xp
+      COALESCE(up.total_points, 0) AS consultant_xp
     FROM consultants c
+    LEFT JOIN user_points up ON up.email = c.email
     WHERE c.office = ${office.name}
     ORDER BY c.last_name, c.first_name
   `;
@@ -218,7 +203,7 @@ export default async function OfficePage({
             consultants={rankedRows}
             rosterSize={globalRosterSize}
             officeName={office.name}
-            officeImageUrl={`/brand/offices/${office.slug}.jpg`}
+            officeImageUrl={officeImageSrc(office.name)}
           />
         )}
       </main>

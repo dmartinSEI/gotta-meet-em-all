@@ -14,13 +14,14 @@ import CardBgUpload from "./CardBgUpload";
 import BadgeGrid from "./BadgeGrid";
 import type { ConsultantRow, PreferredComm } from "@/lib/types";
 import { getAllUserRanks } from "@/lib/ranks";
+import { getUserPoints } from "@/lib/points";
 
 
 export default async function ProfilePage() {
   const session = await auth();
   if (!session?.user?.email) redirect("/api/auth/signin?callbackUrl=/profile");
 
-  const [{ rows: consultantRows }, { rows: badgeRows }, { rows: xpRows }, { rows: rosterRows }, { rows: catcherRows }, { rows: caughtRows }, rankMap] =
+  const [{ rows: consultantRows }, { rows: badgeRows }, totalXp, { rows: rosterRows }, { rows: catcherRows }, { rows: caughtRows }, rankMap] =
     await Promise.all([
       sql<{
         id: number; email: string;
@@ -43,20 +44,7 @@ export default async function ProfilePage() {
         WHERE u.email = ${session.user.email}
         ORDER BY ub.earned_at ASC
       `,
-      sql`
-        SELECT
-          COALESCE((
-            SELECT SUM(CASE ca.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END)
-            FROM catches ca WHERE ca.user_id = u.id
-          ), 0)::int
-          + COALESCE((
-            SELECT SUM(b.bonus_xp) FROM bounties b
-            WHERE b.user_id = u.id AND b.completed_at IS NOT NULL
-          ), 0)::int
-          + COALESCE((SELECT COUNT(*)::int * 5 FROM onboarding_steps os WHERE os.user_id = u.id), 0) AS total_xp
-        FROM users u
-        WHERE u.email = ${session.user.email}
-      `,
+      getUserPoints(session.user.email),
       sql`SELECT COUNT(*)::int AS n FROM consultants`,
       sql<CatcherRow>`
         SELECT c2.id, c2.first_name, c2.last_name, c2.photo_url, ca.level::int AS level
@@ -72,12 +60,11 @@ export default async function ProfilePage() {
         FROM catches ca
         JOIN users u ON u.id = ca.user_id
         WHERE u.email = ${session.user.email}
-          AND ca.consultant_id != (SELECT id FROM consultants WHERE email = ${session.user.email})
+          AND ca.consultant_id IS DISTINCT FROM (SELECT id FROM consultants WHERE email = ${session.user.email})
       `,
       getAllUserRanks(),
     ]);
 
-  const totalXp: number = (xpRows[0] as { total_xp: number } | undefined)?.total_xp ?? 0;
   const totalRoster: number = (rosterRows[0] as { n: number } | undefined)?.n ?? 0;
   const caughtCount: number = (caughtRows[0] as { caught_count: number } | undefined)?.caught_count ?? 0;
   const rarity = getRarity(totalXp, totalRoster);

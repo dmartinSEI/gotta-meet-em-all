@@ -198,7 +198,7 @@ export async function importPhotos(formData: FormData) {
       // Filename conventions:
       //   dmartin@sei.com.jpg       → base photo (photo_url)
       //   dmartin@sei.com_l1.jpg    → Introduced portrait (photo_url_l1)
-      //   dmartin@sei.com_l2.jpg    → Hung Out portrait   (photo_url_l2)
+      //   dmartin@sei.com_l2.jpg    → Collaborated portrait (photo_url_l2)
       //   dmartin@sei.com_l3.jpg    → Worked Together portrait (photo_url_l3)
       const nameWithoutExt = file.name.replace(/\.[^.]+$/, "").toLowerCase().trim();
       const levelMatch = nameWithoutExt.match(/^(.+)_(l[123])$/);
@@ -332,6 +332,9 @@ export async function resetUserProgress(userId: number) {
     await sql`DELETE FROM user_badges  WHERE user_id = ${userId}`;
     await sql`DELETE FROM catch_events WHERE user_id = ${userId}`;
     await sql`DELETE FROM catches      WHERE user_id = ${userId}`;
+    // Bounty bonuses count toward points; a fresh bounty is assigned on their next visit.
+    // Onboarding steps are kept: they reflect profile setup, which a reset doesn't undo.
+    await sql`DELETE FROM bounties     WHERE user_id = ${userId}`;
     revalidatePath("/admin");
     return { success: true as const };
   } catch (error) {

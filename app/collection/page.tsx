@@ -5,6 +5,7 @@ import { sql } from "@/lib/db";
 import type { ConsultantRow } from "@/lib/types";
 import { getRarity, RARITY_LABELS, HEADER_RARITY } from "@/lib/xp";
 import { getAllUserRanks } from "@/lib/ranks";
+import { getUserPoints } from "@/lib/points";
 import CollectionGallery from "./CollectionBinder";
 
 
@@ -12,7 +13,7 @@ export default async function CollectionPage() {
   const session = await auth();
   if (!session?.user?.email) redirect("/");
 
-  const [{ rows }, { rows: rosterRows }, { rows: officeTotalRows }, { rows: xpRows }, rankMap] = await Promise.all([
+  const [{ rows }, { rows: rosterRows }, { rows: officeTotalRows }, totalXp, rankMap] = await Promise.all([
     sql<ConsultantRow>`
       SELECT
         c.id, c.email, c.first_name, c.last_name, c.title, c.office, c.bio, c.skills,
@@ -27,19 +28,11 @@ export default async function CollectionPage() {
            WHERE cu.email = c.email),
           '[]'::json
         ) AS badge_ids,
-        (
-          COALESCE((
-            SELECT SUM(CASE ca2.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END)
-            FROM catches ca2 JOIN users cu ON cu.id = ca2.user_id WHERE cu.email = c.email
-          ), 0)
-          + COALESCE((
-            SELECT SUM(b.bonus_xp) FROM bounties b JOIN users cu ON cu.id = b.user_id
-            WHERE cu.email = c.email AND b.completed_at IS NOT NULL
-          ), 0)
-        )::int AS consultant_xp
+        COALESCE(up.total_points, 0) AS consultant_xp
       FROM consultants c
       JOIN catches ca ON ca.consultant_id = c.id
       JOIN users u ON u.id = ca.user_id
+      LEFT JOIN user_points up ON up.email = c.email
       WHERE u.email = ${session.user.email}
       ORDER BY c.office, c.last_name, c.first_name
     `,
@@ -49,20 +42,7 @@ export default async function CollectionPage() {
       FROM consultants
       GROUP BY office
     `,
-    sql`
-      SELECT
-        COALESCE((
-          SELECT SUM(CASE ca.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END)
-          FROM catches ca WHERE ca.user_id = u.id
-        ), 0)::int
-        + COALESCE((
-          SELECT SUM(b.bonus_xp) FROM bounties b
-          WHERE b.user_id = u.id AND b.completed_at IS NOT NULL
-        ), 0)::int
-        + COALESCE((SELECT COUNT(*)::int * 5 FROM onboarding_steps os WHERE os.user_id = u.id), 0) AS total_xp
-      FROM users u
-      WHERE u.email = ${session.user.email}
-    `,
+    getUserPoints(session.user.email),
     getAllUserRanks(),
   ]);
 
@@ -79,7 +59,6 @@ export default async function CollectionPage() {
       is_creator: adminEmails.has(c.email.toLowerCase()),
     };
   });
-  const totalXp: number = (xpRows[0] as { total_xp: number } | undefined)?.total_xp ?? 0;
 
   const totalsByOffice: Record<string, number> = {};
   officeTotalRows.forEach((r) => { totalsByOffice[r.office] = r.total; });

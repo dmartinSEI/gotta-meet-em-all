@@ -82,7 +82,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             <a href="${confirmUrl}" style="display:inline-block;padding:10px 20px;background:#2563eb;color:white;border-radius:6px;text-decoration:none;font-weight:bold;">
               Sign In
             </a>
-            <p style="color:#888;font-size:12px;margin-top:16px;">Link expires in 24 hours. If you did not request this, you can ignore it.</p>
+            <p style="color:#888;font-size:12px;margin-top:16px;">Link expires in 1 hour. If you did not request this, you can ignore it.</p>
           `,
         });
       },

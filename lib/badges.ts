@@ -136,16 +136,9 @@ export async function checkAndAwardBadges(email: string): Promise<BadgeInfo[]> {
     `,
     sql<XpStats>`
       SELECT
-        (COALESCE((
-          SELECT SUM(CASE ca.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END)
-          FROM catches ca WHERE ca.user_id = u.id
-        ), 0)
-        + COALESCE((
-          SELECT SUM(b.bonus_xp) FROM bounties b
-          WHERE b.user_id = u.id AND b.completed_at IS NOT NULL
-        ), 0))::int AS total_xp,
+        up.total_points AS total_xp,
         (SELECT COUNT(*)::int FROM consultants) AS roster_size
-      FROM users u WHERE u.email = ${email}
+      FROM user_points up WHERE up.email = ${email}
     `,
     // Mutual catches: user caught them AND they caught user
     sql<MutualStats>`
@@ -181,18 +174,10 @@ export async function checkAndAwardBadges(email: string): Promise<BadgeInfo[]> {
     // All-time rank
     sql<RankStats>`
       SELECT alltime_rank FROM (
-        SELECT u.email,
-          RANK() OVER (ORDER BY (
-            COALESCE(SUM(CASE ca.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END), 0)
-            + COALESCE((
-                SELECT SUM(b.bonus_xp) FROM bounties b
-                WHERE b.user_id = u.id AND b.completed_at IS NOT NULL
-              ), 0)
-          ) DESC)::int AS alltime_rank
-        FROM users u
-        JOIN consultants c ON c.email = u.email
-        LEFT JOIN catches ca ON ca.user_id = u.id
-        GROUP BY u.email, u.id
+        SELECT up.email,
+          RANK() OVER (ORDER BY up.total_points DESC)::int AS alltime_rank
+        FROM user_points up
+        JOIN consultants c ON c.email = up.email
       ) ranked
       WHERE email = ${email}
     `,

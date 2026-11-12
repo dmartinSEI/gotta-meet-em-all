@@ -13,19 +13,12 @@ export async function getAllUserRanks(): Promise<Map<string, UserRanks>> {
     alltime_xp: number;
     monthly_xp: number;
   }>`
-    WITH user_alltime AS (
-      SELECT
-        u.id,
-        u.email,
-        COALESCE(SUM(CASE ca.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END), 0)::int AS catch_xp
-      FROM users u
-      LEFT JOIN catches ca ON ca.user_id = u.id
-      GROUP BY u.id, u.email
-    ),
-    bounties_alltime AS (
-      SELECT user_id, COALESCE(SUM(bonus_xp), 0)::int AS bounty_xp
-      FROM bounties WHERE completed_at IS NOT NULL
-      GROUP BY user_id
+    -- Same population and formulas as the leaderboard page: players on the roster,
+    -- all-time from the user_points view, monthly from this month's events.
+    WITH players AS (
+      SELECT up.user_id AS id, up.email, up.total_points
+      FROM user_points up
+      JOIN consultants c ON c.email = up.email
     ),
     monthly_ce AS (
       SELECT user_id, COALESCE(SUM(xp_gained), 0)::int AS xp
@@ -39,17 +32,28 @@ export async function getAllUserRanks(): Promise<Map<string, UserRanks>> {
       WHERE completed_at IS NOT NULL AND completed_at >= date_trunc('month', now())
       GROUP BY user_id
     ),
+    monthly_onboarding AS (
+      SELECT user_id, (COUNT(*) * 5)::int AS xp
+      FROM onboarding_steps
+      WHERE completed_at >= date_trunc('month', now())
+      GROUP BY user_id
+    ),
+    totals AS (
+      SELECT
+        p.email,
+        p.total_points AS alltime_xp,
+        (COALESCE(mx.xp, 0) + COALESCE(mb.bounty_xp, 0) + COALESCE(mo.xp, 0)) AS monthly_xp
+      FROM players p
+      LEFT JOIN monthly_ce mx         ON mx.user_id = p.id
+      LEFT JOIN monthly_bounty mb     ON mb.user_id = p.id
+      LEFT JOIN monthly_onboarding mo ON mo.user_id = p.id
+    ),
     ranked AS (
       SELECT
-        a.email,
-        (a.catch_xp + COALESCE(ba.bounty_xp, 0)) AS alltime_xp,
-        (COALESCE(mx.xp, 0) + COALESCE(mb.bounty_xp, 0)) AS monthly_xp,
-        RANK() OVER (ORDER BY (a.catch_xp + COALESCE(ba.bounty_xp, 0)) DESC)::int AS alltime_rank,
-        RANK() OVER (ORDER BY (COALESCE(mx.xp, 0) + COALESCE(mb.bounty_xp, 0)) DESC)::int AS monthly_rank
-      FROM user_alltime a
-      LEFT JOIN bounties_alltime ba ON ba.user_id = a.id
-      LEFT JOIN monthly_ce mx ON mx.user_id = a.id
-      LEFT JOIN monthly_bounty mb ON mb.user_id = a.id
+        email, alltime_xp, monthly_xp,
+        RANK() OVER (ORDER BY alltime_xp DESC)::int AS alltime_rank,
+        RANK() OVER (ORDER BY monthly_xp DESC)::int AS monthly_rank
+      FROM totals
     )
     SELECT email, alltime_rank, monthly_rank, alltime_xp, monthly_xp
     FROM ranked

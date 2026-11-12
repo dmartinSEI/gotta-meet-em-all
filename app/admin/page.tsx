@@ -59,14 +59,12 @@ export default async function AdminPage({
         u.email,
         c.first_name,
         c.last_name,
-        COUNT(DISTINCT ca.id)::int                                                                       AS catch_count,
-        COALESCE(SUM(CASE ca.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END), 0)::int  AS total_xp,
-        COUNT(DISTINCT ub.badge_id)::int                                                                AS badge_count
+        (SELECT COUNT(*)::int FROM catches ca WHERE ca.user_id = u.id)                                  AS catch_count,
+        up.total_points                                                                                  AS total_xp,
+        (SELECT COUNT(*)::int FROM user_badges ub WHERE ub.user_id = u.id)                              AS badge_count
       FROM users u
-      LEFT JOIN consultants c  ON c.email = u.email
-      LEFT JOIN catches ca     ON ca.user_id = u.id
-      LEFT JOIN user_badges ub ON ub.user_id = u.id
-      GROUP BY u.id, u.email, c.first_name, c.last_name
+      JOIN user_points up     ON up.user_id = u.id
+      LEFT JOIN consultants c ON c.email = u.email
       ORDER BY total_xp DESC, u.email
     `;
     players = rows;
@@ -178,7 +176,7 @@ export default async function AdminPage({
               },
               {
                 sheet: "Player Rankings",
-                desc: "Every signed-in employee ranked by XP, with their office, title, meet breakdown (Delivered / Hung Out / Connected), badge count, and last active date.",
+                desc: "Every signed-in employee ranked by XP, with their office, title, meet breakdown (Delivered / Collaborated / Connected), badge count, and last active date.",
               },
               {
                 sheet: "By Office",

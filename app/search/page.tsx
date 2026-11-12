@@ -5,6 +5,8 @@ import { pool, sql } from "@/lib/db";
 import { getRarity, RARITY_LABELS, HEADER_RARITY } from "@/lib/xp";
 import type { ConsultantRow } from "@/lib/types";
 import SearchResultsGrid from "./SearchResultsGrid";
+import { getUserPoints } from "@/lib/points";
+import { getAllUserRanks } from "@/lib/ranks";
 
 interface SearchRow extends ConsultantRow {
   survey_data: Record<string, string> | null;
@@ -21,23 +23,11 @@ export default async function SearchPage({
   const { q } = await searchParams;
   const query = (q ?? "").trim();
 
-  const [{ rows: xpRows }, { rows: rosterRows }] = await Promise.all([
-    sql`
-      SELECT
-        COALESCE((
-          SELECT SUM(CASE ca.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END)
-          FROM catches ca WHERE ca.user_id = u.id
-        ), 0)::int
-        + COALESCE((
-          SELECT SUM(b.bonus_xp) FROM bounties b
-          WHERE b.user_id = u.id AND b.completed_at IS NOT NULL
-        ), 0)::int AS total_xp
-      FROM users u WHERE u.email = ${session.user.email}
-    `,
+  const [totalXp, { rows: rosterRows }] = await Promise.all([
+    getUserPoints(session.user.email),
     sql`SELECT COUNT(*)::int AS n FROM consultants`,
   ]);
 
-  const totalXp: number = (xpRows[0] as { total_xp: number } | undefined)?.total_xp ?? 0;
   const rosterSize: number = (rosterRows[0] as { n: number } | undefined)?.n ?? 0;
   const viewerRarity = getRarity(totalXp, rosterSize);
 
@@ -46,16 +36,14 @@ export default async function SearchPage({
   if (query.length >= 2) {
     const pattern = `%${query}%`;
     try {
-      const { rows } = await pool.query<SearchRow>(
+      const [{ rows }, rankMap] = await Promise.all([pool.query<SearchRow>(
         `SELECT
            c.id, c.email, c.first_name, c.last_name, c.title, c.office,
            c.bio, c.skills, c.survey_data,
            c.photo_url, c.photo_url_l1, c.photo_url_l2, c.photo_url_l3,
            c.card_bg_url, COALESCE(c.is_new_hire, false) AS is_new_hire,
-           COALESCE((
-             SELECT SUM(CASE ca2.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END)
-             FROM catches ca2 JOIN users cu ON cu.id = ca2.user_id WHERE cu.email = c.email
-           ), 0)::int AS consultant_xp,
+           c.preferred_comm, c.current_client, c.past_clients,
+           COALESCE(up.total_points, 0) AS consultant_xp,
            (SELECT ca.level FROM catches ca
             JOIN users u ON u.id = ca.user_id
             WHERE ca.consultant_id = c.id AND u.email = $2) AS catch_level,
@@ -63,13 +51,9 @@ export default async function SearchPage({
            COALESCE(
              (SELECT json_agg(ub.badge_id) FROM user_badges ub JOIN users cu ON cu.id = ub.user_id WHERE cu.email = c.email),
              '[]'::json
-           ) AS badge_ids,
-           NULL::int AS alltime_rank,
-           NULL::int AS monthly_rank,
-           NULL::text AS preferred_comm,
-           NULL::text AS current_client,
-           NULL::text AS past_clients
+           ) AS badge_ids
          FROM consultants c
+         LEFT JOIN user_points up ON up.email = c.email
          WHERE (
            c.bio ILIKE $1
            OR c.survey_data::text ILIKE $1
@@ -78,11 +62,19 @@ export default async function SearchPage({
          ORDER BY c.first_name, c.last_name
          LIMIT 30`,
         [pattern, session.user.email]
-      );
+      ), getAllUserRanks()]);
       const adminEmails = new Set(
         (process.env.ADMIN_EMAILS ?? "").split(",").map(e => e.trim().toLowerCase())
       );
-      results = rows.map(r => ({ ...r, is_creator: adminEmails.has(r.email.toLowerCase()) }));
+      results = rows.map(r => {
+        const rank = rankMap.get(r.email);
+        return {
+          ...r,
+          alltime_rank: rank?.alltime_rank ?? null,
+          monthly_rank: rank?.monthly_rank ?? null,
+          is_creator: adminEmails.has(r.email.toLowerCase()),
+        };
+      });
     } catch (err) {
       console.error("Search query failed:", err);
       searchError = true;

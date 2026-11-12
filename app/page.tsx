@@ -6,6 +6,7 @@ import type { OfficeRow } from "@/lib/types";
 import { getRarity, RARITY_LABELS, HEADER_RARITY } from "@/lib/xp";
 import { officeImageSrc } from "@/lib/cards";
 import { getOrAssignBounty } from "@/lib/bounty";
+import { getUserPoints } from "@/lib/points";
 import BountyCard from "./BountyCard";
 import OnboardingChecklist from "./OnboardingChecklist";
 
@@ -27,7 +28,7 @@ export default async function HomePage() {
     );
   }
 
-  const [{ rows: officeRows }, { rows: xpRows }, bounty] = await Promise.all([
+  const [{ rows: officeRows }, totalXp, bounty] = await Promise.all([
     sql<OfficeRow>`
       SELECT
         o.name,
@@ -44,24 +45,10 @@ export default async function HomePage() {
       GROUP BY o.name, o.slug, o.description, o.sort_order
       ORDER BY o.sort_order
     `,
-    sql`
-      SELECT
-        COALESCE((
-          SELECT SUM(CASE ca.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END)
-          FROM catches ca WHERE ca.user_id = u.id
-        ), 0)::int
-        + COALESCE((
-          SELECT SUM(b.bonus_xp) FROM bounties b
-          WHERE b.user_id = u.id AND b.completed_at IS NOT NULL
-        ), 0)::int
-        + COALESCE((SELECT COUNT(*)::int * 5 FROM onboarding_steps os WHERE os.user_id = u.id), 0) AS total_xp
-      FROM users u
-      WHERE u.email = ${session.user.email}
-    `,
+    getUserPoints(session.user.email),
     getOrAssignBounty(session.user.email),
   ]);
 
-  const totalXp: number = (xpRows[0] as { total_xp: number } | undefined)?.total_xp ?? 0;
   const globalRosterSize = officeRows.reduce((sum, o) => sum + o.total_count, 0);
   const rarity           = getRarity(totalXp, globalRosterSize);
 

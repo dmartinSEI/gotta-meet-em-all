@@ -22,33 +22,32 @@ export async function GET() {
           (SELECT COUNT(*)::int FROM users)                           AS total_players,
           (SELECT COUNT(*)::int FROM catches)                         AS total_meets,
           (SELECT COUNT(*)::int FROM catches WHERE level = 3)         AS delivered,
-          (SELECT COUNT(*)::int FROM catches WHERE level = 2)         AS hung_out,
+          (SELECT COUNT(*)::int FROM catches WHERE level = 2)         AS collaborated,
           (SELECT COUNT(*)::int FROM catches WHERE level = 1)         AS connected,
           (SELECT COUNT(*)::int FROM user_badges)                     AS total_badges_awarded
       `,
 
       // Per-player stats, ranked by XP
+      // Badges are counted in a subquery (not joined) so meets aren't multiplied by badge count.
       sql`
         SELECT
-          RANK() OVER (
-            ORDER BY COALESCE(SUM(CASE ca.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END), 0) DESC
-          )::int                                                                      AS rank,
+          RANK() OVER (ORDER BY up.total_points DESC)::int                           AS rank,
           COALESCE(c.first_name || ' ' || c.last_name, u.email)                      AS name,
           u.email,
           COALESCE(c.office, '')                                                      AS office,
           COALESCE(c.title,  '')                                                      AS title,
           COUNT(ca.id)::int                                                           AS total_meets,
-          SUM(CASE WHEN ca.level = 3 THEN 1 ELSE 0 END)::int                         AS delivered,
-          SUM(CASE WHEN ca.level = 2 THEN 1 ELSE 0 END)::int                         AS hung_out,
-          SUM(CASE WHEN ca.level = 1 THEN 1 ELSE 0 END)::int                         AS connected,
-          COALESCE(SUM(CASE ca.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END), 0)::int AS total_xp,
-          COUNT(DISTINCT ub.badge_id)::int                                            AS badges_earned,
+          COUNT(*) FILTER (WHERE ca.level = 3)::int                                   AS delivered,
+          COUNT(*) FILTER (WHERE ca.level = 2)::int                                   AS collaborated,
+          COUNT(*) FILTER (WHERE ca.level = 1)::int                                   AS connected,
+          up.total_points                                                             AS total_xp,
+          (SELECT COUNT(*)::int FROM user_badges ub WHERE ub.user_id = u.id)          AS badges_earned,
           TO_CHAR(MAX(ca.caught_at), 'YYYY-MM-DD')                                   AS last_active
         FROM users u
+        JOIN user_points up      ON up.user_id = u.id
         LEFT JOIN consultants c  ON c.email = u.email
         LEFT JOIN catches ca     ON ca.user_id = u.id
-        LEFT JOIN user_badges ub ON ub.user_id = u.id
-        GROUP BY u.id, u.email, c.first_name, c.last_name, c.office, c.title
+        GROUP BY u.id, u.email, c.first_name, c.last_name, c.office, c.title, up.total_points
         ORDER BY total_xp DESC
       `,
 
@@ -137,7 +136,7 @@ export async function GET() {
     ["ACTIVITY"],
     ["Total Meets Logged",           totalMeets],
     ["  Delivered Relationships",    ov.delivered],
-    ["  Hung Out",                   ov.hung_out],
+    ["  Collaborated",               ov.collaborated],
     ["  Connected",                  ov.connected],
     ["Avg Meets per Active Player",  Number(avgMeets)],
     ["Cross-Office Connections",     crossOffice],
@@ -152,12 +151,12 @@ export async function GET() {
   // ── Sheet 2: Player Rankings ──────────────────────────────────────────────
   const rankHeaders = [
     "Rank", "Name", "Email", "Office", "Title",
-    "Total Meets", "Delivered", "Hung Out", "Connected",
-    "Total XP", "Badges Earned", "Last Active",
+    "Total Meets", "Delivered", "Collaborated", "Connected",
+    "Total Points", "Badges Earned", "Last Active",
   ];
   const rankRows = (rankingsRes.rows as Record<string, unknown>[]).map((r) => [
     r.rank, r.name, r.email, r.office, r.title,
-    r.total_meets, r.delivered, r.hung_out, r.connected,
+    r.total_meets, r.delivered, r.collaborated, r.connected,
     r.total_xp, r.badges_earned, r.last_active ?? "Never",
   ]);
   const wsRankings = XLSX.utils.aoa_to_sheet([rankHeaders, ...rankRows]);

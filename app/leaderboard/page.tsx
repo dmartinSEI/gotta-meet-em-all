@@ -91,8 +91,8 @@ export default async function LeaderboardPage({
     ? (queryParams.push(officeFilter), `WHERE c.office = $1`)
     : "";
 
-  // All-time: sum pts from catches (current level). Monthly: sum from catch_events
-  // this month (captures upgrade deltas recorded at upgrade time) + bounty pts.
+  // All-time: the user_points view (meets + bounties + onboarding). Monthly: catch_events
+  // this month (captures upgrade deltas recorded at upgrade time) + bounty + onboarding pts.
   const xpExpr = isMonthly
     ? `COALESCE((
          SELECT SUM(ce.xp_gained) FROM catch_events ce
@@ -105,14 +105,7 @@ export default async function LeaderboardPage({
              AND b.completed_at >= date_trunc('month', now())
          ), 0)::int
        + COALESCE((SELECT COUNT(*)::int * 5 FROM onboarding_steps os WHERE os.user_id = u.id AND os.completed_at >= date_trunc('month', now())), 0)`
-    : `COALESCE(SUM(
-         CASE ca.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END
-       ), 0)::int
-       + COALESCE((
-           SELECT SUM(b.bonus_xp) FROM bounties b
-           WHERE b.user_id = u.id AND b.completed_at IS NOT NULL
-         ), 0)::int
-       + COALESCE((SELECT COUNT(*)::int * 5 FROM onboarding_steps os WHERE os.user_id = u.id), 0)`;
+    : `up.total_points`;
 
   const metExpr = isMonthly
     ? `COALESCE((
@@ -138,9 +131,10 @@ export default async function LeaderboardPage({
         (SELECT COUNT(*)::int FROM consultants) AS roster_size
       FROM consultants c
       JOIN users u ON u.email = c.email
+      JOIN user_points up ON up.user_id = u.id
       ${catchesJoin}
       ${officeWhere}
-      GROUP BY c.id, c.first_name, c.last_name, c.email, c.office, c.photo_url, u.id
+      GROUP BY c.id, c.first_name, c.last_name, c.email, c.office, c.photo_url, u.id, up.total_points
       ORDER BY total_xp DESC, total_met DESC, c.last_name, c.first_name
     `, queryParams),
 
@@ -148,17 +142,9 @@ export default async function LeaderboardPage({
 
     sql`
       SELECT
-        COALESCE((
-          SELECT SUM(CASE ca.level WHEN 1 THEN 10 WHEN 2 THEN 25 WHEN 3 THEN 50 ELSE 0 END)
-          FROM catches ca WHERE ca.user_id = u.id
-        ), 0)::int
-        + COALESCE((
-          SELECT SUM(b.bonus_xp) FROM bounties b
-          WHERE b.user_id = u.id AND b.completed_at IS NOT NULL
-        ), 0)::int
-        + COALESCE((SELECT COUNT(*)::int * 5 FROM onboarding_steps os WHERE os.user_id = u.id), 0) AS total_xp,
+        up.total_points AS total_xp,
         (SELECT COUNT(*)::int FROM consultants) AS roster_size
-      FROM users u WHERE u.email = ${session.user.email}
+      FROM user_points up WHERE up.email = ${session.user.email}
     `,
 
     sql`
