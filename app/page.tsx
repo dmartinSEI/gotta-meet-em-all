@@ -9,6 +9,7 @@ import { getOrAssignBounty } from "@/lib/bounty";
 import { getUserPoints } from "@/lib/points";
 import BountyCard from "./BountyCard";
 import OnboardingChecklist from "./OnboardingChecklist";
+import BetaNotice from "./BetaNotice";
 
 export default async function HomePage() {
   const session = await auth();
@@ -111,6 +112,7 @@ export default async function HomePage() {
       {/* ── Content ─────────────────────────────────────────────── */}
       <main className="max-w-5xl mx-auto px-4 md:px-8 py-8">
 
+        <BetaNotice />
         <OnboardingChecklist email={session.user.email} />
         {bounty && <BountyCard bounty={bounty} />}
 
